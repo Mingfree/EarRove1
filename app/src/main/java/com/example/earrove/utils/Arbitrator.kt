@@ -1,12 +1,15 @@
 package com.example.earrove.utils
 
+import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.example.earrove.R
 
 class Arbitrator(
+    private val context: Context,
     private val ttsManager: TTSManager,
     private val vibrationManager: VibrationManager
 ) {
@@ -49,7 +52,7 @@ class Arbitrator(
 
     fun announceObstacle(obstacleType: String) {
         speakWithPriority(
-            "前方${obstacleType}，请注意避让",
+            context.getString(R.string.arb_obstacle_template, obstacleType),
             Priority.OBSTACLE,
             { vibrationManager.vibrateForObstacle() }
         )
@@ -57,7 +60,7 @@ class Arbitrator(
 
     fun announceTurn(direction: String, distance: Int) {
         speakWithPriority(
-            "前方${distance}米${direction}",
+            context.getString(R.string.arb_turn_template, distance, direction),
             Priority.NAVIGATION,
             { vibrationManager.vibrateForTurn(direction) }
         )
@@ -65,7 +68,7 @@ class Arbitrator(
 
     fun announceTrafficLight(status: String, countdown: Int) {
         speakWithPriority(
-            "${status}，还有${countdown}秒",
+            context.getString(R.string.arb_traffic_light_template, status, countdown),
             Priority.NAVIGATION,
             { vibrationManager.vibrateForTrafficLight() }
         )
@@ -73,7 +76,7 @@ class Arbitrator(
 
     fun announceDestination(destination: String) {
         speakWithPriority(
-            "已到达${destination}",
+            context.getString(R.string.arb_destination_template, destination),
             Priority.INFO,
             null
         )
@@ -81,7 +84,12 @@ class Arbitrator(
 
     fun announceRouteStart(destination: String, distance: Int, duration: Int) {
         speakWithPriority(
-            "开始导航前往$destination，全程${distance}米，预计需要${duration}分钟",
+            context.getString(
+                R.string.arb_route_start_template,
+                destination,
+                distance,
+                duration
+            ),
             Priority.NAVIGATION,
             null
         )
@@ -90,10 +98,11 @@ class Arbitrator(
 
 @Composable
 fun rememberArbitrator(
+    context: Context,
     ttsManager: TTSManager,
     vibrationManager: VibrationManager
 ): Arbitrator {
     return remember {
-        Arbitrator(ttsManager, vibrationManager)
+        Arbitrator(context, ttsManager, vibrationManager)
     }
 }

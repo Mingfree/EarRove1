@@ -35,7 +35,8 @@ fun StartupConfigAndPermissionGate(
     onReady: @Composable () -> Unit
 ) {
     var recheckToken by remember { mutableStateOf(0) }
-    val configCheck = remember(recheckToken) { ConfigValidator.checkEssentialConfig() }
+    val context = LocalContext.current
+    val configCheck = remember(recheckToken) { ConfigValidator.checkEssentialConfig(context) }
 
     if (!configCheck.isOk) {
         ConfigMissingScreen(
@@ -46,7 +47,6 @@ fun StartupConfigAndPermissionGate(
     }
 
     // 配置正常后，再做权限自检/引导
-    val context = LocalContext.current
     var proceedAnyway by remember { mutableStateOf(false) }
     val hasAllPermissions =
         PermissionUtils.hasLocationPermission(context) &&

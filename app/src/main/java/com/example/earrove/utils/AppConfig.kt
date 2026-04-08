@@ -39,11 +39,7 @@ object AppConfig {
 
     // ==================== 导航提示语 ====================
 
-    const val WELCOME_MESSAGE = "欢迎使用智能导航"
-    const val ARRIVAL_MESSAGE = "已到达目的地"
-    const val PAUSE_MESSAGE = "导航已暂停"
-    const val RESUME_MESSAGE = "继续导航"
-    const val STOP_MESSAGE = "导航已结束"
+    // 导航 TTS 文案历史上曾由常量承载；目前统一由页面/仲裁器通过 strings.xml 提供。
 
     // ==================== DestinationExtractor 提示词 ====================
 

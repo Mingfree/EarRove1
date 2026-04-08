@@ -592,7 +592,7 @@ fun NavigationScreen(
     val ttsManager = rememberTTSManager()
     val vibrationManager = rememberVibrationManager()
     val speechRecognizer = rememberSpeechRecognizer()
-    val arbitrator = rememberArbitrator(ttsManager, vibrationManager)
+    val arbitrator = rememberArbitrator(context, ttsManager, vibrationManager)
 
     // 初始化导航服务
     val navigationService = remember { NavigationService(context) }

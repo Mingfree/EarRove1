@@ -200,6 +200,19 @@
 
     <string name="nav_location_manager_create_failed">创建定位管理器失败：%1$s</string>
 
+    <!-- ConfigValidator (startup missing config items) -->
+    <string name="cfg_missing_dashscope">DashScope 语音识别：DASHSCOPE_API_KEY</string>
+    <string name="cfg_missing_baidu_map">百度地图导航：BAIDU_MAP_API_KEY</string>
+    <string name="cfg_missing_baidu_tts">百度 TTS 语音播报：BAIDU_TTS_API_KEY / BAIDU_TTS_SECRET_KEY</string>
+    <string name="cfg_missing_ark">火山引擎 Ark：ARK_API_KEY（地址解析/目的地提取）</string>
+
+    <!-- Arbitrator (navigation/a11y TTS templates) -->
+    <string name="arb_obstacle_template">前方%1$s，请注意避让</string>
+    <string name="arb_turn_template">前方%1$d米%2$s</string>
+    <string name="arb_traffic_light_template">%1$s，还有%2$d秒</string>
+    <string name="arb_destination_template">已到达%1$s</string>
+    <string name="arb_route_start_template">开始导航前往%1$s，全程%2$d米，预计需要%3$d分钟</string>
+
     <!-- Navigation turn directions -->
     <string name="nav_turn_left">左转</string>
     <string name="nav_turn_right">右转</string>

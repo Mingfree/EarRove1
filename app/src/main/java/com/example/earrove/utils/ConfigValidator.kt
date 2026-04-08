@@ -1,6 +1,8 @@
 package com.example.earrove.utils
 
+import android.content.Context
 import com.example.earrove.BuildConfig
+import com.example.earrove.R
 
 /**
  * 启动自检：检查关键三方能力所需配置是否仍为占位符。
@@ -25,27 +27,27 @@ object ConfigValidator {
         return v.isBlank() || v.startsWith("YOUR-")
     }
 
-    fun checkEssentialConfig(): CheckResult {
+    fun checkEssentialConfig(context: Context): CheckResult {
         val missing = mutableListOf<String>()
 
         if (isDashScopeMissing()) {
-            missing += "DashScope 语音识别：DASHSCOPE_API_KEY"
+            missing += context.getString(R.string.cfg_missing_dashscope)
         }
 
         val mapKey = BuildConfig.BAIDU_MAP_API_KEY
         if (isYourMissing(mapKey)) {
-            missing += "百度地图导航：BAIDU_MAP_API_KEY"
+            missing += context.getString(R.string.cfg_missing_baidu_map)
         }
 
         val baiduTtsApiKey = BuildConfig.BAIDU_TTS_API_KEY
         val baiduTtsSecretKey = BuildConfig.BAIDU_TTS_SECRET_KEY
         if (isYourMissing(baiduTtsApiKey) || isYourMissing(baiduTtsSecretKey)) {
-            missing += "百度 TTS 语音播报：BAIDU_TTS_API_KEY / BAIDU_TTS_SECRET_KEY"
+            missing += context.getString(R.string.cfg_missing_baidu_tts)
         }
 
         val arkApiKey = BuildConfig.ARK_API_KEY
         if (isYourMissing(arkApiKey)) {
-            missing += "火山引擎 Ark：ARK_API_KEY（地址解析/目的地提取）"
+            missing += context.getString(R.string.cfg_missing_ark)
         }
 
         return CheckResult(

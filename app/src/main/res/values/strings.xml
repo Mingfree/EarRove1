@@ -85,4 +85,47 @@
     <string name="ocr_take_photo_failed_with_msg">拍照失败：%1$s</string>
     <string name="ocr_read_image_failed">无法读取图片</string>
     <string name="ocr_decode_image_failed">图片解码失败</string>
+
+    <!-- Navigation (P2-T1 partial) -->
+    <string name="nav_perm_denied_title">权限已被永久拒绝</string>
+    <string name="nav_perm_denied_body">请在系统设置中开启权限后重试，否则导航可能不可用。</string>
+    <string name="nav_perm_denied_open_settings">去系统设置开启权限</string>
+    <string name="nav_perm_denied_back_home">返回首页</string>
+
+    <string name="nav_privacy_need">请先同意百度地图隐私政策才能使用导航功能</string>
+    <string name="nav_sdk_init_failed">百度地图SDK初始化失败：%1$s</string>
+    <string name="nav_location_unavailable">定位服务不可用，请检查隐私政策设置</string>
+    <string name="nav_service_init_failed">导航服务初始化失败：%1$s</string>
+    <string name="nav_unknown_error">未知错误</string>
+    <string name="nav_location_error_a11y">定位服务错误</string>
+    <string name="nav_service_init_failed_title">导航服务初始化失败</string>
+    <string name="nav_go_privacy_settings">前往设置隐私政策</string>
+    <string name="nav_retry_init">重试初始化</string>
+
+    <!-- Navigation standby screen (P2-T1 partial) -->
+    <string name="nav_standby_top_title">智能导航</string>
+    <string name="nav_privacy_need_speak">请先同意隐私政策才能使用导航功能</string>
+    <string name="nav_current_location_label">当前位置</string>
+    <string name="nav_locating_text">正在定位...</string>
+    <string name="nav_mic_a11y_desc">双击开始语音输入目的地</string>
+    <string name="nav_mic_icon_desc">语音输入</string>
+    <string name="nav_standby_prompt_title">请点击麦克风说出目的地</string>
+    <string name="nav_standby_prompt_a11y">请点击麦克风说出目的地，如需更改目的地请点击结束导航按钮</string>
+    <string name="nav_standby_prompt_hint">可描述您的目的地，比如：导航到最近的火车站</string>
+    <string name="nav_show_recommended_destinations">显示推荐目的地</string>
+    <string name="nav_hide_recommended_destinations">隐藏推荐目的地</string>
+    <string name="nav_parse_address_fail_speak">地址解析失败，请重试</string>
+    <string name="nav_change_destination_speak">请说出新的目的地</string>
+    <string name="nav_change_destination_a11y">点击此处更改目的地</string>
+
+    <!-- Navigation recommended destinations -->
+    <string name="nav_recommended_destinations">推荐目的地:</string>
+    <string name="nav_suggest_1">中央民族大学</string>
+    <string name="nav_suggest_2">北京西站</string>
+    <string name="nav_suggest_3">天安门广场</string>
+    <string name="nav_suggest_4">颐和园</string>
+    <string name="nav_suggest_5">王府井</string>
+    <string name="nav_suggest_6">三里屯</string>
+    <string name="nav_suggest_7">国家体育场</string>
+    <string name="nav_suggest_8">北京大学</string>
 </resources>

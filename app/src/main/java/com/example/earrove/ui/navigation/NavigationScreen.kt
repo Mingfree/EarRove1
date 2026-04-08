@@ -68,6 +68,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,6 +96,7 @@ import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
 import com.example.earrove.ui.theme.WarningOrange
+import com.example.earrove.R
 import com.example.earrove.utils.Arbitrator
 import com.example.earrove.utils.BaiduMapUtils
 import com.example.earrove.utils.DestinationExtractor
@@ -157,18 +159,6 @@ class NavigationViewModel : androidx.lifecycle.ViewModel() {
     val mapView = mutableStateOf<MapView?>(null)
     val baiduMap = mutableStateOf<BaiduMap?>(null)
     val isLocationStarted = mutableStateOf(false)
-
-    // 模拟目的地列表（用于测试）
-    val destinationSuggestions = listOf(
-        "中央民族大学",
-        "北京西站",
-        "天安门广场",
-        "颐和园",
-        "王府井",
-        "三里屯",
-        "国家体育场",
-        "北京大学"
-    )
 }
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -190,6 +180,18 @@ fun NavigationScreen(
     var permissionsGranted by remember { mutableStateOf(false) }
     var permissionPermanentlyDenied by remember { mutableStateOf(false) }
 
+    // 推荐目的地（移出 ViewModel，避免硬编码与便于多语言资源化）
+    val destinationSuggestions = listOf(
+        stringResource(id = R.string.nav_suggest_1),
+        stringResource(id = R.string.nav_suggest_2),
+        stringResource(id = R.string.nav_suggest_3),
+        stringResource(id = R.string.nav_suggest_4),
+        stringResource(id = R.string.nav_suggest_5),
+        stringResource(id = R.string.nav_suggest_6),
+        stringResource(id = R.string.nav_suggest_7),
+        stringResource(id = R.string.nav_suggest_8),
+    )
+
     if (!permissionsGranted) {
         if (permissionPermanentlyDenied) {
             // Don’t ask again：引导用户手动到系统设置开启权限
@@ -197,17 +199,22 @@ fun NavigationScreen(
                 modifier = Modifier.fillMaxSize().background(PureBlack),
                 contentAlignment = Alignment.Center
             ) {
+                val permDeniedTitle = stringResource(id = R.string.nav_perm_denied_title)
+                val permDeniedBody = stringResource(id = R.string.nav_perm_denied_body)
+                val permDeniedOpenSettings = stringResource(id = R.string.nav_perm_denied_open_settings)
+                val permDeniedBackHome = stringResource(id = R.string.nav_perm_denied_back_home)
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "权限已被永久拒绝",
+                        text = permDeniedTitle,
                         color = PremiumGold,
                         style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
-                        text = "请在系统设置中开启权限后重试，否则导航可能不可用。",
+                        text = permDeniedBody,
                         color = PureWhite,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -225,7 +232,7 @@ fun NavigationScreen(
                         ),
                         modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
-                        Text("去系统设置开启权限")
+                        Text(permDeniedOpenSettings)
                     }
 
                     Button(
@@ -238,7 +245,7 @@ fun NavigationScreen(
                         ),
                         modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
-                        Text("返回首页")
+                        Text(permDeniedBackHome)
                     }
                 }
             }
@@ -975,6 +982,32 @@ private fun StandbyScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showSuggestions by remember { mutableStateOf(false) }
+    val destinationSuggestions = listOf(
+        stringResource(id = R.string.nav_suggest_1),
+        stringResource(id = R.string.nav_suggest_2),
+        stringResource(id = R.string.nav_suggest_3),
+        stringResource(id = R.string.nav_suggest_4),
+        stringResource(id = R.string.nav_suggest_5),
+        stringResource(id = R.string.nav_suggest_6),
+        stringResource(id = R.string.nav_suggest_7),
+        stringResource(id = R.string.nav_suggest_8),
+    )
+
+    val standbyTopTitle = stringResource(id = R.string.nav_standby_top_title)
+    val privacyNeedSpeak = stringResource(id = R.string.nav_privacy_need_speak)
+    val currentLocationLabel = stringResource(id = R.string.nav_current_location_label)
+    val locatingText = stringResource(id = R.string.nav_locating_text)
+    val micA11yDesc = stringResource(id = R.string.nav_mic_a11y_desc)
+    val micIconDesc = stringResource(id = R.string.nav_mic_icon_desc)
+    val standbyPromptTitle = stringResource(id = R.string.nav_standby_prompt_title)
+    val standbyPromptA11y = stringResource(id = R.string.nav_standby_prompt_a11y)
+    val standbyPromptHint = stringResource(id = R.string.nav_standby_prompt_hint)
+    val showSuggestionsText = stringResource(id = R.string.nav_show_recommended_destinations)
+    val hideSuggestionsText = stringResource(id = R.string.nav_hide_recommended_destinations)
+    val parseAddressFailSpeak = stringResource(id = R.string.nav_parse_address_fail_speak)
+    val changeDestinationSpeak = stringResource(id = R.string.nav_change_destination_speak)
+    val changeDestinationA11y = stringResource(id = R.string.nav_change_destination_a11y)
+
     val micScale by animateFloatAsState(
         targetValue = if (viewModel.navigationState.value == NavigationState.LISTENING) 1.2f else 1f,
         label = "micScale"
@@ -990,14 +1023,14 @@ private fun StandbyScreen(
         val privacyAgreed = PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context)
         if (!privacyAgreed) {
             // 如果未同意，显示提示
-            ttsManager.speak("请先同意隐私政策才能使用导航功能")
+            ttsManager.speak(privacyNeedSpeak)
         }
     }
 
     Scaffold(
         topBar = {
             EarRoveTopAppBar(
-                title = "智能导航",
+                title = standbyTopTitle,
                 onNavigateUp = { navController.navigateUp() }
             )
         }
@@ -1066,18 +1099,18 @@ private fun StandbyScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = "当前位置",
+                                contentDescription = currentLocationLabel,
                                 tint = PremiumGold
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
-                                    text = "当前位置",
+                                    text = currentLocationLabel,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = PureWhite.copy(alpha = 0.7f)
                                 )
                                 Text(
-                                    text = location.addrStr ?: "正在定位...",
+                                    text = location.addrStr ?: locatingText,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = PureWhite,
                                     maxLines = 1
@@ -1106,13 +1139,13 @@ private fun StandbyScreen(
                                 .background(PremiumGold.copy(alpha = 0.2f))
                                 .clickable { onMicClick() }
                                 .semantics {
-                                    contentDescription = "双击开始语音输入目的地"
+                                    contentDescription = micA11yDesc
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Mic,
-                                contentDescription = "语音输入",
+                                contentDescription = micIconDesc,
                                 tint = PremiumGold,
                                 modifier = Modifier
                                     .size(60.dp)
@@ -1124,20 +1157,20 @@ private fun StandbyScreen(
 
                         // 提示文字
                         Text(
-                            text = "请点击麦克风说出目的地",
+                            text = standbyPromptTitle,
                             style = MaterialTheme.typography.headlineMedium,
                             color = PureWhite,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .semantics {
-                                    contentDescription = "请点击麦克风说出目的地，如需更改目的地请点击结束导航按钮"
+                                    contentDescription = standbyPromptA11y
                                 }
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "可描述您的目的地，比如：导航到最近的火车站",
+                            text = standbyPromptHint,
                             style = MaterialTheme.typography.bodyLarge,
                             color = PureWhite.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
@@ -1153,7 +1186,9 @@ private fun StandbyScreen(
                                 contentColor = PureBlack
                             )
                         ) {
-                            Text(text = if (showSuggestions) "隐藏推荐目的地" else "显示推荐目的地")
+                            Text(
+                                text = if (showSuggestions) hideSuggestionsText else showSuggestionsText
+                            )
                         }
 
                         // 目的地建议列表
@@ -1170,13 +1205,13 @@ private fun StandbyScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "推荐目的地:",
+                                    text = stringResource(id = R.string.nav_recommended_destinations),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = PremiumGold,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
-                                viewModel.destinationSuggestions.chunked(2).forEach { rowItems ->
+                                destinationSuggestions.chunked(2).forEach { rowItems ->
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -1208,7 +1243,7 @@ private fun StandbyScreen(
                                                                 }
                                                             }
                                                         } catch (e: Exception) {
-                                                            ttsManager.speak("地址解析失败，请重试")
+                                                            ttsManager.speak(parseAddressFailSpeak)
                                                         }
                                                     }
                                                 }
@@ -1235,11 +1270,11 @@ private fun StandbyScreen(
                         .clickable(
                             onClick = {
                                 // 单击逻辑
-                                ttsManager.speak("请说出新的目的地")
+                                ttsManager.speak(changeDestinationSpeak)
                             }
                         )
                         .semantics {
-                            contentDescription = "点击此处更改目的地"
+                            contentDescription = changeDestinationA11y
                         }
                 ) {
                     // 这里是空的，只是为了捕获点击事件

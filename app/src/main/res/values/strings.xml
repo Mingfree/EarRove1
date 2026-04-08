@@ -53,4 +53,36 @@
     <string name="perm_location_gps">定位（GPS）</string>
     <string name="perm_camera">相机</string>
     <string name="perm_microphone">麦克风</string>
+
+    <!-- OCR -->
+    <string name="ocr_screen_title">视觉识别</string>
+    <string name="ocr_heading_result">识别结果</string>
+    <string name="ocr_status_initial">对准指示牌，点击拍照按钮识别</string>
+    <string name="ocr_status_recognizing_album">正在识别相册图片...</string>
+    <string name="ocr_status_recognizing">正在识别</string>
+    <string name="ocr_status_recognition_done">识别完成，点击重新识别</string>
+    <string name="ocr_status_recognition_failed_retry">识别失败，请重试</string>
+    <string name="ocr_status_recognition_failed">识别失败</string>
+    <string name="ocr_a11y_recognizing">正在识别中，请稍候</string>
+    <string name="ocr_a11y_result">识别结果：%1$s</string>
+    <string name="ocr_a11y_mode_hint">视觉识别模式。对准指示牌，点击拍照按钮识别。</string>
+    <string name="ocr_action_copy">复制</string>
+    <string name="ocr_action_replay">重播</string>
+    <string name="ocr_action_copied_speak">已复制</string>
+    <string name="ocr_flashlight_desc_off">关闭闪光灯</string>
+    <string name="ocr_flashlight_desc_on">打开闪光灯</string>
+    <string name="ocr_capture_button_a11y">拍照识别按钮。点击拍照并识别前方指示牌。</string>
+    <string name="ocr_pick_photo_a11y">从相册选择图片识别</string>
+    <string name="ocr_photo_label">相册</string>
+    <string name="ocr_status_recognizing_camera">正在拍照识别中...</string>
+    <string name="ocr_camera_not_ready_toast">相机未就绪，请稍候再试</string>
+    <string name="ocr_camera_not_ready_speak">相机未就绪</string>
+    <string name="ocr_permission_required">需要相机权限</string>
+    <string name="ocr_permission_rationale">请授予相机权限以使用视觉识别功能</string>
+    <string name="ocr_recognition_failed_with_msg">识别失败：%1$s</string>
+    <string name="ocr_unknown_error">未知错误</string>
+    <string name="ocr_process_image_failed">处理图片失败</string>
+    <string name="ocr_take_photo_failed_with_msg">拍照失败：%1$s</string>
+    <string name="ocr_read_image_failed">无法读取图片</string>
+    <string name="ocr_decode_image_failed">图片解码失败</string>
 </resources>

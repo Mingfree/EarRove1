@@ -72,6 +72,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.example.earrove.ui.common.EarRoveTopAppBar
+import com.example.earrove.R
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
@@ -94,6 +95,37 @@ fun OcrScreen(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val ttsManager = rememberTTSManager()
+
+    // User-visible strings (moved from hard-coded literals to resources where feasible)
+    val screenTitle = context.getString(R.string.ocr_screen_title)
+    val resultHeading = context.getString(R.string.ocr_heading_result)
+
+    val statusInitial = context.getString(R.string.ocr_status_initial)
+    val statusRecognizingAlbum = context.getString(R.string.ocr_status_recognizing_album)
+    val statusRecognizing = context.getString(R.string.ocr_status_recognizing)
+    val statusRecognitionDone = context.getString(R.string.ocr_status_recognition_done)
+    val statusRecognitionFailedRetry = context.getString(R.string.ocr_status_recognition_failed_retry)
+    val statusRecognitionFailed = context.getString(R.string.ocr_status_recognition_failed)
+
+    val a11yRecognizing = context.getString(R.string.ocr_a11y_recognizing)
+    val a11yModeHint = context.getString(R.string.ocr_a11y_mode_hint)
+
+    val actionCopyText = context.getString(R.string.ocr_action_copy)
+    val actionReplayText = context.getString(R.string.ocr_action_replay)
+    val actionCopiedSpeak = context.getString(R.string.ocr_action_copied_speak)
+
+    val flashlightOffDesc = context.getString(R.string.ocr_flashlight_desc_off)
+    val flashlightOnDesc = context.getString(R.string.ocr_flashlight_desc_on)
+    val captureButtonA11y = context.getString(R.string.ocr_capture_button_a11y)
+    val pickPhotoA11y = context.getString(R.string.ocr_pick_photo_a11y)
+    val photoLabel = context.getString(R.string.ocr_photo_label)
+
+    val statusRecognizingCamera = context.getString(R.string.ocr_status_recognizing_camera)
+    val cameraNotReadyToast = context.getString(R.string.ocr_camera_not_ready_toast)
+    val cameraNotReadySpeak = context.getString(R.string.ocr_camera_not_ready_speak)
+
+    val permissionRequiredText = context.getString(R.string.ocr_permission_required)
+    val permissionRationaleText = context.getString(R.string.ocr_permission_rationale)
     val clipboardManager =
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
@@ -104,7 +136,7 @@ fun OcrScreen(navController: NavController) {
     var isRecognizing by remember { mutableStateOf(false) }
     var recognitionResult by remember { mutableStateOf("") }
     var isFlashlightOn by remember { mutableStateOf(false) }
-    var statusText by remember { mutableStateOf("对准指示牌，点击拍照按钮识别") }
+    var statusText by remember { mutableStateOf(statusInitial) }
 
     // 火山引擎服务
     val arkService = remember { VolcengineArkService() }
@@ -119,9 +151,9 @@ fun OcrScreen(navController: NavController) {
     ) { uri: Uri? ->
         if (uri != null && !isRecognizing) {
             isRecognizing = true
-            statusText = "正在识别相册图片..."
+            statusText = statusRecognizingAlbum
             recognitionResult = ""
-            ttsManager.speak("正在识别")
+            ttsManager.speak(statusRecognizing)
 
             coroutineScope.launch {
                 try {
@@ -131,21 +163,27 @@ fun OcrScreen(navController: NavController) {
                     val result = arkService.recognizeImage(base64)
                     result.onSuccess { text ->
                         recognitionResult = text
-                        statusText = "识别完成，点击重新识别"
+                        statusText = statusRecognitionDone
                         isRecognizing = false
                         ttsManager.speak(text)
                     }.onFailure { error ->
-                        recognitionResult = "识别失败：${error.message}"
-                        statusText = "识别失败，请重试"
+                        recognitionResult = context.getString(
+                            R.string.ocr_recognition_failed_with_msg,
+                            error.message ?: ""
+                        )
+                        statusText = statusRecognitionFailedRetry
                         isRecognizing = false
-                        ttsManager.speak("识别失败，请重试")
+                        ttsManager.speak(statusRecognitionFailedRetry)
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "处理相册图片异常: ${e.message}", e)
-                    recognitionResult = "识别失败：${e.message}"
-                    statusText = "识别失败，请重试"
+                    recognitionResult = context.getString(
+                        R.string.ocr_recognition_failed_with_msg,
+                        e.message ?: ""
+                    )
+                    statusText = statusRecognitionFailedRetry
                     isRecognizing = false
-                    ttsManager.speak("识别失败")
+                    ttsManager.speak(statusRecognitionFailed)
                 }
             }
         }
@@ -167,14 +205,14 @@ fun OcrScreen(navController: NavController) {
     }
 
     val accessibilityLabel = when {
-        isRecognizing -> "正在识别中，请稍候"
-        recognitionResult.isNotEmpty() -> "识别结果：$recognitionResult"
-        else -> "视觉识别模式。对准指示牌，点击拍照按钮识别。"
+        isRecognizing -> a11yRecognizing
+        recognitionResult.isNotEmpty() -> context.getString(R.string.ocr_a11y_result, recognitionResult)
+        else -> a11yModeHint
     }
 
     Scaffold(
         topBar = {
-            EarRoveTopAppBar(title = "视觉识别", onNavigateUp = { navController.popBackStack() })
+            EarRoveTopAppBar(title = screenTitle, onNavigateUp = { navController.popBackStack() })
         }
     ) { paddingValues ->
         Box(
@@ -234,7 +272,7 @@ fun OcrScreen(navController: NavController) {
                                 .verticalScroll(rememberScrollState())
                         ) {
                             Text(
-                                text = "识别结果",
+                                text = resultHeading,
                                 color = PremiumGold,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -254,11 +292,11 @@ fun OcrScreen(navController: NavController) {
                                         clipboardManager.setPrimaryClip(
                                             ClipData.newPlainText("ocr_result", recognitionResult)
                                         )
-                                        ttsManager.speak("已复制")
+                                        ttsManager.speak(actionCopiedSpeak)
                                     },
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("复制")
+                                    Text(actionCopyText)
                                 }
 
                                 OutlinedButton(
@@ -267,7 +305,7 @@ fun OcrScreen(navController: NavController) {
                                     },
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("重播")
+                                    Text(actionReplayText)
                                 }
                             }
                         }
@@ -298,7 +336,7 @@ fun OcrScreen(navController: NavController) {
                     ) {
                         Icon(
                             imageVector = if (isFlashlightOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                            contentDescription = if (isFlashlightOn) "关闭闪光灯" else "打开闪光灯",
+                            contentDescription = if (isFlashlightOn) flashlightOffDesc else flashlightOnDesc,
                             tint = if (isFlashlightOn) PremiumGold else PureWhite,
                             modifier = Modifier.size(28.dp)
                         )
@@ -309,9 +347,9 @@ fun OcrScreen(navController: NavController) {
                         onClick = {
                             if (!isRecognizing) {
                                 isRecognizing = true
-                                statusText = "正在拍照识别中..."
+                                statusText = statusRecognizingCamera
                                 recognitionResult = ""
-                                ttsManager.speak("正在识别")
+                                ttsManager.speak(statusRecognizing)
 
                                 imageCapture?.let { capture ->
                                     captureAndRecognize(
@@ -322,26 +360,29 @@ fun OcrScreen(navController: NavController) {
                                         coroutineScope = coroutineScope,
                                         onResult = { result ->
                                             recognitionResult = result
-                                            statusText = "识别完成，点击重新识别"
+                                            statusText = statusRecognitionDone
                                             isRecognizing = false
                                         },
                                         onError = { error ->
-                                            recognitionResult = "识别失败：$error"
-                                            statusText = "识别失败，请重试"
+                                            recognitionResult = context.getString(
+                                                R.string.ocr_recognition_failed_with_msg,
+                                                error
+                                            )
+                                            statusText = statusRecognitionFailedRetry
                                             isRecognizing = false
-                                            ttsManager.speak("识别失败，请重试")
+                                            ttsManager.speak(statusRecognitionFailedRetry)
                                         }
                                     )
                                 } ?: run {
-                                    statusText = "相机未就绪，请稍候再试"
+                                    statusText = cameraNotReadyToast
                                     isRecognizing = false
-                                    ttsManager.speak("相机未就绪")
+                                    ttsManager.speak(cameraNotReadySpeak)
                                 }
                             }
                         },
                         modifier = Modifier
                             .size(80.dp)
-                            .semantics { contentDescription = "拍照识别按钮。点击拍照并识别前方指示牌。" },
+                            .semantics { contentDescription = captureButtonA11y },
                         containerColor = if (isRecognizing) Color.Gray else PremiumGold,
                         shape = CircleShape
                     ) {
@@ -376,11 +417,11 @@ fun OcrScreen(navController: NavController) {
                                 PureBlack.copy(alpha = 0.6f),
                                 CircleShape
                             )
-                            .semantics { contentDescription = "从相册选择图片识别" }
+                            .semantics { contentDescription = pickPhotoA11y }
                     ) {
                         Icon(
                             imageVector = Icons.Default.PhotoLibrary,
-                            contentDescription = "相册",
+                            contentDescription = photoLabel,
                             tint = PureWhite,
                             modifier = Modifier.size(28.dp)
                         )
@@ -396,14 +437,14 @@ fun OcrScreen(navController: NavController) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "需要相机权限",
+                        text = permissionRequiredText,
                         color = PremiumGold,
                         style = MaterialTheme.typography.headlineMedium,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "请授予相机权限以使用视觉识别功能",
+                        text = permissionRationaleText,
                         color = PureWhite,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
@@ -502,20 +543,25 @@ private fun captureAndRecognize(
                             // TTS 朗读结果
                             ttsManager.speak(text)
                         }.onFailure { error ->
-                            onError(error.message ?: "未知错误")
+                            onError(error.message ?: context.getString(R.string.ocr_unknown_error))
                         }
 
                     } catch (e: Exception) {
                         imageProxy.close()
-                        Log.e(TAG, "处理图片异常: ${e.message}", e)
-                        onError(e.message ?: "处理图片失败")
+                    Log.e(TAG, "处理图片异常: ${e.message}", e)
+                    onError(e.message ?: context.getString(R.string.ocr_process_image_failed))
                     }
                 }
             }
 
             override fun onError(exception: ImageCaptureException) {
                 Log.e(TAG, "拍照失败: ${exception.message}", exception)
-                onError("拍照失败: ${exception.message}")
+                onError(
+                    context.getString(
+                        R.string.ocr_take_photo_failed_with_msg,
+                        exception.message ?: ""
+                    )
+                )
             }
         }
     )
@@ -560,12 +606,12 @@ private fun imageProxyToBase64(imageProxy: ImageProxy): String {
  */
 private fun uriToBase64(context: Context, uri: Uri): String {
     val inputStream = context.contentResolver.openInputStream(uri)
-        ?: throw Exception("无法读取图片")
+        ?: throw Exception(context.getString(R.string.ocr_read_image_failed))
 
     var bitmap = BitmapFactory.decodeStream(inputStream)
     inputStream.close()
 
-    if (bitmap == null) throw Exception("图片解码失败")
+    if (bitmap == null) throw Exception(context.getString(R.string.ocr_decode_image_failed))
 
     // 降低分辨率（最大 1024px 宽）
     val maxWidth = 1024

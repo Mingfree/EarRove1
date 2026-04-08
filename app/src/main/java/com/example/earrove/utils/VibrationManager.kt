@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 class VibrationManager(context: Context) {
+    private val appContext = context.applicationContext
     private val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         vibratorManager.defaultVibrator
@@ -19,6 +20,7 @@ class VibrationManager(context: Context) {
     }
 
     fun vibrateForObstacle() {
+        if (!SettingsStore.isHapticEnabled(appContext)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = longArrayOf(0, 100, 100, 100) // 短震2次
             val amplitudes = intArrayOf(0, 255, 0, 255)
@@ -30,6 +32,7 @@ class VibrationManager(context: Context) {
     }
 
     fun vibrateForTurn(direction: String) {
+        if (!SettingsStore.isHapticEnabled(appContext)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 长震1次，配合语音提示
             vibrator.vibrate(VibrationEffect.createOneShot(500, 255))
@@ -40,6 +43,7 @@ class VibrationManager(context: Context) {
     }
 
     fun vibrateForTrafficLight() {
+        if (!SettingsStore.isHapticEnabled(appContext)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = longArrayOf(0, 100, 100, 100, 100, 100) // 三次短震
             val amplitudes = intArrayOf(0, 255, 0, 255, 0, 255)

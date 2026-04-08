@@ -40,7 +40,7 @@ import com.example.earrove.utils.SettingsStore
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     var speechRate by remember { mutableFloatStateOf(SettingsStore.getTtsSpeechRate(context)) }
-    var hapticFeedbackEnabled by remember { mutableStateOf(true) }
+    var hapticFeedbackEnabled by remember { mutableStateOf(SettingsStore.isHapticEnabled(context)) }
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
@@ -80,7 +80,10 @@ fun SettingsScreen(navController: NavController) {
                 content = {
                     Switch(
                         checked = hapticFeedbackEnabled,
-                        onCheckedChange = { hapticFeedbackEnabled = it },
+                        onCheckedChange = {
+                            hapticFeedbackEnabled = it
+                            SettingsStore.setHapticEnabled(context, it)
+                        },
                         modifier = Modifier.semantics { 
                             contentDescription = "震动反馈开关，当前为 ${if(hapticFeedbackEnabled) "开启" else "关闭"}"
                         }

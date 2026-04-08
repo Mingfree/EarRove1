@@ -1,5 +1,6 @@
 package com.example.earrove.ui.settings
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,11 +8,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -20,12 +24,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.earrove.utils.PrivacyUtils
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.EarRoveTheme
 
@@ -33,6 +39,8 @@ import com.example.earrove.ui.theme.EarRoveTheme
 fun SettingsScreen(navController: NavController) {
     var speechRate by remember { mutableFloatStateOf(1.0f) }
     var hapticFeedbackEnabled by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    var showRevokeDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -74,7 +82,50 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
             )
+
+            SettingItem(
+                title = "隐私设置",
+                content = {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { showRevokeDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = "撤回隐私同意")
+                        }
+                    }
+                }
+            )
         }
+    }
+
+    if (showRevokeDialog) {
+        AlertDialog(
+            onDismissRequest = { showRevokeDialog = false },
+            title = { Text(text = "撤回隐私同意？") },
+            text = {
+                Text(
+                    text = "撤回后将重新进入隐私同意流程。用于导航/识别的相关功能会被暂时禁用，直到再次同意。",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        PrivacyUtils.clearAllPrivacyAgreements(context)
+                        showRevokeDialog = false
+                        (context as? ComponentActivity)?.recreate()
+                    }
+                ) {
+                    Text("确认撤回")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRevokeDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 }
 

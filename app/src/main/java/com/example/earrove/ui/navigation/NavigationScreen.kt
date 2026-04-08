@@ -1,6 +1,10 @@
 package com.example.earrove.ui.navigation
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -184,16 +188,70 @@ fun NavigationScreen(
 
     // 权限检查
     var permissionsGranted by remember { mutableStateOf(false) }
+    var permissionPermanentlyDenied by remember { mutableStateOf(false) }
 
     if (!permissionsGranted) {
+        if (permissionPermanentlyDenied) {
+            // Don’t ask again：引导用户手动到系统设置开启权限
+            Box(
+                modifier = Modifier.fillMaxSize().background(PureBlack),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "权限已被永久拒绝",
+                        color = PremiumGold,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    Text(
+                        text = "请在系统设置中开启权限后重试，否则导航可能不可用。",
+                        color = PureWhite,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    Button(
+                        onClick = {
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", (context as? Activity)?.packageName ?: context.packageName, null)
+                            }
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PremiumGold,
+                            contentColor = PureBlack
+                        ),
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        Text("去系统设置开启权限")
+                    }
+
+                    Button(
+                        onClick = {
+                            navController.popBackStack()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PureWhite.copy(alpha = 0.1f),
+                            contentColor = PureWhite
+                        ),
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        Text("返回首页")
+                    }
+                }
+            }
+            return
+        }
+
         RequestPermissionsDialog(
-            onPermissionGranted = {
-                permissionsGranted = true
-            },
+            onPermissionGranted = { permissionsGranted = true },
             onPermissionDenied = {
                 // 如果权限被拒绝，返回首页
                 navController.popBackStack()
-            }
+            },
+            onPermissionPermanentlyDenied = { permissionPermanentlyDenied = true }
         )
         return
     }

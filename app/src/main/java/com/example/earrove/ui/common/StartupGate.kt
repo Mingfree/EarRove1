@@ -72,6 +72,7 @@ private fun ConfigMissingScreen(
     val title = stringResource(id = R.string.startup_config_missing_title)
     val hint = stringResource(id = R.string.startup_config_missing_hint)
     val cta = stringResource(id = R.string.startup_config_missing_cta)
+    val fixMethod = stringResource(id = R.string.startup_config_missing_fix_method)
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = PureBlack
@@ -116,7 +117,7 @@ private fun ConfigMissingScreen(
             Spacer(modifier = Modifier.padding(16.dp))
 
             Text(
-                text = "修复方式：复制 `config.sample.properties` → `local.properties`，填写真实值后重新构建。 ",
+                text = fixMethod,
                 style = MaterialTheme.typography.bodyMedium,
                 color = PremiumGold
             )

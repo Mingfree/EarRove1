@@ -43,6 +43,7 @@
     <string name="startup_config_missing_title">启动自检失败：配置缺失</string>
     <string name="startup_config_missing_hint">当前构建使用了占位符 Key，相关功能可能不可用。请按以下步骤修复后重新构建/重启应用：</string>
     <string name="startup_config_missing_cta">我已完成配置（请重建/重启后生效）</string>
+    <string name="startup_config_missing_fix_method">修复方式：复制 `config.sample.properties` -> `local.properties`，填写真实值后重新构建。</string>
     <string name="startup_permission_title">需要授权</string>
     <string name="startup_permission_intro">为了使用导航/文字识别，需要授权以下权限：</string>
     <string name="startup_permission_denied_hint">权限未授权。你可以继续进入主页，但导航/文字识别功能可能不可用。</string>

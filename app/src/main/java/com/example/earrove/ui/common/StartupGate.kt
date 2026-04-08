@@ -21,9 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
+import com.example.earrove.R
 import com.example.earrove.utils.ConfigValidator
 import com.example.earrove.utils.PermissionUtils
 import com.example.earrove.utils.RequestPermissionsDialog
@@ -67,6 +69,9 @@ private fun ConfigMissingScreen(
     missing: List<String>,
     onRetry: () -> Unit
 ) {
+    val title = stringResource(id = R.string.startup_config_missing_title)
+    val hint = stringResource(id = R.string.startup_config_missing_hint)
+    val cta = stringResource(id = R.string.startup_config_missing_cta)
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = PureBlack
@@ -79,13 +84,13 @@ private fun ConfigMissingScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "启动自检失败：配置缺失",
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = PremiumGold
             )
             Spacer(modifier = Modifier.padding(0.dp))
             Text(
-                text = "当前构建使用了占位符 Key，相关功能可能不可用。请按以下步骤修复后重新构建/重启应用：",
+                text = hint,
                 style = MaterialTheme.typography.bodyLarge,
                 color = PureWhite,
                 modifier = Modifier.padding(top = 12.dp)
@@ -125,7 +130,7 @@ private fun ConfigMissingScreen(
                     contentColor = PureBlack
                 )
             ) {
-                Text(text = "我已完成配置（请重建/重启后生效）", style = MaterialTheme.typography.bodyLarge)
+                Text(text = cta, style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
@@ -139,6 +144,14 @@ private fun PermissionRequestScreen(
     val context = LocalContext.current
     var permissionDenied by remember { mutableStateOf(false) }
 
+    val title = stringResource(id = R.string.startup_permission_title)
+    val intro = stringResource(id = R.string.startup_permission_intro)
+    val deniedHint = stringResource(id = R.string.startup_permission_denied_hint)
+    val continueText = stringResource(id = R.string.startup_permission_continue)
+    val permGps = stringResource(id = R.string.perm_location_gps)
+    val permCamera = stringResource(id = R.string.perm_camera)
+    val permMic = stringResource(id = R.string.perm_microphone)
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = PureBlack
@@ -151,15 +164,15 @@ private fun PermissionRequestScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "需要授权",
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = PremiumGold
             )
 
             val missing = buildList {
-                if (!PermissionUtils.hasLocationPermission(context)) add("定位（GPS）")
-                if (!PermissionUtils.hasCameraPermission(context)) add("相机")
-                if (!PermissionUtils.hasAudioPermission(context)) add("麦克风")
+                if (!PermissionUtils.hasLocationPermission(context)) add(permGps)
+                if (!PermissionUtils.hasCameraPermission(context)) add(permCamera)
+                if (!PermissionUtils.hasAudioPermission(context)) add(permMic)
             }
 
             Card(
@@ -169,7 +182,7 @@ private fun PermissionRequestScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "为了使用导航/文字识别，需要授权以下权限：",
+                        text = intro,
                         style = MaterialTheme.typography.bodyLarge,
                         color = PureWhite
                     )
@@ -200,7 +213,7 @@ private fun PermissionRequestScreen(
             if (permissionDenied) {
                 Spacer(modifier = Modifier.padding(16.dp))
                 Text(
-                    text = "权限未授权。你可以继续进入主页，但导航/文字识别功能可能不可用。",
+                    text = deniedHint,
                     style = MaterialTheme.typography.bodyMedium,
                     color = PremiumGold
                 )
@@ -209,7 +222,7 @@ private fun PermissionRequestScreen(
                     onClick = onContinueWithoutPermissions,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "继续（稍后在页面内授权）", color = PureWhite)
+                    Text(text = continueText, color = PureWhite)
                 }
             }
         }

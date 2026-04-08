@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.earrove.utils.PrivacyUtils
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.EarRoveTheme
+import com.example.earrove.R
 import com.example.earrove.utils.SettingsStore
 
 @Composable
@@ -44,9 +46,25 @@ fun SettingsScreen(navController: NavController) {
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
+    val settingsTitle = stringResource(id = R.string.settings_title)
+    val ttsSpeedTitle = stringResource(id = R.string.settings_tts_speed_title)
+    val hapticTitle = stringResource(id = R.string.settings_haptic_title)
+    val privacyTitle = stringResource(id = R.string.settings_privacy_title)
+
+    val revokeButtonText = stringResource(id = R.string.settings_revoke_button)
+    val revokeDialogTitle = stringResource(id = R.string.settings_revoke_dialog_title)
+    val revokeDialogText = stringResource(id = R.string.settings_revoke_dialog_text)
+    val revokeConfirmText = stringResource(id = R.string.settings_revoke_confirm)
+    val revokeCancelText = stringResource(id = R.string.settings_revoke_cancel)
+
+    val a11ySpeechRateDesc = stringResource(id = R.string.a11y_speech_rate_slider_desc, speechRate)
+    val a11yHapticToggleDesc =
+        if (hapticFeedbackEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
+        else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
+
     Scaffold(
         topBar = {
-            EarRoveTopAppBar(title = "设置", onNavigateUp = { navController.popBackStack() })
+            EarRoveTopAppBar(title = settingsTitle, onNavigateUp = { navController.popBackStack() })
         }
     ) { paddingValues ->
         Column(
@@ -57,7 +75,7 @@ fun SettingsScreen(navController: NavController) {
         ) {
             // Speech Rate Setting
             SettingItem(
-                title = "朗读速度",
+                title = ttsSpeedTitle,
                 content = {
                     Slider(
                         value = speechRate,
@@ -68,7 +86,7 @@ fun SettingsScreen(navController: NavController) {
                         valueRange = 0.5f..2.0f,
                         steps = 5, // Provides 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
                         modifier = Modifier.semantics { 
-                            contentDescription = "朗读速度调节器，当前值为 ${String.format("%.2f", speechRate)}"
+                            contentDescription = a11ySpeechRateDesc
                         }
                     )
                 }
@@ -76,7 +94,7 @@ fun SettingsScreen(navController: NavController) {
 
             // Haptic Feedback Setting
             SettingItem(
-                title = "震动反馈",
+                title = hapticTitle,
                 content = {
                     Switch(
                         checked = hapticFeedbackEnabled,
@@ -85,21 +103,21 @@ fun SettingsScreen(navController: NavController) {
                             SettingsStore.setHapticEnabled(context, it)
                         },
                         modifier = Modifier.semantics { 
-                            contentDescription = "震动反馈开关，当前为 ${if(hapticFeedbackEnabled) "开启" else "关闭"}"
+                            contentDescription = a11yHapticToggleDesc
                         }
                     )
                 }
             )
 
             SettingItem(
-                title = "隐私设置",
+                title = privacyTitle,
                 content = {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         OutlinedButton(
                             onClick = { showRevokeDialog = true },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(text = "撤回隐私同意")
+                            Text(text = revokeButtonText)
                         }
                     }
                 }
@@ -110,10 +128,10 @@ fun SettingsScreen(navController: NavController) {
     if (showRevokeDialog) {
         AlertDialog(
             onDismissRequest = { showRevokeDialog = false },
-            title = { Text(text = "撤回隐私同意？") },
+            title = { Text(text = revokeDialogTitle) },
             text = {
                 Text(
-                    text = "撤回后将重新进入隐私同意流程。用于导航/识别的相关功能会被暂时禁用，直到再次同意。",
+                    text = revokeDialogText,
                     style = MaterialTheme.typography.bodyLarge
                 )
             },
@@ -125,12 +143,12 @@ fun SettingsScreen(navController: NavController) {
                         (context as? ComponentActivity)?.recreate()
                     }
                 ) {
-                    Text("确认撤回")
+                    Text(revokeConfirmText)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRevokeDialog = false }) {
-                    Text("取消")
+                    Text(revokeCancelText)
                 }
             }
         )

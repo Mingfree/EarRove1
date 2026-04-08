@@ -1,3 +1,55 @@
 <resources>
     <string name="app_name">EarRove</string>
+
+    <!-- Common / AppBar -->
+    <string name="a11y_navigate_up">返回上一页</string>
+    <string name="a11y_top_app_bar">顶部应用栏，%1$s</string>
+
+    <!-- Home -->
+    <string name="home_nav_title">智能导航</string>
+    <string name="home_nav_subtitle">实时指引，规避障碍</string>
+    <string name="a11y_home_nav_entry">导航模式。点击进入。</string>
+    <string name="home_ocr_title">文字识别</string>
+    <string name="home_ocr_subtitle">即时阅读，信息无碍</string>
+    <string name="a11y_home_ocr_entry">文字识别模式。点击进入。</string>
+    <string name="home_settings">设置</string>
+    <string name="home_help">帮助</string>
+
+    <!-- Help -->
+    <string name="help_center_title">帮助中心</string>
+    <string name="help_nav_title">智能导航</string>
+    <string name="help_nav_content">通过语音输入目的地，应用将为您提供实时步行导航。在导航过程中，应用会通过语音和震动提示您前方的障碍物、红绿灯以及转向信息。</string>
+    <string name="help_ocr_title">文字识别</string>
+    <string name="help_ocr_content">将摄像头对准需要识别的文字，如路牌、菜单、衣物或药品说明，应用将实时朗读识别到的内容。此功能完全在本地运行，保护您的隐私安全。</string>
+    <string name="help_haptic_title">震动反馈说明</string>
+    <string name="help_haptic_content">- 障碍物警示：两次短促的震动
+- 红绿灯提示：一次震动</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="settings_tts_speed_title">朗读速度</string>
+    <string name="settings_haptic_title">震动反馈</string>
+    <string name="settings_privacy_title">隐私设置</string>
+    <string name="settings_revoke_button">撤回隐私同意</string>
+    <string name="settings_revoke_dialog_title">撤回隐私同意？</string>
+    <string name="settings_revoke_dialog_text">撤回后将重新进入隐私同意流程。用于导航/识别的相关功能会被暂时禁用，直到再次同意。</string>
+    <string name="settings_revoke_confirm">确认撤回</string>
+    <string name="settings_revoke_cancel">取消</string>
+    <string name="a11y_speech_rate_slider_desc">朗读速度调节器，当前值为 %1$.2f</string>
+    <string name="a11y_haptic_toggle_desc_enabled">震动反馈开关，当前为 开启</string>
+    <string name="a11y_haptic_toggle_desc_disabled">震动反馈开关，当前为 关闭</string>
+
+    <!-- Startup gate -->
+    <string name="startup_config_missing_title">启动自检失败：配置缺失</string>
+    <string name="startup_config_missing_hint">当前构建使用了占位符 Key，相关功能可能不可用。请按以下步骤修复后重新构建/重启应用：</string>
+    <string name="startup_config_missing_cta">我已完成配置（请重建/重启后生效）</string>
+    <string name="startup_permission_title">需要授权</string>
+    <string name="startup_permission_intro">为了使用导航/文字识别，需要授权以下权限：</string>
+    <string name="startup_permission_denied_hint">权限未授权。你可以继续进入主页，但导航/文字识别功能可能不可用。</string>
+    <string name="startup_permission_continue">继续（稍后在页面内授权）</string>
+
+    <!-- Permission labels -->
+    <string name="perm_location_gps">定位（GPS）</string>
+    <string name="perm_camera">相机</string>
+    <string name="perm_microphone">麦克风</string>
 </resources>

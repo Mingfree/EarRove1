@@ -27,40 +27,51 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.earrove.R
 import com.example.earrove.ui.theme.DeepGray
 import com.example.earrove.ui.theme.EarRoveTheme
 
 @Composable
 fun HomeScreen(navController: NavController) {
+    val navTitle = stringResource(id = R.string.home_nav_title)
+    val navSubtitle = stringResource(id = R.string.home_nav_subtitle)
+    val navA11y = stringResource(id = R.string.a11y_home_nav_entry)
+    val ocrTitle = stringResource(id = R.string.home_ocr_title)
+    val ocrSubtitle = stringResource(id = R.string.home_ocr_subtitle)
+    val ocrA11y = stringResource(id = R.string.a11y_home_ocr_entry)
+    val settingsText = stringResource(id = R.string.home_settings)
+    val helpText = stringResource(id = R.string.home_help)
+
     Column(modifier = Modifier.fillMaxSize()) {
         // 1. Navigation Mode Card
         HomeCard(
             modifier = Modifier.weight(1f),
-            title = "智能导航",
-            subtitle = "实时指引，规避障碍",
+            title = navTitle,
+            subtitle = navSubtitle,
             backgroundColor = MaterialTheme.colorScheme.background,
             icon = Icons.Default.Navigation,
-            contentDescription = "导航模式。点击进入。",
+            contentDescription = navA11y,
             onClick = { navController.navigate("navigation") }
         )
 
         // 2. OCR Mode Card
         HomeCard(
             modifier = Modifier.weight(1f),
-            title = "文字识别",
-            subtitle = "即时阅读，信息无碍",
+            title = ocrTitle,
+            subtitle = ocrSubtitle,
             backgroundColor = DeepGray,
             icon = Icons.Default.TextFields,
-            contentDescription = "文字识别模式。点击进入。",
+            contentDescription = ocrA11y,
             onClick = { navController.navigate("ocr") }
         )
 
         // 3. Bottom Action Bar
-        BottomActionBar(navController)
+        BottomActionBar(navController, settingsText, helpText)
     }
 }
 
@@ -113,7 +124,11 @@ private fun HomeCard(
 }
 
 @Composable
-private fun BottomActionBar(navController: NavController) {
+private fun BottomActionBar(
+    navController: NavController,
+    settingsText: String,
+    helpText: String
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -128,12 +143,12 @@ private fun BottomActionBar(navController: NavController) {
         ) {
             ActionButton(
                 icon = Icons.Default.Settings,
-                contentDescription = "设置",
+                contentDescription = settingsText,
                 onClick = { navController.navigate("settings") }
             )
             ActionButton(
                 icon = Icons.AutoMirrored.Filled.HelpOutline,
-                contentDescription = "帮助",
+                contentDescription = helpText,
                 onClick = { navController.navigate("help") }
             )
         }

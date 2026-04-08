@@ -13,17 +13,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.stringResource
+import com.example.earrove.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EarRoveTopAppBar(title: String, onNavigateUp: () -> Unit) {
+    val navUpDesc = stringResource(id = R.string.a11y_navigate_up)
+    val topAppBarDesc = stringResource(id = R.string.a11y_top_app_bar, title)
     TopAppBar(
         title = { Text(text = title) },
         navigationIcon = {
             IconButton(onClick = onNavigateUp) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回上一页",
+                    contentDescription = navUpDesc,
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -32,6 +36,6 @@ fun EarRoveTopAppBar(title: String, onNavigateUp: () -> Unit) {
             containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onBackground
         ),
-        modifier = Modifier.semantics { contentDescription = "顶部应用栏，$title" }
+        modifier = Modifier.semantics { contentDescription = topAppBarDesc }
     )
 }

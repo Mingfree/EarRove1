@@ -1,7 +1,9 @@
 package com.example.earrove.ui.ocr
 
 import android.Manifest
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.ClipData
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -44,6 +46,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -91,6 +94,8 @@ fun OcrScreen(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val ttsManager = rememberTTSManager()
+    val clipboardManager =
+        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
     // 权限管理
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -239,6 +244,32 @@ fun OcrScreen(navController: NavController) {
                                 color = PureWhite,
                                 style = MaterialTheme.typography.bodyLarge
                             )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = {
+                                        clipboardManager.setPrimaryClip(
+                                            ClipData.newPlainText("ocr_result", recognitionResult)
+                                        )
+                                        ttsManager.speak("已复制")
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("复制")
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        ttsManager.speak(recognitionResult)
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("重播")
+                                }
+                            }
                         }
                     }
                 }

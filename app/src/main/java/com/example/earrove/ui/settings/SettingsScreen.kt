@@ -34,12 +34,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.earrove.utils.PrivacyUtils
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.EarRoveTheme
+import com.example.earrove.utils.SettingsStore
 
 @Composable
 fun SettingsScreen(navController: NavController) {
-    var speechRate by remember { mutableFloatStateOf(1.0f) }
-    var hapticFeedbackEnabled by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    var speechRate by remember { mutableFloatStateOf(SettingsStore.getTtsSpeechRate(context)) }
+    var hapticFeedbackEnabled by remember { mutableStateOf(true) }
+
     var showRevokeDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -59,7 +61,10 @@ fun SettingsScreen(navController: NavController) {
                 content = {
                     Slider(
                         value = speechRate,
-                        onValueChange = { speechRate = it },
+                        onValueChange = {
+                            speechRate = it
+                            SettingsStore.setTtsSpeechRate(context, it)
+                        },
                         valueRange = 0.5f..2.0f,
                         steps = 5, // Provides 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
                         modifier = Modifier.semantics { 

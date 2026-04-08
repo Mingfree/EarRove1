@@ -23,6 +23,8 @@ class TTSManager(context: Context) {
         private val TAG = AppConfig.getLogTag("TTSManager")
     }
 
+    private val appContext: Context = context.applicationContext
+
     // ============ 百度 TTS (主引擎) ============
     private var baiduSynthesizer: com.baidu.aipe.tts.AipeSpeechSynthesizer? = null
     private var isBaiduInitialized = false
@@ -116,7 +118,7 @@ class TTSManager(context: Context) {
                     // 尝试简体中文
                     systemTts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
                 }
-                systemTts?.setSpeechRate(1.0f)
+                systemTts?.setSpeechRate(SettingsStore.getTtsSpeechRate(appContext))
                 systemTts?.setPitch(1.0f)
 
                 // 设置播放完成监听
@@ -154,6 +156,35 @@ class TTSManager(context: Context) {
         }
     }
 
+    private fun mapSpeechRateToBaiduSpeedParam(rate: Float): Int {
+        val r = rate.coerceIn(0.5f, 2.0f)
+        val normalized = (r - 0.5f) / (2.0f - 0.5f) // 0..1
+        val raw = kotlin.math.round(normalized * 9f).toInt()
+        return raw.coerceIn(0, 9)
+    }
+
+    /**
+     * 从设置中读取最新语速，并同步到两个引擎（系统 TTS + 百度 TTS）。
+     *
+     * 说明：百度引擎的参数 key 在 SDK 内部，可能存在也可能不存在；这里用反射尽量兼容，
+     * 若 key 不存在则忽略（避免编译/运行崩溃）。
+     */
+    private fun applySpeechRateFromSettings() {
+        val rate = SettingsStore.getTtsSpeechRate(appContext)
+        if (isSystemTtsReady) {
+            systemTts?.setSpeechRate(rate)
+        }
+
+        if (isBaiduInitialized) {
+            val speed = mapSpeechRateToBaiduSpeedParam(rate)
+            runCatching {
+                val field = com.baidu.tts.client.SpeechSynthesizer::class.java.getField("PARAM_SPEED")
+                val key = field.get(null) as String
+                baiduSynthesizer?.setParam(key, speed.toString())
+            }
+        }
+    }
+
     fun speak(text: String, interrupt: Boolean = true) {
         if (!isInitialized) {
             Log.w(TAG, "TTS 均未初始化，跳过: $text")
@@ -164,6 +195,7 @@ class TTSManager(context: Context) {
             pendingText = text
             Log.d(TAG, "Speaking: $text")
 
+            applySpeechRateFromSettings()
             if (isBaiduInitialized) {
                 // 优先使用百度 TTS
                 if (interrupt) {
@@ -188,6 +220,7 @@ class TTSManager(context: Context) {
 
         uiScope.launch {
             pendingText = text
+            applySpeechRateFromSettings()
             if (isBaiduInitialized) {
                 baiduSynthesizer?.speak(com.baidu.tts.client.TtsEntity(text, com.baidu.tts.client.TtsMode.ONLINE))
             } else if (isSystemTtsReady) {
@@ -198,6 +231,7 @@ class TTSManager(context: Context) {
     }
 
     fun setSpeechRate(rate: Float) {
+        SettingsStore.setTtsSpeechRate(appContext, rate)
         systemTts?.setSpeechRate(rate)
     }
 
@@ -231,6 +265,7 @@ class TTSManager(context: Context) {
             }
             uiScope.launch {
                 pendingText = text
+                applySpeechRateFromSettings()
                 if (isBaiduInitialized) {
                     baiduSynthesizer?.stop()
                     baiduSynthesizer?.speak(com.baidu.tts.client.TtsEntity(text, com.baidu.tts.client.TtsMode.ONLINE))

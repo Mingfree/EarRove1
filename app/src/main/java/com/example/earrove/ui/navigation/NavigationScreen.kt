@@ -276,7 +276,7 @@ fun NavigationScreen(
             val privacyAgreed = PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context)
 
             if (!privacyAgreed) {
-                sdkInitializationError = "请先同意百度地图隐私政策才能使用导航功能"
+                sdkInitializationError = context.getString(R.string.nav_privacy_need)
                 Log.e("NavigationScreen", "用户未同意百度地图隐私政策")
                 return@LaunchedEffect
             }
@@ -304,7 +304,10 @@ fun NavigationScreen(
                     isPrivacyPolicyAgreed = true
 
                 } catch (e: Exception) {
-                    sdkInitializationError = "百度地图SDK初始化失败: ${e.message}"
+                    sdkInitializationError = context.getString(
+                        R.string.nav_sdk_init_failed,
+                        e.message ?: ""
+                    )
                     Log.e("NavigationScreen", "SDK重新初始化失败: ${e.message}")
                 }
             } else {
@@ -329,11 +332,14 @@ fun NavigationScreen(
             if (locationClientAvailable) {
                 Log.d("NavigationScreen", "定位服务测试通过")
             } else {
-                sdkInitializationError = "定位服务不可用，请检查隐私政策设置"
+                sdkInitializationError = context.getString(R.string.nav_location_unavailable)
             }
 
         } catch (e: Exception) {
-            sdkInitializationError = "导航服务初始化失败: ${e.message}"
+            sdkInitializationError = context.getString(
+                R.string.nav_service_init_failed,
+                e.message ?: ""
+            )
             Log.e("NavigationScreen", "SDK初始化检查异常: ${e.message}")
         }
     }
@@ -350,19 +356,19 @@ fun NavigationScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = "定位服务错误",
+                    contentDescription = stringResource(id = R.string.nav_location_error_a11y),
                     tint = WarningOrange,
                     modifier = Modifier.size(64.dp)
                 )
 
                 Text(
-                    text = "导航服务初始化失败",
+                    text = stringResource(id = R.string.nav_service_init_failed_title),
                     color = WarningOrange,
                     fontSize = 20.sp
                 )
 
                 Text(
-                    text = sdkInitializationError ?: "未知错误",
+                    text = sdkInitializationError ?: stringResource(id = R.string.nav_unknown_error),
                     color = PureWhite.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
@@ -382,7 +388,7 @@ fun NavigationScreen(
                         ),
                         modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
-                        Text("前往设置隐私政策")
+                        Text(text = stringResource(id = R.string.nav_go_privacy_settings))
                     }
                 }
 
@@ -398,7 +404,7 @@ fun NavigationScreen(
                     ),
                     modifier = Modifier.fillMaxWidth(0.8f)
                 ) {
-                    Text(text = "重试初始化")
+                    Text(text = stringResource(id = R.string.nav_retry_init))
                 }
 
                 Button(
@@ -409,7 +415,7 @@ fun NavigationScreen(
                     ),
                     modifier = Modifier.fillMaxWidth(0.8f)
                 ) {
-                    Text(text = "返回首页")
+                    Text(text = stringResource(id = R.string.nav_back_home))
                 }
             }
         }
@@ -432,14 +438,14 @@ fun NavigationScreen(
                 )
 
                 Text(
-                    text = "正在初始化导航服务...",
+                    text = stringResource(id = R.string.nav_init_navigation_service),
                     color = PureWhite,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium
                 )
 
                 Text(
-                    text = "请确保已同意百度地图隐私政策",
+                    text = stringResource(id = R.string.nav_confirm_baidu_privacy),
                     color = PremiumGold,
                     fontSize = 14.sp
                 )
@@ -453,7 +459,7 @@ fun NavigationScreen(
                             // 如果已同意，重新初始化SDK
                             sdkInitializationError = null
                         } else {
-                            sdkInitializationError = "请先同意百度地图隐私政策"
+                            sdkInitializationError = context.getString(R.string.nav_privacy_need_baidu_short)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -462,7 +468,7 @@ fun NavigationScreen(
                     ),
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text("检查隐私政策状态")
+                    Text(text = stringResource(id = R.string.nav_check_privacy_status))
                 }
 
                 Button(
@@ -475,7 +481,7 @@ fun NavigationScreen(
                         contentColor = PureWhite
                     )
                 ) {
-                    Text("返回首页查看隐私政策")
+                    Text(text = stringResource(id = R.string.nav_back_home_view_privacy))
                 }
             }
         }
@@ -509,7 +515,10 @@ fun NavigationScreen(
         } catch (e: Exception) {
             Log.e("NavigationScreen", "创建LocationManager失败: ${e.message}")
             // 这里不再直接返回null，而是抛出错误让上面的错误处理捕获
-            sdkInitializationError = "创建定位管理器失败: ${e.message}"
+            sdkInitializationError = context.getString(
+                R.string.nav_location_manager_create_failed,
+                e.message ?: ""
+            )
             null
         }
     }
@@ -526,19 +535,19 @@ fun NavigationScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOff,
-                    contentDescription = "定位服务不可用",
+                    contentDescription = stringResource(id = R.string.nav_location_unavailable_a11y),
                     tint = WarningOrange,
                     modifier = Modifier.size(48.dp)
                 )
 
                 Text(
-                    text = "定位服务初始化失败",
+                    text = stringResource(id = R.string.nav_location_init_failed_title),
                     color = WarningOrange,
                     fontSize = 20.sp
                 )
 
                 Text(
-                    text = "请检查以下可能原因：\n1. 隐私政策未同意\n2. 定位权限未授予\n3. 百度地图服务异常",
+                    text = stringResource(id = R.string.nav_location_init_failed_reasons),
                     color = PureWhite.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
@@ -562,7 +571,7 @@ fun NavigationScreen(
                         contentColor = PureBlack
                     )
                 ) {
-                    Text(text = "检查隐私政策状态")
+                    Text(text = stringResource(id = R.string.nav_check_privacy_status))
                 }
 
                 Button(
@@ -572,7 +581,7 @@ fun NavigationScreen(
                         contentColor = PureWhite
                     )
                 ) {
-                    Text(text = "返回首页")
+                    Text(text = stringResource(id = R.string.nav_back_home))
                 }
             }
         }
@@ -602,7 +611,7 @@ fun NavigationScreen(
     LaunchedEffect(Unit) {
         delay(500)
         if (viewModel.navigationState.value == NavigationState.STANDBY) {
-            ttsManager.speak("请点击屏幕中央麦克风后，说明目的地。")
+            ttsManager.speak(context.getString(R.string.nav_tts_prompt_center_mic))
         }
     }
 
@@ -790,16 +799,16 @@ fun NavigationScreen(
                             route.totalDuration / 60
                         )
                     } else {
-                        ttsManager.speak("路线规划超时，请重试")
+                        ttsManager.speak(context.getString(R.string.nav_tts_route_plan_timeout))
                         viewModel.navigationState.value = NavigationState.STANDBY
                     }
                 } else {
-                    ttsManager.speak("无法获取当前位置，请检查GPS")
+                    ttsManager.speak(context.getString(R.string.nav_tts_gps_missing))
                     viewModel.navigationState.value = NavigationState.STANDBY
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                ttsManager.speak("路线规划失败，请重试")
+                ttsManager.speak(context.getString(R.string.nav_tts_route_plan_failed))
                 viewModel.navigationState.value = NavigationState.STANDBY
             }
         }
@@ -826,7 +835,7 @@ fun NavigationScreen(
                     // 在父级 scope 启动录音（不会因 StandbyScreen 移除而被取消）
                     listeningJob = scope.launch {
                         try {
-                            ttsManager.speakAndWait("正在监听，请说出目的地")
+                            ttsManager.speakAndWait(context.getString(R.string.nav_tts_listening_ask_destination))
                             delay(300)
 
                             speechRecognizer.startListening().collectLatest { result ->
@@ -846,18 +855,18 @@ fun NavigationScreen(
                                     if (location != null) {
                                         planAndStartNavigation(placeName, location)
                                     } else {
-                                        ttsManager.speak("无法找到目的地，请重试")
+                                        ttsManager.speak(context.getString(R.string.nav_tts_cannot_find_destination))
                                         viewModel.navigationState.value = NavigationState.STANDBY
                                     }
                                 } else {
-                                    ttsManager.speak("未识别到语音，请重试")
+                                    ttsManager.speak(context.getString(R.string.nav_tts_voice_not_recognized))
                                     viewModel.navigationState.value = NavigationState.STANDBY
                                 }
                             }
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
-                            ttsManager.speak("语音识别失败，请重试")
+                            ttsManager.speak(context.getString(R.string.nav_tts_voice_recognition_failed))
                             viewModel.navigationState.value = NavigationState.STANDBY
                         }
                     }
@@ -877,7 +886,7 @@ fun NavigationScreen(
                     listeningJob?.cancel()
                     speechRecognizer.cancel()
                     viewModel.navigationState.value = NavigationState.STANDBY
-                    ttsManager.speak("已取消语音输入")
+                    ttsManager.speak(context.getString(R.string.nav_tts_cancelled_voice_input))
                 }
             )
         }
@@ -900,7 +909,7 @@ fun NavigationScreen(
                 navController = navController,
                 onPause = {
                     viewModel.navigationState.value = NavigationState.PAUSED
-                    ttsManager.speak("导航已暂停")
+                    ttsManager.speak(context.getString(R.string.nav_tts_navigation_paused))
                     locationManager.stopLocation()
                 },
                 onStop = {
@@ -915,11 +924,11 @@ fun NavigationScreen(
                     navigationService.moveToNextStep()?.let { nextStep ->
                         // 播报下一步指令
                         val direction = when (nextStep.turnType) {
-                            "LEFT" -> "左转"
-                            "RIGHT" -> "右转"
-                            "STRAIGHT" -> "直行"
-                            "ARRIVE" -> "到达"
-                            else -> "继续前进"
+                            "LEFT" -> context.getString(R.string.nav_turn_left)
+                            "RIGHT" -> context.getString(R.string.nav_turn_right)
+                            "STRAIGHT" -> context.getString(R.string.nav_turn_straight)
+                            "ARRIVE" -> context.getString(R.string.nav_turn_arrive)
+                            else -> context.getString(R.string.nav_turn_continue_forward)
                         }
                         arbitrator.announceTurn(direction, nextStep.distance)
                     }
@@ -933,7 +942,7 @@ fun NavigationScreen(
                 navController = navController,
                 onResume = {
                     viewModel.navigationState.value = NavigationState.NAVIGATING
-                    ttsManager.speak("继续导航")
+                    ttsManager.speak(context.getString(R.string.nav_tts_continue_navigation))
                     viewModel.isLocationStarted.value = true
                 },
                 onStop = {
@@ -955,7 +964,7 @@ fun NavigationScreen(
                     viewModel.navigationState.value = NavigationState.STANDBY
                     viewModel.destinationText.value = ""
                     viewModel.destinationLocation.value = null
-                    ttsManager.speak("请说出新的目的地")
+                    ttsManager.speak(context.getString(R.string.nav_tts_say_new_destination))
                 },
                 onExit = {
                     navigationService.release()
@@ -1326,7 +1335,7 @@ private fun ListeningScreen(
             Box(modifier = Modifier.fillMaxWidth()) {
                 // 创建自定义顶部栏，支持返回按钮点击
                 EarRoveTopAppBar(
-                    title = "正在监听...",
+                    title = stringResource(id = R.string.nav_listening_title),
                     onNavigateUp = { navController.navigateUp() }
                 )
             }
@@ -1353,7 +1362,7 @@ private fun ListeningScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Mic,
-                        contentDescription = "正在监听",
+                        contentDescription = stringResource(id = R.string.nav_listening_a11y),
                         tint = PremiumGold,
                         modifier = Modifier.size(100.dp)
                     )
@@ -1363,7 +1372,7 @@ private fun ListeningScreen(
 
                 // 提示文字
                 Text(
-                    text = "请说出目的地...",
+                    text = stringResource(id = R.string.nav_listening_prompt),
                     style = MaterialTheme.typography.headlineMedium,
                     color = PureWhite,
                     textAlign = TextAlign.Center
@@ -1379,7 +1388,7 @@ private fun ListeningScreen(
                         contentColor = PureBlack
                     )
                 ) {
-                    Text(text = "取消语音输入")
+                    Text(text = stringResource(id = R.string.nav_cancel_voice_input))
                 }
             }
         }
@@ -1394,7 +1403,7 @@ private fun PlanningRouteScreen(
     Scaffold(
         topBar = {
             EarRoveTopAppBar(
-                title = "规划路线中",
+                title = stringResource(id = R.string.nav_planning_title),
                 onNavigateUp = { navController.navigateUp() }
             )
         }
@@ -1417,7 +1426,7 @@ private fun PlanningRouteScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "正在规划前往\n$destination\n的路线",
+                    text = stringResource(id = R.string.nav_planning_route_template, destination),
                     style = MaterialTheme.typography.headlineMedium,
                     color = PureWhite,
                     textAlign = TextAlign.Center
@@ -1426,7 +1435,7 @@ private fun PlanningRouteScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "请稍候...",
+                    text = stringResource(id = R.string.nav_planning_wait),
                     style = MaterialTheme.typography.bodyLarge,
                     color = PureWhite.copy(alpha = 0.7f)
                 )
@@ -1449,6 +1458,7 @@ private fun NavigatingScreen(
     onNextStep: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // 确保定位开启
     LaunchedEffect(Unit) {
@@ -1458,7 +1468,7 @@ private fun NavigatingScreen(
     Scaffold(
         topBar = {
             EarRoveTopAppBar(
-                title = "导航中",
+                title = stringResource(id = R.string.nav_navigating_title),
                 onNavigateUp = { navController.navigateUp() }
             )
         },
@@ -1508,7 +1518,10 @@ private fun NavigatingScreen(
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
                         .semantics {
-                            contentDescription = "目的地：${viewModel.destinationText.value}"
+                            contentDescription = context.getString(
+                                R.string.nav_destination_template,
+                                viewModel.destinationText.value
+                            )
                         }
                 )
 
@@ -1563,12 +1576,12 @@ private fun NavigatingScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 StatusChip(
-                                    label = "距离",
+                                    label = stringResource(id = R.string.nav_label_distance),
                                     value = "${step.distance}米",
                                     icon = Icons.Default.Navigation
                                 )
                                 StatusChip(
-                                    label = "时间",
+                                    label = stringResource(id = R.string.nav_label_time),
                                     value = "${step.duration}秒",
                                     icon = Icons.Default.VolumeUp
                                 )
@@ -1585,15 +1598,15 @@ private fun NavigatingScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatusItem(
-                        label = "总距离",
+                        label = stringResource(id = R.string.nav_label_total_distance),
                         value = "${viewModel.totalDistance.value}米"
                     )
                     StatusItem(
-                        label = "剩余",
+                        label = stringResource(id = R.string.nav_label_remaining),
                         value = "${viewModel.remainingDistance.value}米"
                     )
                     StatusItem(
-                        label = "剩余时间",
+                        label = stringResource(id = R.string.nav_label_remaining_time),
                         value = "${viewModel.remainingTime.value}分钟"
                     )
                 }
@@ -1615,14 +1628,18 @@ private fun NavigatingScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "⚠️ 前方危险！",
+                                    text = stringResource(id = R.string.nav_obstacle_alert_title),
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                             color = PureBlack,
                             fontWeight = FontWeight.Black
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "前方${viewModel.obstacleDistance.value}米检测到${viewModel.obstacleType.value}，请避让",
+                                    text = stringResource(
+                                        id = R.string.nav_obstacle_alert_template,
+                                        viewModel.obstacleDistance.value,
+                                        viewModel.obstacleType.value
+                                    ),
                             style = MaterialTheme.typography.headlineMedium,
                             color = PureBlack,
                             textAlign = TextAlign.Center
@@ -1655,10 +1672,10 @@ private fun NavigatingScreen(
                     ) {
                         Text(
                             text = when (viewModel.trafficLightStatus.value?.status) {
-                                TrafficLightStatus.RED -> "🔴 红灯"
-                                TrafficLightStatus.GREEN -> "🟢 绿灯"
-                                TrafficLightStatus.YELLOW -> "🟡 黄灯"
-                                else -> "交通灯"
+                                TrafficLightStatus.RED -> stringResource(id = R.string.nav_traffic_light_red)
+                                TrafficLightStatus.GREEN -> stringResource(id = R.string.nav_traffic_light_green)
+                                TrafficLightStatus.YELLOW -> stringResource(id = R.string.nav_traffic_light_yellow)
+                                else -> stringResource(id = R.string.nav_traffic_light_unknown)
                             },
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                             color = PureBlack,
@@ -1667,7 +1684,11 @@ private fun NavigatingScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         viewModel.trafficLightStatus.value?.let { trafficLight ->
                             Text(
-                                text = "距离${trafficLight.distance}米\n倒计时${trafficLight.countdown}秒",
+                                text = stringResource(
+                                    id = R.string.nav_traffic_light_countdown_template,
+                                    trafficLight.distance,
+                                    trafficLight.countdown
+                                ),
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = PureBlack,
                                 textAlign = TextAlign.Center
@@ -1708,10 +1729,10 @@ private fun NavigationControlBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "下一步"
+                    contentDescription = stringResource(id = R.string.nav_next_step)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "下一步")
+                Text(text = stringResource(id = R.string.nav_next_step))
             }
         }
 
@@ -1731,10 +1752,20 @@ private fun NavigationControlBar(
             ) {
                 Icon(
                     imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                    contentDescription = if (isPaused) "继续" else "暂停"
+                    contentDescription = if (isPaused) {
+                        stringResource(id = R.string.nav_continue)
+                    } else {
+                        stringResource(id = R.string.nav_pause)
+                    }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = if (isPaused) "继续" else "暂停")
+                Text(
+                    text = if (isPaused) {
+                        stringResource(id = R.string.nav_continue)
+                    } else {
+                        stringResource(id = R.string.nav_pause)
+                    }
+                )
             }
         }
 
@@ -1754,10 +1785,10 @@ private fun NavigationControlBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Stop,
-                    contentDescription = "结束导航"
+                    contentDescription = stringResource(id = R.string.nav_end_navigation)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "结束导航")
+                Text(text = stringResource(id = R.string.nav_end_navigation))
             }
         }
     }
@@ -1826,7 +1857,7 @@ private fun PausedScreen(
     Scaffold(
         topBar = {
             EarRoveTopAppBar(
-                title = "导航已暂停",
+                title = stringResource(id = R.string.nav_paused_title),
                 onNavigateUp = { navController.navigateUp() }
             )
         }
@@ -1844,19 +1875,22 @@ private fun PausedScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Pause,
-                    contentDescription = "暂停",
+                    contentDescription = stringResource(id = R.string.nav_pause_a11y),
                     tint = PremiumGold,
                     modifier = Modifier.size(120.dp)
                 )
 
                 Text(
-                    text = "导航已暂停",
+                    text = stringResource(id = R.string.nav_paused_title),
                     style = MaterialTheme.typography.headlineLarge,
                     color = PureWhite
                 )
 
                 Text(
-                    text = "目的地：$destination",
+                    text = stringResource(
+                        id = R.string.nav_paused_destination_template,
+                        destination
+                    ),
                     style = MaterialTheme.typography.headlineMedium,
                     color = PremiumGold,
                     textAlign = TextAlign.Center
@@ -1876,7 +1910,10 @@ private fun PausedScreen(
                             contentColor = PureBlack
                         )
                     ) {
-                        Text(text = "继续导航", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            text = stringResource(id = R.string.nav_continue_navigation),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
                     }
 
                     Button(
@@ -1887,7 +1924,10 @@ private fun PausedScreen(
                             contentColor = PureBlack
                         )
                     ) {
-                        Text(text = "结束导航", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            text = stringResource(id = R.string.nav_end_navigation),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
                     }
                 }
             }
@@ -1902,10 +1942,11 @@ private fun ArrivedScreen(
     onRestart: () -> Unit,
     onExit: () -> Unit
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             EarRoveTopAppBar(
-                title = "已到达目的地",
+                title = stringResource(id = R.string.nav_arrived_title),
                 onNavigateUp = { navController.navigateUp() }
             )
         }
@@ -1937,7 +1978,7 @@ private fun ArrivedScreen(
                 }
 
                 Text(
-                    text = "已到达目的地",
+                    text = stringResource(id = R.string.nav_arrived_title),
                     style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                     color = PremiumGold,
                     fontWeight = FontWeight.Bold
@@ -1951,7 +1992,10 @@ private fun ArrivedScreen(
                     modifier = Modifier
                         .padding(horizontal = 32.dp)
                         .semantics {
-                            contentDescription = "目的地：$destination"
+                            contentDescription = context.getString(
+                                R.string.nav_destination_template,
+                                destination
+                            )
                         }
                 )
 
@@ -1969,7 +2013,10 @@ private fun ArrivedScreen(
                             contentColor = PureBlack
                         )
                     ) {
-                        Text(text = "开始新的导航", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            text = stringResource(id = R.string.nav_start_new_navigation),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
                     }
 
                     Button(
@@ -1984,7 +2031,10 @@ private fun ArrivedScreen(
                             PureWhite.copy(alpha = 0.3f)
                         )
                     ) {
-                        Text(text = "退出导航", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            text = stringResource(id = R.string.nav_exit_navigation),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
                     }
                 }
             }
@@ -2004,12 +2054,12 @@ fun NavigationScreenPreview() {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "导航屏幕预览",
+                text = stringResource(id = R.string.nav_preview_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = PureWhite
             )
             Text(
-                text = "实际运行时将显示完整导航界面",
+                text = stringResource(id = R.string.nav_preview_body),
                 style = MaterialTheme.typography.bodyLarge,
                 color = PremiumGold,
                 modifier = Modifier.padding(top = 16.dp)

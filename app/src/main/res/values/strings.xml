@@ -102,6 +102,17 @@
     <string name="nav_go_privacy_settings">前往设置隐私政策</string>
     <string name="nav_retry_init">重试初始化</string>
 
+    <!-- Navigation init gate / error page -->
+    <string name="nav_back_home">返回首页</string>
+    <string name="nav_init_navigation_service">正在初始化导航服务...</string>
+    <string name="nav_confirm_baidu_privacy">请确保已同意百度地图隐私政策</string>
+    <string name="nav_check_privacy_status">检查隐私政策状态</string>
+    <string name="nav_back_home_view_privacy">返回首页查看隐私政策</string>
+    <string name="nav_privacy_need_baidu_short">请先同意百度地图隐私政策</string>
+    <string name="nav_location_unavailable_a11y">定位服务不可用</string>
+    <string name="nav_location_init_failed_title">定位服务初始化失败</string>
+    <string name="nav_location_init_failed_reasons">请检查以下可能原因：\n1. 隐私政策未同意\n2. 定位权限未授予\n3. 百度地图服务异常</string>
+
     <!-- Navigation standby screen (P2-T1 partial) -->
     <string name="nav_standby_top_title">智能导航</string>
     <string name="nav_privacy_need_speak">请先同意隐私政策才能使用导航功能</string>
@@ -128,4 +139,71 @@
     <string name="nav_suggest_6">三里屯</string>
     <string name="nav_suggest_7">国家体育场</string>
     <string name="nav_suggest_8">北京大学</string>
+    <!-- Navigation: listening/planning/navigating UI (P2-T1 partial) -->
+    <string name="nav_listening_title">正在监听...</string>
+    <string name="nav_listening_a11y">正在监听</string>
+    <string name="nav_listening_prompt">请说出目的地...</string>
+    <string name="nav_cancel_voice_input">取消语音输入</string>
+
+    <string name="nav_planning_title">规划路线中</string>
+    <string name="nav_planning_route_template">正在规划前往\n%1$s\n的路线</string>
+    <string name="nav_planning_wait">请稍候...</string>
+
+    <string name="nav_navigating_title">导航中</string>
+    <string name="nav_destination_template">目的地：%1$s</string>
+
+    <string name="nav_label_distance">距离</string>
+    <string name="nav_label_time">时间</string>
+    <string name="nav_label_total_distance">总距离</string>
+    <string name="nav_label_remaining">剩余</string>
+    <string name="nav_label_remaining_time">剩余时间</string>
+
+    <string name="nav_obstacle_alert_title">⚠️ 前方危险！</string>
+    <string name="nav_obstacle_alert_template">前方%1$d米检测到%2$s，请避让</string>
+
+    <string name="nav_traffic_light_red">🔴 红灯</string>
+    <string name="nav_traffic_light_green">🟢 绿灯</string>
+    <string name="nav_traffic_light_yellow">🟡 黄灯</string>
+    <string name="nav_traffic_light_unknown">交通灯</string>
+    <string name="nav_traffic_light_countdown_template">距离%1$d米\n倒计时%2$d秒</string>
+
+    <string name="nav_next_step">下一步</string>
+    <string name="nav_continue">继续</string>
+    <string name="nav_pause">暂停</string>
+    <string name="nav_end_navigation">结束导航</string>
+
+    <string name="nav_paused_title">导航已暂停</string>
+    <string name="nav_paused_destination_template">目的地：%1$s</string>
+    <string name="nav_pause_a11y">暂停</string>
+    <string name="nav_continue_navigation">继续导航</string>
+
+    <string name="nav_arrived_title">已到达目的地</string>
+    <string name="nav_start_new_navigation">开始新的导航</string>
+    <string name="nav_exit_navigation">退出导航</string>
+
+    <string name="nav_preview_title">导航屏幕预览</string>
+    <string name="nav_preview_body">实际运行时将显示完整导航界面</string>
+
+    <!-- Navigation TTS (P2-T1 partial completion) -->
+    <string name="nav_tts_prompt_center_mic">请点击屏幕中央麦克风后，说明目的地。</string>
+    <string name="nav_tts_route_plan_timeout">路线规划超时，请重试</string>
+    <string name="nav_tts_gps_missing">无法获取当前位置，请检查GPS</string>
+    <string name="nav_tts_route_plan_failed">路线规划失败，请重试</string>
+    <string name="nav_tts_listening_ask_destination">正在监听，请说出目的地</string>
+    <string name="nav_tts_cannot_find_destination">无法找到目的地，请重试</string>
+    <string name="nav_tts_voice_not_recognized">未识别到语音，请重试</string>
+    <string name="nav_tts_voice_recognition_failed">语音识别失败，请重试</string>
+    <string name="nav_tts_cancelled_voice_input">已取消语音输入</string>
+    <string name="nav_tts_navigation_paused">导航已暂停</string>
+    <string name="nav_tts_continue_navigation">继续导航</string>
+    <string name="nav_tts_say_new_destination">请说出新的目的地</string>
+
+    <string name="nav_location_manager_create_failed">创建定位管理器失败：%1$s</string>
+
+    <!-- Navigation turn directions -->
+    <string name="nav_turn_left">左转</string>
+    <string name="nav_turn_right">右转</string>
+    <string name="nav_turn_straight">直行</string>
+    <string name="nav_turn_arrive">到达</string>
+    <string name="nav_turn_continue_forward">继续前进</string>
 </resources>

@@ -50,6 +50,10 @@ android {
         val arkApiKey = (localProps.getProperty("ARK_API_KEY") ?: "YOUR-ARK-API-KEY").trim()
 
         buildConfigField("String", "DASHSCOPE_API_KEY", "\"$dashScopeKey\"")
+        buildConfigField("String", "BAIDU_MAP_API_KEY", "\"$baiduMapKey\"")
+        buildConfigField("String", "BAIDU_SPEECH_APP_ID", "\"$baiduAppId\"")
+        buildConfigField("String", "BAIDU_SPEECH_API_KEY", "\"$baiduSpeechApiKey\"")
+        buildConfigField("String", "BAIDU_SPEECH_SECRET_KEY", "\"$baiduSpeechSecretKey\"")
         buildConfigField("String", "BAIDU_TTS_API_KEY", "\"$baiduTtsApiKey\"")
         buildConfigField("String", "BAIDU_TTS_SECRET_KEY", "\"$baiduTtsSecretKey\"")
         buildConfigField("String", "ARK_API_KEY", "\"$arkApiKey\"")

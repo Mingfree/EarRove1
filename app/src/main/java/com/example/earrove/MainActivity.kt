@@ -24,6 +24,7 @@ import com.example.earrove.ui.home.HomeScreen
 import com.example.earrove.ui.navigation.NavigationScreen
 import com.example.earrove.ui.ocr.OcrScreen
 import com.example.earrove.ui.settings.SettingsScreen
+import com.example.earrove.ui.common.StartupConfigAndPermissionGate
 import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
@@ -71,14 +72,17 @@ fun PrivacyCheckWrapper() {
     }
 
     if (allPrivacyAgreed) {
-        // 用户已同意所有隐私政策，显示主应用
-        LaunchedEffect(Unit) {
-            // 延迟初始化百度地图SDK（如果尚未初始化）
-            val app = context.applicationContext as? MyApplication
-            app?.initializeBaiduMapSDK()
-        }
-
-        EarRoveApp()
+        // 用户已同意所有隐私政策：进一步做启动自检（配置/权限）
+        val app = context.applicationContext as? MyApplication
+        StartupConfigAndPermissionGate(
+            onReady = {
+                // 延迟初始化百度地图SDK（如果尚未初始化）
+                LaunchedEffect(Unit) {
+                    app?.initializeBaiduMapSDK()
+                }
+                EarRoveApp()
+            }
+        )
     } else {
         // 显示隐私政策同意页面
         PrivacyAgreementScreen(

@@ -11,6 +11,7 @@ object SettingsStore {
     private const val KEY_TTS_SPEECH_RATE = "tts_speech_rate"
     private const val KEY_HAPTIC_ENABLED = "haptic_enabled"
     private const val KEY_VISUAL_ASSIST_ENABLED = "visual_assist_enabled"
+    private const val KEY_HOME_ADDRESS = "home_address"
 
     fun getTtsSpeechRate(context: Context): Float {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -45,6 +46,27 @@ object SettingsStore {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_VISUAL_ASSIST_ENABLED, value)
+            .apply()
+    }
+
+    fun getHomeAddress(context: Context): String? {
+        val value = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_HOME_ADDRESS, null)
+            ?.trim()
+        return if (value.isNullOrBlank()) null else value
+    }
+
+    fun setHomeAddress(context: Context, value: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_HOME_ADDRESS, value.trim())
+            .apply()
+    }
+
+    fun clearHomeAddress(context: Context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .remove(KEY_HOME_ADDRESS)
             .apply()
     }
 }

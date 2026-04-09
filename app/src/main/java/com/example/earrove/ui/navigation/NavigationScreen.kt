@@ -110,6 +110,7 @@ import com.example.earrove.utils.DestinationExtractor
 import com.example.earrove.utils.LocationManager
 import com.example.earrove.utils.PermissionUtils
 import com.example.earrove.utils.RequestPermissionsDialog
+import com.example.earrove.utils.SettingsStore
 import com.example.earrove.utils.SpeechRecognizerManager
 import com.example.earrove.utils.TTSManager
 import com.example.earrove.utils.VibrationManager
@@ -168,6 +169,11 @@ class NavigationViewModel : androidx.lifecycle.ViewModel() {
     val isLocationStarted = mutableStateOf(false)
 }
 
+private data class DestinationSuggestion(
+    val label: String,
+    val query: String
+)
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun NavigationScreen(
@@ -186,18 +192,6 @@ fun NavigationScreen(
     // 权限检查
     var permissionsGranted by remember { mutableStateOf(false) }
     var permissionPermanentlyDenied by remember { mutableStateOf(false) }
-
-    // 推荐目的地（移出 ViewModel，避免硬编码与便于多语言资源化）
-    val destinationSuggestions = listOf(
-        stringResource(id = R.string.nav_suggest_1),
-        stringResource(id = R.string.nav_suggest_2),
-        stringResource(id = R.string.nav_suggest_3),
-        stringResource(id = R.string.nav_suggest_4),
-        stringResource(id = R.string.nav_suggest_5),
-        stringResource(id = R.string.nav_suggest_6),
-        stringResource(id = R.string.nav_suggest_7),
-        stringResource(id = R.string.nav_suggest_8),
-    )
 
     if (!permissionsGranted) {
         if (permissionPermanentlyDenied) {
@@ -998,16 +992,8 @@ private fun StandbyScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showSuggestions by remember { mutableStateOf(false) }
-    val destinationSuggestions = listOf(
-        stringResource(id = R.string.nav_suggest_1),
-        stringResource(id = R.string.nav_suggest_2),
-        stringResource(id = R.string.nav_suggest_3),
-        stringResource(id = R.string.nav_suggest_4),
-        stringResource(id = R.string.nav_suggest_5),
-        stringResource(id = R.string.nav_suggest_6),
-        stringResource(id = R.string.nav_suggest_7),
-        stringResource(id = R.string.nav_suggest_8),
-    )
+    var homeAddress by remember { mutableStateOf(SettingsStore.getHomeAddress(context)) }
+    var destinationSuggestions by remember { mutableStateOf<List<DestinationSuggestion>>(emptyList()) }
 
     val standbyTopTitle = stringResource(id = R.string.nav_standby_top_title)
     val privacyNeedSpeak = stringResource(id = R.string.nav_privacy_need_speak)
@@ -1045,6 +1031,32 @@ private fun StandbyScreen(
             // 如果未同意，显示提示
             ttsManager.speak(privacyNeedSpeak)
         }
+        homeAddress = SettingsStore.getHomeAddress(context)
+    }
+
+    // 基于当前位置动态生成推荐目的地；若已设置“家”，固定放在首位。
+    LaunchedEffect(viewModel.currentLocation.value?.latitude, viewModel.currentLocation.value?.longitude, homeAddress) {
+        val current = viewModel.currentLocation.value
+        val dynamicNames = if (current != null) {
+            baiduMapUtils.searchNearbyPoiNames(
+                center = LatLng(current.latitude, current.longitude),
+                keyword = "超市 公园 地铁站 医院 商场",
+                limit = 8
+            ).first()
+        } else {
+            emptyList()
+        }
+
+        val dynamic = dynamicNames.map { DestinationSuggestion(it, it) }
+        val withHome = if (!homeAddress.isNullOrBlank()) {
+            listOf(DestinationSuggestion("家", homeAddress!!.trim())) + dynamic
+        } else {
+            dynamic
+        }
+
+        destinationSuggestions = withHome
+            .distinctBy { it.label to it.query }
+            .take(8)
     }
 
     Scaffold(
@@ -1245,7 +1257,7 @@ private fun StandbyScreen(
                                     ) {
                                         rowItems.forEach { destination ->
                                             DestinationSuggestionButton(
-                                                destination = destination,
+                                                destination = destination.label,
                                                 onClick = {
                                                     // 优先 POI 周边搜索（就近匹配）
                                                     scope.launch(Dispatchers.IO) {
@@ -1253,17 +1265,17 @@ private fun StandbyScreen(
                                                             val currentLoc = viewModel.currentLocation.value
                                                             if (currentLoc != null) {
                                                                 baiduMapUtils.searchNearby(
-                                                                    destination,
+                                                                    destination.query,
                                                                     LatLng(currentLoc.latitude, currentLoc.longitude)
                                                                 ).collectLatest { location ->
                                                                     if (location != null) {
-                                                                        onStartNavigation(destination, location)
+                                                                        onStartNavigation(destination.label, location)
                                                                     }
                                                                 }
                                                             } else {
-                                                                baiduMapUtils.geocodeAddress(destination).collectLatest { location ->
+                                                                baiduMapUtils.geocodeAddress(destination.query).collectLatest { location ->
                                                                     if (location != null) {
-                                                                        onStartNavigation(destination, location)
+                                                                        onStartNavigation(destination.label, location)
                                                                     }
                                                                 }
                                                             }

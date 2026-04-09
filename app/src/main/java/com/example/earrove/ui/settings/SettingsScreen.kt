@@ -5,14 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -47,6 +50,7 @@ fun SettingsScreen(navController: NavController) {
     var speechRate by remember { mutableFloatStateOf(SettingsStore.getTtsSpeechRate(context)) }
     var hapticFeedbackEnabled by remember { mutableStateOf(SettingsStore.isHapticEnabled(context)) }
     var visualAssistEnabled by remember { mutableStateOf(SettingsStore.isVisualAssistEnabled(context)) }
+    var homeAddress by remember { mutableStateOf(SettingsStore.getHomeAddress(context).orEmpty()) }
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
@@ -148,6 +152,46 @@ fun SettingsScreen(navController: NavController) {
                     }
                 }
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "预设“家”地址",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = homeAddress,
+                onValueChange = { homeAddress = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                placeholder = { Text("例如：北京市海淀区XX路XX号") }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        if (homeAddress.isNotBlank()) {
+                            homeAddress = homeAddress.trim()
+                            SettingsStore.setHomeAddress(context, homeAddress)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("保存家地址")
+                }
+                OutlinedButton(
+                    onClick = {
+                        homeAddress = ""
+                        SettingsStore.clearHomeAddress(context)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("清除家地址")
+                }
+            }
         }
     }
 

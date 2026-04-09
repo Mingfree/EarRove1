@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -1022,6 +1023,10 @@ private fun StandbyScreen(
     val parseAddressFailSpeak = stringResource(id = R.string.nav_parse_address_fail_speak)
     val changeDestinationSpeak = stringResource(id = R.string.nav_change_destination_speak)
     val changeDestinationA11y = stringResource(id = R.string.nav_change_destination_a11y)
+    val navControlNextStepA11y = stringResource(id = R.string.nav_control_next_step_a11y)
+    val navControlPauseStateA11y = stringResource(id = R.string.nav_control_pause_state_a11y)
+    val navControlResumeStateA11y = stringResource(id = R.string.nav_control_resume_state_a11y)
+    val navControlEndA11y = stringResource(id = R.string.nav_control_end_a11y)
 
     val micScale by animateFloatAsState(
         targetValue = if (viewModel.navigationState.value == NavigationState.LISTENING) 1.2f else 1f,
@@ -1138,7 +1143,9 @@ private fun StandbyScreen(
 
                 // 控制卡片
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.45f),
                     colors = CardDefaults.cardColors(
                         containerColor = PureBlack.copy(alpha = 0.9f)
                     )
@@ -1470,6 +1477,10 @@ private fun NavigatingScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val navControlNextStepA11y = stringResource(id = R.string.nav_control_next_step_a11y)
+    val navControlPauseStateA11y = stringResource(id = R.string.nav_control_pause_state_a11y)
+    val navControlResumeStateA11y = stringResource(id = R.string.nav_control_resume_state_a11y)
+    val navControlEndA11y = stringResource(id = R.string.nav_control_end_a11y)
 
     // 确保定位开启
     LaunchedEffect(Unit) {
@@ -1488,7 +1499,11 @@ private fun NavigatingScreen(
                 onPause = onPause,
                 onStop = onStop,
                 onNextStep = onNextStep,
-                isPaused = false
+                isPaused = false,
+                nextStepA11y = navControlNextStepA11y,
+                pauseStateA11y = navControlPauseStateA11y,
+                resumeStateA11y = navControlResumeStateA11y,
+                endA11y = navControlEndA11y
             )
         }
     ) { paddingValues ->
@@ -1717,7 +1732,11 @@ private fun NavigationControlBar(
     onPause: () -> Unit,
     onStop: () -> Unit,
     onNextStep: () -> Unit,
-    isPaused: Boolean
+    isPaused: Boolean,
+    nextStepA11y: String,
+    pauseStateA11y: String,
+    resumeStateA11y: String,
+    endA11y: String
 ) {
     Row(
         modifier = Modifier
@@ -1735,7 +1754,10 @@ private fun NavigationControlBar(
                 contentColor = PureBlack
             ),
             modifier = Modifier.weight(1f)
-                .semantics { traversalIndex = 0f }
+                .semantics {
+                    traversalIndex = 0f
+                    contentDescription = nextStepA11y
+                }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -1759,7 +1781,10 @@ private fun NavigationControlBar(
                 contentColor = PureBlack
             ),
             modifier = Modifier.weight(1f)
-                .semantics { traversalIndex = 1f }
+                .semantics {
+                    traversalIndex = 1f
+                    contentDescription = if (isPaused) resumeStateA11y else pauseStateA11y
+                }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -1793,7 +1818,10 @@ private fun NavigationControlBar(
                 contentColor = PureBlack
             ),
             modifier = Modifier.weight(1f)
-                .semantics { traversalIndex = 2f }
+                .semantics {
+                    traversalIndex = 2f
+                    contentDescription = endA11y
+                }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically

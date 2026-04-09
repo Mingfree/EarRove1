@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
@@ -152,6 +154,7 @@ private fun PermissionRequestScreen(
     val permGps = stringResource(id = R.string.perm_location_gps)
     val permCamera = stringResource(id = R.string.perm_camera)
     val permMic = stringResource(id = R.string.perm_microphone)
+    val startupContinueA11y = stringResource(id = R.string.startup_permission_continue_a11y)
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -221,7 +224,9 @@ private fun PermissionRequestScreen(
                 Spacer(modifier = Modifier.padding(16.dp))
                 OutlinedButton(
                     onClick = onContinueWithoutPermissions,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = startupContinueA11y }
                 ) {
                     Text(text = continueText, color = PureWhite)
                 }

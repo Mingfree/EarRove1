@@ -122,6 +122,8 @@ fun OcrScreen(navController: NavController) {
 
     val flashlightOffDesc = context.getString(R.string.ocr_flashlight_desc_off)
     val flashlightOnDesc = context.getString(R.string.ocr_flashlight_desc_on)
+    val flashlightEnabledState = context.getString(R.string.ocr_flashlight_state_enabled)
+    val flashlightDisabledState = context.getString(R.string.ocr_flashlight_state_disabled)
     val captureButtonA11y = context.getString(R.string.ocr_capture_button_a11y)
     val pickPhotoA11y = context.getString(R.string.ocr_pick_photo_a11y)
     val photoLabel = context.getString(R.string.ocr_photo_label)
@@ -345,7 +347,11 @@ fun OcrScreen(navController: NavController) {
                     ) {
                         Icon(
                             imageVector = if (isFlashlightOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                            contentDescription = if (isFlashlightOn) flashlightOffDesc else flashlightOnDesc,
+                            contentDescription = if (isFlashlightOn) {
+                                "$flashlightEnabledState，$flashlightOffDesc"
+                            } else {
+                                "$flashlightDisabledState，$flashlightOnDesc"
+                            },
                             tint = if (isFlashlightOn) PremiumGold else PureWhite,
                             modifier = Modifier.size(AppSize.iconMedium)
                         )

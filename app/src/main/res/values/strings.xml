@@ -52,6 +52,7 @@
     <string name="startup_permission_intro">为了使用导航/文字识别，需要授权以下权限：</string>
     <string name="startup_permission_denied_hint">权限未授权。你可以继续进入主页，但导航/文字识别功能可能不可用。</string>
     <string name="startup_permission_continue">继续（稍后在页面内授权）</string>
+    <string name="startup_permission_continue_a11y">继续并稍后在页面内授权</string>
 
     <!-- Permission labels -->
     <string name="perm_location_gps">定位（GPS）</string>
@@ -75,6 +76,8 @@
     <string name="ocr_action_copied_speak">已复制</string>
     <string name="ocr_flashlight_desc_off">关闭闪光灯</string>
     <string name="ocr_flashlight_desc_on">打开闪光灯</string>
+    <string name="ocr_flashlight_state_enabled">闪光灯当前为开启状态</string>
+    <string name="ocr_flashlight_state_disabled">闪光灯当前为关闭状态</string>
     <string name="ocr_capture_button_a11y">拍照识别按钮。点击拍照并识别前方指示牌。</string>
     <string name="ocr_pick_photo_a11y">从相册选择图片识别</string>
     <string name="ocr_photo_label">相册</string>
@@ -178,6 +181,10 @@
     <string name="nav_continue">继续</string>
     <string name="nav_pause">暂停</string>
     <string name="nav_end_navigation">结束导航</string>
+    <string name="nav_control_next_step_a11y">导航控制：前进到下一步</string>
+    <string name="nav_control_pause_state_a11y">导航控制：当前为进行中，可点击暂停</string>
+    <string name="nav_control_resume_state_a11y">导航控制：当前为暂停中，可点击继续</string>
+    <string name="nav_control_end_a11y">导航控制：结束本次导航</string>
 
     <string name="nav_paused_title">导航已暂停</string>
     <string name="nav_paused_destination_template">目的地：%1$s</string>

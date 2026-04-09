@@ -149,9 +149,10 @@ fun PrivacyAgreementScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             // 应用标题
             Text(
@@ -172,8 +173,8 @@ fun PrivacyAgreementScreen(
             // 隐私政策卡片
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                    .fillMaxWidth(0.96f)
+                    .weight(1f, fill = false),
                 colors = CardDefaults.cardColors(
                     containerColor = PureBlack.copy(alpha = 0.8f)
                 )
@@ -435,7 +436,8 @@ private fun ActionButtons(
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth(0.96f)
     ) {
         // 同意按钮（仅在全部勾选时可用）
         Button(

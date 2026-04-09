@@ -1082,6 +1082,8 @@ private fun StandbyScreen(
     val navControlPauseStateA11y = stringResource(id = R.string.nav_control_pause_state_a11y)
     val navControlResumeStateA11y = stringResource(id = R.string.nav_control_resume_state_a11y)
     val navControlEndA11y = stringResource(id = R.string.nav_control_end_a11y)
+    val standbyRecommendHintSpeak = stringResource(id = R.string.nav_tts_standby_recommend_hint)
+    var hasSpokenStandbyRecommendHint by remember { mutableStateOf(false) }
 
     val micScale by animateFloatAsState(
         targetValue = if (viewModel.navigationState.value == NavigationState.LISTENING) 1.2f else 1f,
@@ -1099,6 +1101,15 @@ private fun StandbyScreen(
         if (!privacyAgreed) {
             // 如果未同意，显示提示
             ttsManager.speak(privacyNeedSpeak)
+        }
+    }
+
+    // 首次进入待机页时补充推荐区提示，增强可发现性
+    LaunchedEffect(Unit) {
+        if (!hasSpokenStandbyRecommendHint) {
+            delay(1200)
+            ttsManager.speakWithoutInterrupt(standbyRecommendHintSpeak)
+            hasSpokenStandbyRecommendHint = true
         }
     }
 
@@ -1151,20 +1162,192 @@ private fun StandbyScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(AppSpacing.xxLarge)
-                    .semantics { isTraversalGroup = true },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
+                    .semantics { isTraversalGroup = true }
             ) {
-                // 当前位置显示
+                // 控制卡片（固定贴底，不受定位栏显示影响）
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.5f)
+                        .align(Alignment.BottomCenter),
+                    colors = CardDefaults.cardColors(
+                        containerColor = PureBlack.copy(alpha = 0.9f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            // 麦克风按钮
+                            Box(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(CircleShape)
+                                    .background(PremiumGold.copy(alpha = 0.2f))
+                                    .clickable { onMicClick() }
+                                    .semantics {
+                                        contentDescription = micA11yDesc
+                                        traversalIndex = 0f
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = micIconDesc,
+                                    tint = PremiumGold,
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .scale(micScale)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(AppSpacing.medium))
+
+                            // 提示文字
+                            Text(
+                                text = standbyPromptTitle,
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = PureWhite,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .semantics {
+                                        contentDescription = standbyPromptA11y
+                                    }
+                            )
+
+                            Spacer(modifier = Modifier.height(AppSpacing.small))
+
+                            Text(
+                                text = standbyPromptHint,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = PureWhite.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(AppSpacing.small))
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nav_recommended_destinations),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = PremiumGold,
+                                modifier = Modifier.semantics { traversalIndex = 1f }
+                            )
+
+                            Spacer(modifier = Modifier.height(AppSpacing.small))
+
+                            fixedRecommendedDestinations.chunked(3).forEach { rowItems ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    rowItems.forEach { destination ->
+                                        DestinationSuggestionButton(
+                                            destination = destination.label,
+                                            modifier = Modifier.weight(1f),
+                                            onClick = {
+                                                if (destination.label == recommendHomeLabel) {
+                                                    val latestHomeAddress = settingsRepository.getHomeAddress()?.trim()
+                                                    if (latestHomeAddress.isNullOrEmpty()) {
+                                                        ttsManager.speak(saveHomeAddressSpeak)
+                                                        navController.navigate("settings")
+                                                        return@DestinationSuggestionButton
+                                                    }
+                                                    ttsManager.speak(planToHomeSpeak)
+                                                    scope.launch {
+                                                        try {
+                                                            val location = withContext(Dispatchers.IO) {
+                                                                baiduMapUtils.geocodeAddress(latestHomeAddress).first()
+                                                            }
+                                                            if (location != null) {
+                                                                onStartNavigation(recommendHomeLabel, location)
+                                                            } else {
+                                                                ttsManager.speak(cannotFindDestination)
+                                                            }
+                                                        } catch (_: Exception) {
+                                                            ttsManager.speak(parseAddressFailSpeak)
+                                                        }
+                                                    }
+                                                    return@DestinationSuggestionButton
+                                                }
+
+                                                val currentLoc = viewModel.currentLocation.value
+                                                if (currentLoc == null) {
+                                                    ttsManager.speak(locatingRetrySpeak)
+                                                    return@DestinationSuggestionButton
+                                                }
+                                                ttsManager.speak(
+                                                    context.getString(
+                                                        R.string.nav_plan_to_destination_template,
+                                                        destination.label
+                                                    )
+                                                )
+                                                selectedCategoryLabel = destination.label
+                                                showCandidateSheet = true
+                                                isLoadingCandidates = true
+                                                candidateList = emptyList()
+
+                                                scope.launch {
+                                                    try {
+                                                        val candidates = withContext(Dispatchers.IO) {
+                                                            baiduMapUtils.searchNearbyPoiCandidates(
+                                                                keyword = destination.query,
+                                                                center = LatLng(currentLoc.latitude, currentLoc.longitude),
+                                                                limit = 5
+                                                            ).first()
+                                                        }
+                                                        candidateList = candidates
+                                                        if (candidates.isEmpty()) {
+                                                            ttsManager.speak(cannotFindDestination)
+                                                        }
+                                                    } catch (_: Exception) {
+                                                        ttsManager.speak(parseAddressFailSpeak)
+                                                    } finally {
+                                                        isLoadingCandidates = false
+                                                    }
+                                                }
+                                            },
+                                            contentDescription = context.getString(
+                                                R.string.nav_recommended_destination_a11y_template,
+                                                destination.label
+                                            )
+                                        )
+                                    }
+                                    repeat(3 - rowItems.size) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 当前位置显示（悬浮在控制卡片上方）
                 viewModel.currentLocation.value?.let { location ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 16.dp),
+                            .padding(bottom = 16.dp)
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 380.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = PureBlack.copy(alpha = 0.8f)
                         )
@@ -1191,166 +1374,6 @@ private fun StandbyScreen(
                                     color = PureWhite,
                                     maxLines = 1
                                 )
-                            }
-                        }
-                    }
-                }
-
-                // 控制卡片
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.45f),
-                    colors = CardDefaults.cardColors(
-                        containerColor = PureBlack.copy(alpha = 0.9f)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // 麦克风按钮
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .background(PremiumGold.copy(alpha = 0.2f))
-                                .clickable { onMicClick() }
-                                .semantics {
-                                    contentDescription = micA11yDesc
-                                    traversalIndex = 0f
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Mic,
-                                contentDescription = micIconDesc,
-                                tint = PremiumGold,
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .scale(micScale)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(AppSpacing.large))
-
-                        // 提示文字
-                        Text(
-                            text = standbyPromptTitle,
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = PureWhite,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .semantics {
-                                    contentDescription = standbyPromptA11y
-                                }
-                        )
-
-                        Spacer(modifier = Modifier.height(AppSpacing.small))
-
-                        Text(
-                            text = standbyPromptHint,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = PureWhite.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(AppSpacing.large))
-
-                        Text(
-                            text = stringResource(id = R.string.nav_recommended_destinations),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = PremiumGold,
-                            modifier = Modifier.semantics { traversalIndex = 1f }
-                        )
-
-                        Spacer(modifier = Modifier.height(AppSpacing.small))
-
-                        fixedRecommendedDestinations.chunked(3).forEach { rowItems ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                rowItems.forEach { destination ->
-                                    DestinationSuggestionButton(
-                                        destination = destination.label,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = {
-                                            if (destination.label == recommendHomeLabel) {
-                                                val latestHomeAddress = settingsRepository.getHomeAddress()?.trim()
-                                                if (latestHomeAddress.isNullOrEmpty()) {
-                                                    ttsManager.speak(saveHomeAddressSpeak)
-                                                    navController.navigate("settings")
-                                                    return@DestinationSuggestionButton
-                                                }
-                                                ttsManager.speak(planToHomeSpeak)
-                                                scope.launch {
-                                                    try {
-                                                        val location = withContext(Dispatchers.IO) {
-                                                            baiduMapUtils.geocodeAddress(latestHomeAddress).first()
-                                                        }
-                                                        if (location != null) {
-                                                            onStartNavigation(recommendHomeLabel, location)
-                                                        } else {
-                                                            ttsManager.speak(cannotFindDestination)
-                                                        }
-                                                    } catch (_: Exception) {
-                                                        ttsManager.speak(parseAddressFailSpeak)
-                                                    }
-                                                }
-                                                return@DestinationSuggestionButton
-                                            }
-
-                                            val currentLoc = viewModel.currentLocation.value
-                                            if (currentLoc == null) {
-                                                ttsManager.speak(locatingRetrySpeak)
-                                                return@DestinationSuggestionButton
-                                            }
-                                            ttsManager.speak(
-                                                context.getString(
-                                                    R.string.nav_plan_to_destination_template,
-                                                    destination.label
-                                                )
-                                            )
-                                            selectedCategoryLabel = destination.label
-                                            showCandidateSheet = true
-                                            isLoadingCandidates = true
-                                            candidateList = emptyList()
-
-                                            scope.launch {
-                                                try {
-                                                    val candidates = withContext(Dispatchers.IO) {
-                                                        baiduMapUtils.searchNearbyPoiCandidates(
-                                                            keyword = destination.query,
-                                                            center = LatLng(currentLoc.latitude, currentLoc.longitude),
-                                                            limit = 5
-                                                        ).first()
-                                                    }
-                                                    candidateList = candidates
-                                                    if (candidates.isEmpty()) {
-                                                        ttsManager.speak(cannotFindDestination)
-                                                    }
-                                                } catch (_: Exception) {
-                                                    ttsManager.speak(parseAddressFailSpeak)
-                                                } finally {
-                                                    isLoadingCandidates = false
-                                                }
-                                            }
-                                        },
-                                        contentDescription = context.getString(
-                                            R.string.nav_recommended_destination_a11y_template,
-                                            destination.label
-                                        )
-                                    )
-                                }
-                                repeat(3 - rowItems.size) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
                             }
                         }
                     }

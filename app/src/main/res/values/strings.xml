@@ -225,6 +225,7 @@
     <string name="nav_tts_navigation_paused">导航已暂停</string>
     <string name="nav_tts_continue_navigation">继续导航</string>
     <string name="nav_tts_say_new_destination">请说出新的目的地</string>
+    <string name="nav_tts_standby_recommend_hint">下方有推荐目的地按钮，可直接点击</string>
 
     <string name="nav_location_manager_create_failed">创建定位管理器失败：%1$s</string>
 

@@ -110,7 +110,10 @@ import com.example.earrove.utils.DestinationExtractor
 import com.example.earrove.utils.LocationManager
 import com.example.earrove.utils.PermissionUtils
 import com.example.earrove.utils.RequestPermissionsDialog
-import com.example.earrove.utils.SettingsStore
+import com.example.earrove.data.privacy.PrivacyRepository
+import com.example.earrove.data.privacy.PrivacyRepositoryImpl
+import com.example.earrove.data.settings.SettingsRepository
+import com.example.earrove.data.settings.SettingsRepositoryImpl
 import com.example.earrove.utils.SpeechRecognizerManager
 import com.example.earrove.utils.TTSManager
 import com.example.earrove.utils.VibrationManager
@@ -134,7 +137,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.CoordType
-import com.example.earrove.utils.PrivacyUtils
 import androidx.compose.material.icons.filled.LocationOff
 
 // 导航状态枚举
@@ -183,6 +185,8 @@ fun NavigationScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val privacyRepository = remember(context) { PrivacyRepositoryImpl(context) }
+    val settingsRepository = remember(context) { SettingsRepositoryImpl(context) }
 
     // 跟踪当前路线规划 Job，新导航时取消旧的
     var routePlanJob by remember { mutableStateOf<Job?>(null) }
@@ -274,7 +278,7 @@ fun NavigationScreen(
             val appContext = context.applicationContext
 
             // 首先检查用户是否已同意隐私政策
-            val privacyAgreed = PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context)
+            val privacyAgreed = privacyRepository.hasUserAgreedToBaiduMapPrivacy()
 
             if (!privacyAgreed) {
                 sdkInitializationError = context.getString(R.string.nav_privacy_need)
@@ -455,7 +459,7 @@ fun NavigationScreen(
                 Button(
                     onClick = {
                         // 重新检查隐私政策状态
-                        val privacyAgreed = PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context)
+                        val privacyAgreed = privacyRepository.hasUserAgreedToBaiduMapPrivacy()
                         if (privacyAgreed) {
                             // 如果已同意，重新初始化SDK
                             sdkInitializationError = null
@@ -557,7 +561,7 @@ fun NavigationScreen(
                 // 检查隐私政策
                 Button(
                     onClick = {
-                        val privacyAgreed = PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context)
+                        val privacyAgreed = privacyRepository.hasUserAgreedToBaiduMapPrivacy()
                         if (privacyAgreed) {
                             // 如果已同意，重新进入页面
                             navController.popBackStack()
@@ -823,6 +827,8 @@ fun NavigationScreen(
                 ttsManager = ttsManager,
                 navigationService = navigationService,
                 baiduMapUtils = BaiduMapUtils,
+                settingsRepository = settingsRepository,
+                privacyRepository = privacyRepository,
                 navController = navController,
                 onMicClick = {
                     // 取消旧的录音和路线规划
@@ -985,6 +991,8 @@ private fun StandbyScreen(
     ttsManager: TTSManager,
     navigationService: NavigationService,
     baiduMapUtils: BaiduMapUtils,
+    settingsRepository: SettingsRepository,
+    privacyRepository: PrivacyRepository,
     navController: NavController,
     onMicClick: () -> Unit,
     onStartNavigation: (String, LatLng) -> Unit
@@ -992,7 +1000,7 @@ private fun StandbyScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showSuggestions by remember { mutableStateOf(false) }
-    var homeAddress by remember { mutableStateOf(SettingsStore.getHomeAddress(context)) }
+    var homeAddress by remember { mutableStateOf(settingsRepository.getHomeAddress()) }
     var destinationSuggestions by remember { mutableStateOf<List<DestinationSuggestion>>(emptyList()) }
 
     val standbyTopTitle = stringResource(id = R.string.nav_standby_top_title)
@@ -1026,12 +1034,12 @@ private fun StandbyScreen(
 
     // 再次检查隐私政策状态
     LaunchedEffect(Unit) {
-        val privacyAgreed = PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context)
+        val privacyAgreed = privacyRepository.hasUserAgreedToBaiduMapPrivacy()
         if (!privacyAgreed) {
             // 如果未同意，显示提示
             ttsManager.speak(privacyNeedSpeak)
         }
-        homeAddress = SettingsStore.getHomeAddress(context)
+        homeAddress = settingsRepository.getHomeAddress()
     }
 
     // 基于当前位置动态生成推荐目的地；若已设置“家”，固定放在首位。

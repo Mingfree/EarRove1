@@ -37,20 +37,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.earrove.utils.PrivacyUtils
+import com.example.earrove.data.privacy.PrivacyRepositoryImpl
+import com.example.earrove.data.settings.SettingsRepositoryImpl
+import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
+import com.example.earrove.domain.usecase.settings.SettingsInteractor
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.R
-import com.example.earrove.utils.SettingsStore
-
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
-    var speechRate by remember { mutableFloatStateOf(SettingsStore.getTtsSpeechRate(context)) }
-    var hapticFeedbackEnabled by remember { mutableStateOf(SettingsStore.isHapticEnabled(context)) }
-    var visualAssistEnabled by remember { mutableStateOf(SettingsStore.isVisualAssistEnabled(context)) }
-    var homeAddress by remember { mutableStateOf(SettingsStore.getHomeAddress(context).orEmpty()) }
+    val settingsInteractor = remember(context) {
+        SettingsInteractor(SettingsRepositoryImpl(context))
+    }
+    val privacyInteractor = remember(context) {
+        PrivacyConsentInteractor(PrivacyRepositoryImpl(context))
+    }
+
+    var speechRate by remember { mutableFloatStateOf(settingsInteractor.loadSnapshot().ttsSpeechRate) }
+    var hapticFeedbackEnabled by remember { mutableStateOf(settingsInteractor.loadSnapshot().hapticEnabled) }
+    var visualAssistEnabled by remember { mutableStateOf(settingsInteractor.loadSnapshot().visualAssistEnabled) }
+    var homeAddress by remember { mutableStateOf(settingsInteractor.loadSnapshot().homeAddress) }
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
@@ -94,7 +102,7 @@ fun SettingsScreen(navController: NavController) {
                         value = speechRate,
                         onValueChange = {
                             speechRate = it
-                            SettingsStore.setTtsSpeechRate(context, it)
+                            settingsInteractor.updateTtsSpeechRate(it)
                         },
                         valueRange = 0.5f..2.0f,
                         steps = 5, // Provides 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
@@ -113,7 +121,7 @@ fun SettingsScreen(navController: NavController) {
                         checked = hapticFeedbackEnabled,
                         onCheckedChange = {
                             hapticFeedbackEnabled = it
-                            SettingsStore.setHapticEnabled(context, it)
+                            settingsInteractor.updateHapticEnabled(it)
                         },
                         modifier = Modifier.semantics { 
                             contentDescription = a11yHapticToggleDesc
@@ -129,7 +137,7 @@ fun SettingsScreen(navController: NavController) {
                         checked = visualAssistEnabled,
                         onCheckedChange = {
                             visualAssistEnabled = it
-                            SettingsStore.setVisualAssistEnabled(context, it)
+                            settingsInteractor.updateVisualAssistEnabled(it)
                             (context as? ComponentActivity)?.recreate()
                         },
                         modifier = Modifier.semantics {
@@ -175,7 +183,7 @@ fun SettingsScreen(navController: NavController) {
                     onClick = {
                         if (homeAddress.isNotBlank()) {
                             homeAddress = homeAddress.trim()
-                            SettingsStore.setHomeAddress(context, homeAddress)
+                            settingsInteractor.saveHomeAddress(homeAddress)
                         }
                     },
                     modifier = Modifier.weight(1f)
@@ -185,7 +193,7 @@ fun SettingsScreen(navController: NavController) {
                 OutlinedButton(
                     onClick = {
                         homeAddress = ""
-                        SettingsStore.clearHomeAddress(context)
+                        settingsInteractor.clearHomeAddress()
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -208,7 +216,7 @@ fun SettingsScreen(navController: NavController) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        PrivacyUtils.clearAllPrivacyAgreements(context)
+                        privacyInteractor.revokeAllPrivacyAgreements()
                         showRevokeDialog = false
                         (context as? ComponentActivity)?.recreate()
                     }

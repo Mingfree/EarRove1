@@ -17,13 +17,20 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
+import com.example.earrove.data.settings.SettingsRepository
+import com.example.earrove.data.settings.SettingsRepositoryImpl
 
-class TTSManager(context: Context) {
+class TTSManager(
+    context: Context,
+    private val settingsRepository: SettingsRepository
+) {
+    constructor(context: Context) : this(context, SettingsRepositoryImpl(context))
+
+    private val appContext: Context = context.applicationContext
+
     companion object {
         private val TAG = AppConfig.getLogTag("TTSManager")
     }
-
-    private val appContext: Context = context.applicationContext
 
     // ============ 百度 TTS (主引擎) ============
     private var baiduSynthesizer: com.baidu.aipe.tts.AipeSpeechSynthesizer? = null
@@ -118,7 +125,7 @@ class TTSManager(context: Context) {
                     // 尝试简体中文
                     systemTts?.setLanguage(Locale.SIMPLIFIED_CHINESE)
                 }
-                systemTts?.setSpeechRate(SettingsStore.getTtsSpeechRate(appContext))
+                systemTts?.setSpeechRate(settingsRepository.getTtsSpeechRate())
                 systemTts?.setPitch(1.0f)
 
                 // 设置播放完成监听
@@ -170,7 +177,7 @@ class TTSManager(context: Context) {
      * 若 key 不存在则忽略（避免编译/运行崩溃）。
      */
     private fun applySpeechRateFromSettings() {
-        val rate = SettingsStore.getTtsSpeechRate(appContext)
+        val rate = settingsRepository.getTtsSpeechRate()
         if (isSystemTtsReady) {
             systemTts?.setSpeechRate(rate)
         }
@@ -231,7 +238,7 @@ class TTSManager(context: Context) {
     }
 
     fun setSpeechRate(rate: Float) {
-        SettingsStore.setTtsSpeechRate(appContext, rate)
+        settingsRepository.setTtsSpeechRate(rate)
         systemTts?.setSpeechRate(rate)
     }
 
@@ -295,7 +302,7 @@ class TTSManager(context: Context) {
 fun rememberTTSManager(): TTSManager {
     val context = LocalContext.current
     return remember {
-        TTSManager(context)
+        TTSManager(context, SettingsRepositoryImpl(context))
     }
 }
 

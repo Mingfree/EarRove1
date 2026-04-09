@@ -8,8 +8,15 @@ import android.os.VibratorManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.example.earrove.data.settings.SettingsRepository
+import com.example.earrove.data.settings.SettingsRepositoryImpl
 
-class VibrationManager(context: Context) {
+class VibrationManager(
+    context: Context,
+    private val settingsRepository: SettingsRepository
+) {
+    constructor(context: Context) : this(context, SettingsRepositoryImpl(context))
+
     private val appContext = context.applicationContext
     private val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
@@ -20,7 +27,7 @@ class VibrationManager(context: Context) {
     }
 
     fun vibrateForObstacle() {
-        if (!SettingsStore.isHapticEnabled(appContext)) return
+        if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = longArrayOf(0, 100, 100, 100) // 短震2次
             val amplitudes = intArrayOf(0, 255, 0, 255)
@@ -32,7 +39,7 @@ class VibrationManager(context: Context) {
     }
 
     fun vibrateForTurn(direction: String) {
-        if (!SettingsStore.isHapticEnabled(appContext)) return
+        if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 长震1次，配合语音提示
             vibrator.vibrate(VibrationEffect.createOneShot(500, 255))
@@ -43,7 +50,7 @@ class VibrationManager(context: Context) {
     }
 
     fun vibrateForTrafficLight() {
-        if (!SettingsStore.isHapticEnabled(appContext)) return
+        if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = longArrayOf(0, 100, 100, 100, 100, 100) // 三次短震
             val amplitudes = intArrayOf(0, 255, 0, 255, 0, 255)
@@ -63,6 +70,6 @@ class VibrationManager(context: Context) {
 fun rememberVibrationManager(): VibrationManager {
     val context = LocalContext.current
     return remember {
-        VibrationManager(context)
+        VibrationManager(context, SettingsRepositoryImpl(context))
     }
 }

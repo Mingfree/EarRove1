@@ -30,7 +30,8 @@ import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
-import com.example.earrove.utils.PrivacyUtils
+import com.example.earrove.data.privacy.PrivacyRepositoryImpl
+import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
 import androidx.compose.foundation.background
 import kotlinx.coroutines.delay
 
@@ -56,15 +57,18 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PrivacyCheckWrapper() {
     val context = LocalContext.current
+    val privacyInteractor = remember(context) {
+        PrivacyConsentInteractor(PrivacyRepositoryImpl(context))
+    }
 
     // 状态：用户是否已同意隐私政策
     var privacyAgreed by remember {
-        mutableStateOf(PrivacyUtils.hasUserAgreedToAppPrivacy(context))
+        mutableStateOf(privacyInteractor.hasAgreedToAppPrivacy())
     }
 
     // 状态：百度地图隐私政策是否已同意
     var baiduMapPrivacyAgreed by remember {
-        mutableStateOf(PrivacyUtils.hasUserAgreedToBaiduMapPrivacy(context))
+        mutableStateOf(privacyInteractor.hasAgreedToBaiduMapPrivacy())
     }
 
     // 检查所有隐私政策是否都已同意
@@ -91,11 +95,11 @@ fun PrivacyCheckWrapper() {
             currentBaiduMapPrivacyAgreed = baiduMapPrivacyAgreed,
             onAppPrivacyChanged = { agreed ->
                 privacyAgreed = agreed
-                PrivacyUtils.saveAppPrivacyAgreement(context, agreed)
+                privacyInteractor.saveAppPrivacyAgreement(agreed)
             },
             onBaiduMapPrivacyChanged = { agreed ->
                 baiduMapPrivacyAgreed = agreed
-                PrivacyUtils.saveBaiduMapPrivacyAgreement(context, agreed)
+                privacyInteractor.saveBaiduMapPrivacyAgreement(agreed)
 
                 if (agreed) {
                     // 用户同意百度地图隐私政策，初始化SDK
@@ -107,7 +111,7 @@ fun PrivacyCheckWrapper() {
                 // 用户同意所有隐私政策
                 privacyAgreed = true
                 baiduMapPrivacyAgreed = true
-                PrivacyUtils.saveAllPrivacyAgreements(context, true, true)
+                privacyInteractor.saveAllPrivacyAgreements(true, true)
 
                 // 初始化百度地图SDK
                 val app = context.applicationContext as? MyApplication
@@ -135,6 +139,11 @@ fun PrivacyAgreementScreen(
     onAllAgreed: () -> Unit = {},
     onDisagree: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val privacyInteractor = remember(context) {
+        PrivacyConsentInteractor(PrivacyRepositoryImpl(context))
+    }
+
     var showDetailedPolicy by remember { mutableStateOf(false) }
     var showBaiduMapPolicy by remember { mutableStateOf(false) }
 
@@ -187,11 +196,13 @@ fun PrivacyAgreementScreen(
                     if (showDetailedPolicy) {
                         // 显示详细隐私政策
                         DetailedPrivacyPolicy(
+                            policyText = privacyInteractor.getPrivacyPolicyText(),
                             onBack = { showDetailedPolicy = false }
                         )
                     } else if (showBaiduMapPolicy) {
                         // 显示百度地图隐私政策
                         BaiduMapPrivacyPolicy(
+                            summaryText = privacyInteractor.getBaiduMapPrivacySummary(),
                             onBack = { showBaiduMapPolicy = false }
                         )
                     } else {
@@ -341,6 +352,7 @@ private fun PrivacyPolicySummary(
  */
 @Composable
 private fun DetailedPrivacyPolicy(
+    policyText: String,
     onBack: () -> Unit
 ) {
     Column(
@@ -364,7 +376,7 @@ private fun DetailedPrivacyPolicy(
         )
 
         Text(
-            text = PrivacyUtils.getPrivacyPolicyText(),
+            text = policyText,
             style = MaterialTheme.typography.bodyLarge,
             color = PureWhite,
             lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2
@@ -377,6 +389,7 @@ private fun DetailedPrivacyPolicy(
  */
 @Composable
 private fun BaiduMapPrivacyPolicy(
+    summaryText: String,
     onBack: () -> Unit
 ) {
     Column(
@@ -400,7 +413,7 @@ private fun BaiduMapPrivacyPolicy(
         )
 
         Text(
-            text = PrivacyUtils.getBaiduMapPrivacySummary(),
+            text = summaryText,
             style = MaterialTheme.typography.bodyLarge,
             color = PureWhite,
             lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2

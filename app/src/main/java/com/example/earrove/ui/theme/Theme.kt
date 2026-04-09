@@ -9,7 +9,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.example.earrove.utils.SettingsStore
+import androidx.compose.runtime.remember
+import com.example.earrove.data.settings.SettingsRepositoryImpl
 
 private val DarkColorScheme = darkColorScheme(
     primary = PremiumGold,           // Core interactive elements
@@ -40,7 +41,8 @@ fun EarRoveTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    val visualAssistEnabled = SettingsStore.isVisualAssistEnabled(context)
+    val settingsRepository = remember(context) { SettingsRepositoryImpl(context) }
+    val visualAssistEnabled = settingsRepository.isVisualAssistEnabled()
     val colorScheme = if (visualAssistEnabled) VisualAssistColorScheme else DarkColorScheme
     val typography = if (visualAssistEnabled) EarRoveVisualAssistTypography else EarRoveTypography
     val view = LocalView.current

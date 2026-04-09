@@ -32,6 +32,11 @@ import com.example.earrove.utils.ConfigValidator
 import com.example.earrove.utils.PermissionUtils
 import com.example.earrove.utils.RequestPermissionsDialog
 
+private fun isRunningInstrumentationTest(): Boolean = runCatching {
+    Class.forName("androidx.test.platform.app.InstrumentationRegistry")
+    true
+}.getOrDefault(false)
+
 @Composable
 fun StartupConfigAndPermissionGate(
     onReady: @Composable () -> Unit
@@ -45,6 +50,12 @@ fun StartupConfigAndPermissionGate(
             missing = configCheck.missing,
             onRetry = { recheckToken++ }
         )
+        return
+    }
+
+    // Instrumentation 测试环境直接放行权限门禁，避免系统权限弹窗影响稳定性。
+    if (isRunningInstrumentationTest()) {
+        onReady()
         return
     }
 

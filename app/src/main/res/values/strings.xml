@@ -14,6 +14,7 @@
     <string name="a11y_home_ocr_entry">文字识别模式。点击进入。</string>
     <string name="home_settings">设置</string>
     <string name="home_help">帮助</string>
+    <string name="home_ocr_guide_speak">请将手机对准想要识别的物品或选择相册图片，如路牌、药品说明书、衣物等</string>
 
     <!-- Help -->
     <string name="help_center_title">帮助中心</string>
@@ -30,6 +31,7 @@
     <string name="settings_tts_speed_title">朗读速度</string>
     <string name="settings_haptic_title">震动反馈</string>
     <string name="settings_privacy_title">隐私设置</string>
+    <string name="settings_visual_assist_title">视觉辅助模式</string>
     <string name="settings_revoke_button">撤回隐私同意</string>
     <string name="settings_revoke_dialog_title">撤回隐私同意？</string>
     <string name="settings_revoke_dialog_text">撤回后将重新进入隐私同意流程。用于导航/识别的相关功能会被暂时禁用，直到再次同意。</string>
@@ -38,6 +40,8 @@
     <string name="a11y_speech_rate_slider_desc">朗读速度调节器，当前值为 %1$.2f</string>
     <string name="a11y_haptic_toggle_desc_enabled">震动反馈开关，当前为 开启</string>
     <string name="a11y_haptic_toggle_desc_disabled">震动反馈开关，当前为 关闭</string>
+    <string name="a11y_visual_assist_toggle_desc_enabled">视觉辅助模式开关，当前为 开启</string>
+    <string name="a11y_visual_assist_toggle_desc_disabled">视觉辅助模式开关，当前为 关闭</string>
 
     <!-- Startup gate -->
     <string name="startup_config_missing_title">启动自检失败：配置缺失</string>
@@ -157,6 +161,9 @@
     <string name="nav_label_total_distance">总距离</string>
     <string name="nav_label_remaining">剩余</string>
     <string name="nav_label_remaining_time">剩余时间</string>
+    <string name="nav_value_meters">%1$d米</string>
+    <string name="nav_value_seconds">%1$d秒</string>
+    <string name="nav_value_minutes">%1$d分钟</string>
 
     <string name="nav_obstacle_alert_title">⚠️ 前方危险！</string>
     <string name="nav_obstacle_alert_template">前方%1$d米检测到%2$s，请避让</string>
@@ -183,6 +190,7 @@
 
     <string name="nav_preview_title">导航屏幕预览</string>
     <string name="nav_preview_body">实际运行时将显示完整导航界面</string>
+    <string name="nav_home_label">家</string>
 
     <!-- Navigation TTS (P2-T1 partial completion) -->
     <string name="nav_tts_prompt_center_mic">请点击屏幕中央麦克风后，说明目的地。</string>
@@ -219,4 +227,25 @@
     <string name="nav_turn_straight">直行</string>
     <string name="nav_turn_arrive">到达</string>
     <string name="nav_turn_continue_forward">继续前进</string>
+
+    <!-- Privacy agreement screen -->
+    <string name="privacy_app_title">EarRove 聆途</string>
+    <string name="privacy_welcome_subtitle">欢迎使用视障辅助导航应用</string>
+    <string name="privacy_section_title">隐私政策同意</string>
+    <string name="privacy_section_intro">为了正常使用应用功能，请阅读并同意以下隐私政策：</string>
+    <string name="privacy_app_checkbox">同意 EarRove 应用隐私政策</string>
+    <string name="privacy_baidu_checkbox">同意百度地图SDK隐私政策</string>
+    <string name="privacy_view_detail">查看详情</string>
+    <string name="privacy_important_tip">重要提示：\n1. 导航功能需要百度地图SDK支持\n2. 位置信息仅用于本地导航计算\n3. 所有数据均在设备本地处理，不会上传</string>
+    <string name="privacy_back">← 返回</string>
+    <string name="privacy_detail_title">EarRove 隐私政策</string>
+    <string name="privacy_baidu_detail_title">百度地图SDK隐私政策</string>
+    <string name="privacy_baidu_note">注意：\n百度地图SDK是本应用导航功能的核心依赖。\n如果您不同意百度地图的隐私政策，将无法使用导航功能。</string>
+    <string name="privacy_agree_and_start">同意并开始使用</string>
+    <string name="privacy_need_all_checked">请勾选所有隐私政策</string>
+    <string name="privacy_disagree_and_exit">不同意并退出</string>
+    <string name="privacy_must_agree_tip">必须同意所有隐私政策才能使用应用</string>
+
+    <!-- App startup loading -->
+    <string name="app_initializing_navigation">正在初始化导航服务...</string>
 </resources>

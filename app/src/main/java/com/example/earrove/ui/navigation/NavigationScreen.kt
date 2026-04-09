@@ -1577,12 +1577,12 @@ private fun NavigatingScreen(
                             ) {
                                 StatusChip(
                                     label = stringResource(id = R.string.nav_label_distance),
-                                    value = "${step.distance}米",
+                                    value = stringResource(id = R.string.nav_value_meters, step.distance),
                                     icon = Icons.Default.Navigation
                                 )
                                 StatusChip(
                                     label = stringResource(id = R.string.nav_label_time),
-                                    value = "${step.duration}秒",
+                                    value = stringResource(id = R.string.nav_value_seconds, step.duration),
                                     icon = Icons.Default.VolumeUp
                                 )
                             }
@@ -1599,15 +1599,15 @@ private fun NavigatingScreen(
                 ) {
                     StatusItem(
                         label = stringResource(id = R.string.nav_label_total_distance),
-                        value = "${viewModel.totalDistance.value}米"
+                        value = stringResource(id = R.string.nav_value_meters, viewModel.totalDistance.value)
                     )
                     StatusItem(
                         label = stringResource(id = R.string.nav_label_remaining),
-                        value = "${viewModel.remainingDistance.value}米"
+                        value = stringResource(id = R.string.nav_value_meters, viewModel.remainingDistance.value)
                     )
                     StatusItem(
                         label = stringResource(id = R.string.nav_label_remaining_time),
-                        value = "${viewModel.remainingTime.value}分钟"
+                        value = stringResource(id = R.string.nav_value_minutes, viewModel.remainingTime.value)
                     )
                 }
             }

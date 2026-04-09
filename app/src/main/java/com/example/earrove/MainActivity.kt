@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -154,14 +155,14 @@ fun PrivacyAgreementScreen(
         ) {
             // 应用标题
             Text(
-                text = "EarRove 聆途",
+                text = stringResource(id = R.string.privacy_app_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = PremiumGold,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
             Text(
-                text = "欢迎使用视障辅助导航应用",
+                text = stringResource(id = R.string.privacy_welcome_subtitle),
                 style = MaterialTheme.typography.headlineMedium,
                 color = PureWhite,
                 textAlign = TextAlign.Center,
@@ -244,13 +245,13 @@ private fun PrivacyPolicySummary(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "隐私政策同意",
+            text = stringResource(id = R.string.privacy_section_title),
             style = MaterialTheme.typography.headlineMedium,
             color = PremiumGold
         )
 
         Text(
-            text = "为了正常使用应用功能，请阅读并同意以下隐私政策：",
+            text = stringResource(id = R.string.privacy_section_intro),
             style = MaterialTheme.typography.bodyLarge,
             color = PureWhite
         )
@@ -272,7 +273,7 @@ private fun PrivacyPolicySummary(
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "同意 EarRove 应用隐私政策",
+                text = stringResource(id = R.string.privacy_app_checkbox),
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (appPrivacyChecked) PremiumGold else PureWhite,
                 modifier = Modifier.weight(1f)
@@ -281,7 +282,7 @@ private fun PrivacyPolicySummary(
             TextButton(
                 onClick = onShowDetailedPolicy
             ) {
-                Text("查看详情", color = PremiumGold)
+                Text(stringResource(id = R.string.privacy_view_detail), color = PremiumGold)
             }
         }
 
@@ -302,7 +303,7 @@ private fun PrivacyPolicySummary(
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "同意百度地图SDK隐私政策",
+                text = stringResource(id = R.string.privacy_baidu_checkbox),
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (baiduMapPrivacyChecked) PremiumGold else PureWhite,
                 modifier = Modifier.weight(1f)
@@ -311,7 +312,7 @@ private fun PrivacyPolicySummary(
             TextButton(
                 onClick = onShowBaiduMapPolicy
             ) {
-                Text("查看详情", color = PremiumGold)
+                Text(stringResource(id = R.string.privacy_view_detail), color = PremiumGold)
             }
         }
 
@@ -325,10 +326,7 @@ private fun PrivacyPolicySummary(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "重要提示：\n" +
-                        "1. 导航功能需要百度地图SDK支持\n" +
-                        "2. 位置信息仅用于本地导航计算\n" +
-                        "3. 所有数据均在设备本地处理，不会上传",
+                text = stringResource(id = R.string.privacy_important_tip),
                 style = MaterialTheme.typography.bodyMedium,
                 color = PremiumGold,
                 modifier = Modifier.padding(12.dp)
@@ -354,12 +352,12 @@ private fun DetailedPrivacyPolicy(
             TextButton(
                 onClick = onBack
             ) {
-                Text("← 返回", color = PremiumGold)
+                Text(stringResource(id = R.string.privacy_back), color = PremiumGold)
             }
         }
 
         Text(
-            text = "EarRove 隐私政策",
+            text = stringResource(id = R.string.privacy_detail_title),
             style = MaterialTheme.typography.headlineMedium,
             color = PremiumGold
         )
@@ -390,12 +388,12 @@ private fun BaiduMapPrivacyPolicy(
             TextButton(
                 onClick = onBack
             ) {
-                Text("← 返回", color = PremiumGold)
+                Text(stringResource(id = R.string.privacy_back), color = PremiumGold)
             }
         }
 
         Text(
-            text = "百度地图SDK隐私政策",
+            text = stringResource(id = R.string.privacy_baidu_detail_title),
             style = MaterialTheme.typography.headlineMedium,
             color = PremiumGold
         )
@@ -416,9 +414,7 @@ private fun BaiduMapPrivacyPolicy(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "注意：\n" +
-                        "百度地图SDK是本应用导航功能的核心依赖。\n" +
-                        "如果您不同意百度地图的隐私政策，将无法使用导航功能。",
+                text = stringResource(id = R.string.privacy_baidu_note),
                 style = MaterialTheme.typography.bodyMedium,
                 color = PremiumGold,
                 modifier = Modifier.padding(12.dp)
@@ -452,7 +448,11 @@ private fun ActionButtons(
             )
         ) {
             Text(
-                text = if (allChecked) "同意并开始使用" else "请勾选所有隐私政策",
+                text = if (allChecked) {
+                    stringResource(id = R.string.privacy_agree_and_start)
+                } else {
+                    stringResource(id = R.string.privacy_need_all_checked)
+                },
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -465,13 +465,13 @@ private fun ActionButtons(
                 contentColor = PureWhite.copy(alpha = 0.7f)
             )
         ) {
-            Text("不同意并退出")
+            Text(stringResource(id = R.string.privacy_disagree_and_exit))
         }
 
         // 提示文字
         if (!allChecked) {
             Text(
-                text = "必须同意所有隐私政策才能使用应用",
+                text = stringResource(id = R.string.privacy_must_agree_tip),
                 style = MaterialTheme.typography.bodySmall,
                 color = PremiumGold,
                 textAlign = TextAlign.Center
@@ -541,7 +541,7 @@ fun EarRoveApp() {
             ) {
                 CircularProgressIndicator(color = PremiumGold)
                 Text(
-                    text = "正在初始化导航服务...",
+                    text = stringResource(id = R.string.app_initializing_navigation),
                     color = PureWhite,
                     style = MaterialTheme.typography.bodyLarge
                 )

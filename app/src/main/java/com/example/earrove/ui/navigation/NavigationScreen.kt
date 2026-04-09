@@ -193,9 +193,9 @@ fun NavigationScreen(
     val privacyRepository = remember(context) { PrivacyRepositoryImpl(context) }
     val settingsRepository = remember(context) { SettingsRepositoryImpl(context) }
 
-    // 跟踪当前路线规划 Job，新导航时取消旧的
+    // 跟踪当前路线规划 Job，有新的目的地时就取消旧的规划
     var routePlanJob by remember { mutableStateOf<Job?>(null) }
-    // 跟踪录音 Job（父级 scope，不会因 StandbyScreen 移除被取消）
+    // 跟踪录音 Job（把录音放在父级 scope，切换子界面时不中断采集）
     var listeningJob by remember { mutableStateOf<Job?>(null) }
     var isEntryPrepared by remember { mutableStateOf(false) }
 
@@ -205,7 +205,7 @@ fun NavigationScreen(
 
     if (!permissionsGranted) {
         if (permissionPermanentlyDenied) {
-            // Don’t ask again：引导用户手动到系统设置开启权限
+            // 被用户勾了“不再询问”后，只能引导去系统设置手动打开
             Box(
                 modifier = Modifier.fillMaxSize().background(PureBlack),
                 contentAlignment = Alignment.Center
@@ -266,7 +266,7 @@ fun NavigationScreen(
         RequestPermissionsDialog(
             onPermissionGranted = { permissionsGranted = true },
             onPermissionDenied = {
-                // 如果权限被拒绝，返回首页
+                // 当前策略：拒绝权限后，直接退出导航页回到首页
                 navController.popBackStack()
             },
             onPermissionPermanentlyDenied = { permissionPermanentlyDenied = true }
@@ -300,14 +300,14 @@ fun NavigationScreen(
             if (!sdkInitialized) {
                 // 尝试重新初始化
                 try {
-                    // 再次确认隐私政策已设置（使用Application Context）
+                    // 再次确认隐私政策已设置（使用Application Context避免 Activity 销毁）
                     SDKInitializer.setAgreePrivacy(appContext, true)
                     Log.d("NavigationScreen", "隐私政策已设置")
 
-                    // 延迟确保隐私政策设置生效
+                    // 延迟，确保隐私政策设置生效
                     delay(300)
 
-                    // 初始化SDK
+                    // 隐私状态确认后再初始化地图
                     SDKInitializer.initialize(appContext)
                     SDKInitializer.setCoordType(CoordType.BD09LL)
 
@@ -632,7 +632,7 @@ fun NavigationScreen(
 
     // 初始语音提示
     LaunchedEffect(Unit) {
-        delay(500)
+        delay(500) // 避免与系统语音冲突
         if (viewModel.navigationState.value == NavigationState.STANDBY) {
             ttsManager.speak(context.getString(R.string.nav_tts_prompt_center_mic))
         }
@@ -785,7 +785,7 @@ fun NavigationScreen(
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            // 清理 TTS 和语音识别资源
+            // 退出页面时清理 TTS 和语音识别资源
             ttsManager.release()
             speechRecognizer.destroy()
         }
@@ -810,7 +810,7 @@ fun NavigationScreen(
                     val start = LatLng(currentLocation.latitude, currentLocation.longitude)
                     navigationService.planRoute(start, location, destination)
 
-                    // 等待路线规划完成（最长 15 秒），替代原硬编码 delay(3000)
+                    // 等待路线规划完成（最长 15 秒）
                     val route = withTimeoutOrNull(15_000L) {
                         navigationService.currentRoute.filterNotNull().first()
                     }
@@ -1104,7 +1104,7 @@ private fun StandbyScreen(
         }
     }
 
-    // 首次进入待机页时补充推荐区提示，增强可发现性
+    // 在首次进入待机页时补充推荐区的提示
     LaunchedEffect(Unit) {
         if (!hasSpokenStandbyRecommendHint) {
             delay(1200)
@@ -1127,7 +1127,7 @@ private fun StandbyScreen(
                 .padding(paddingValues)
                 .background(PureBlack)
         ) {
-            // 百度地图
+            // 百度地图（在最底层）
             AndroidView(
                 factory = { context ->
                     MapView(context).apply {
@@ -1392,7 +1392,7 @@ private fun StandbyScreen(
                         .fillMaxWidth()
                         .clickable(
                             onClick = {
-                                // 单击逻辑
+                                // 单击逻辑（语音提示可修改目的地）
                                 ttsManager.speak(changeDestinationSpeak)
                             }
                         )

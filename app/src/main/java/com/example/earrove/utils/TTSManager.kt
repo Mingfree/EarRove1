@@ -176,7 +176,7 @@ class TTSManager(
      * 从设置中读取最新语速，并同步到两个引擎（系统 TTS + 百度 TTS）。
      *
      * 说明：百度引擎的参数 key 在 SDK 内部，可能存在也可能不存在；这里用反射尽量兼容，
-     * 若 key 不存在则忽略（避免编译/运行崩溃）。
+     * 若 key 不存在则忽略，避免编译/运行崩溃。
      */
     private fun applySpeechRateFromSettings() {
         val rate = settingsRepository.getTtsSpeechRate()
@@ -206,7 +206,7 @@ class TTSManager(
 
             applySpeechRateFromSettings()
             if (isBaiduInitialized) {
-                // 优先使用百度 TTS
+                // 优先使用百度 TTS，统一语音风格
                 if (interrupt) {
                     baiduSynthesizer?.stop()
                     isSpeaking.set(false)
@@ -249,7 +249,7 @@ class TTSManager(
     }
 
     fun resume() {
-        // 不支持 resume
+        // 当前不支持断点续播，后续若有需求再引入队列状态
     }
 
     override fun stop() {

@@ -104,7 +104,7 @@ fun OcrScreen(navController: NavController) {
     val ocrViewModel: OcrViewModel = viewModel()
     val ui by ocrViewModel.uiState.collectAsStateWithLifecycle()
 
-    // User-visible strings (moved from hard-coded literals to resources where feasible)
+    // 文案统一走资源，后面改措辞/做多语言不需要改业务逻辑
     val screenTitle = context.getString(R.string.ocr_screen_title)
     val resultHeading = context.getString(R.string.ocr_heading_result)
     val guideSpeak = context.getString(R.string.home_ocr_guide_speak)
@@ -140,7 +140,7 @@ fun OcrScreen(navController: NavController) {
     val clipboardManager =
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
-    // 权限管理
+    // 相机权限管理
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     LaunchedEffect(Unit) {
@@ -148,11 +148,11 @@ fun OcrScreen(navController: NavController) {
         ttsManager.speak(guideSpeak)
     }
 
-    // CameraX
+    // CameraX 对象
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
 
-    // 相册选择器
+    // 相册选择器（相机不可用时用户还能继续识别）
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
@@ -529,7 +529,7 @@ private fun CameraPreview(
 }
 
 /**
- * 拍照并识别
+ * 拍照并进行OCR识别
  */
 private fun captureAndRecognize(
     context: Context,

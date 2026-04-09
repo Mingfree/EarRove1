@@ -43,8 +43,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             EarRoveTheme {
-                // 使用隐私检查包装器
-                PrivacyCheckWrapper()
+                // 先把隐私关卡走完，再决定是进主应用还是停在协议页
+                PrivacyCheckWrapper()   // 使用隐私检查包装器
             }
         }
     }
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 
 /**
  * 隐私检查包装器
- * 检查用户是否已同意隐私政策，根据情况显示不同内容
+ * 检查用户是否已同意隐私政策，根据情况显示不同首页内容
  */
 @Composable
 fun PrivacyCheckWrapper() {
@@ -71,7 +71,7 @@ fun PrivacyCheckWrapper() {
         mutableStateOf(privacyInteractor.hasAgreedToBaiduMapPrivacy())
     }
 
-    // 检查所有隐私政策是否都已同意
+    // 检查所有隐私政策是否都已同意，都同意才放行
     val allPrivacyAgreed = remember(privacyAgreed, baiduMapPrivacyAgreed) {
         privacyAgreed && baiduMapPrivacyAgreed
     }
@@ -121,6 +121,7 @@ fun PrivacyCheckWrapper() {
                 // 用户不同意，根据情况处理
                 // 如果用户之前已经同意过，现在反悔，需要重新考虑
                 // 这里简单处理：如果用户不同意，退出应用
+                // TODO: 产品如果开放游客模式，这里改成降级入口而不是 finish()
                 (context as? ComponentActivity)?.finish()
             }
         )
@@ -128,7 +129,7 @@ fun PrivacyCheckWrapper() {
 }
 
 /**
- * 隐私政策同意屏幕
+ * 隐私协议同意页面
  */
 @Composable
 fun PrivacyAgreementScreen(
@@ -358,7 +359,7 @@ private fun DetailedPrivacyPolicy(
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 返回按钮
+        // 直接返回摘要，不重置之前的勾选状态
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -496,13 +497,13 @@ private fun ActionButtons(
 }
 
 /**
- * 主应用内容
+ * 主应用路由入口
  */
 @Composable
 fun EarRoveApp() {
     val navController = rememberNavController()
 
-    // 添加全局状态监听
+    // 添加全局状态监听（避免页面层重复判断 SDK 是否可用）
     val context = LocalContext.current
     val app = context.applicationContext as? MyApplication
 
@@ -535,7 +536,8 @@ fun EarRoveApp() {
                 }
             }
             
-            // 如果10次检查后仍然未初始化，强制进入应用
+            // 降级策略：如果10次检查后仍然未初始化，强制进入应用
+            // FIXME: 后续可先统计超时比例，再决定是否继续放行
             Log.w("MainActivity", "百度地图SDK初始化超时，强制进入应用")
             baiduMapInitialized = true
         }
@@ -587,6 +589,7 @@ fun EarRoveApp() {
 /**
  * 添加缺失的导入（如果IDE没有自动导入）
  * 注意：以下导入可能需要手动添加，取决于你的IDE
+ * TODO: 后续确认团队不再需要后可删除。
  */
 // import androidx.compose.foundation.background
 // import androidx.compose.foundation.clickable

@@ -27,16 +27,16 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * 语音识别管理器（阿里百炼 DashScope Paraformer 实时 ASR）
- * 通过 OkHttp WebSocket 直连 DashScope，使用 AudioRecord 采集 PCM 音频。
- * 无需额外 SDK。
+ * 语音识别管理器（阿里百炼 DashScope Paraformer 实时 ASR 封装）
+ * 通过 OkHttp WebSocket 直连 DashScope，使用 AudioRecord 采集 PCM 音频
+ * 无需额外 SDK
  */
 class SpeechRecognizerManager(context: Context) {
 
     companion object {
         private val TAG = AppConfig.getLogTag("SpeechRecognizer")
 
-        /** DashScope 实时语音识别 WebSocket 地址 */
+        /** 服务端 WebSocket 入口 */
         private const val WS_URL =
             "wss://dashscope.aliyuncs.com/api-ws/v1/inference/"
 
@@ -49,11 +49,9 @@ class SpeechRecognizerManager(context: Context) {
         private const val FRAME_MS = 100
         private const val FRAME_BYTES = SAMPLE_RATE * 2 * FRAME_MS / 1000
 
-        // 静音检测阈值（RMS）
+        // 静音检测阈值（若连续静音则自动结束）
         private const val SILENCE_RMS_THRESHOLD = 300.0
-        // 检测到语音后，连续静音多少帧自动结束（20 × 100ms = 2s）
         private const val SILENCE_FRAMES_AFTER_VOICE = 20
-        // 一直没有语音，多少帧后超时（80 × 100ms = 8s）
         private const val NO_VOICE_TIMEOUT_FRAMES = 80
     }
 
@@ -77,7 +75,7 @@ class SpeechRecognizerManager(context: Context) {
     var isListening = false
         private set
 
-    // ------------------------------------------------------------------ Flow API
+    // Flow API
 
     fun startListening(): Flow<String> = callbackFlow {
         if (!AppConfig.isDashScopeConfigured()) {
@@ -146,7 +144,7 @@ class SpeechRecognizerManager(context: Context) {
         }
     }
 
-    // ------------------------------------------------------------------ WebSocket 消息
+    // WebSocket 协议封装
 
     private fun sendRunTask(ws: WebSocket) {
         try {
@@ -206,7 +204,7 @@ class SpeechRecognizerManager(context: Context) {
         }
     }
 
-    // ------------------------------------------------------------------ 服务端消息处理
+    // 服务端消息处理
 
     private fun handleServerMessage(text: String, onComplete: (String) -> Unit) {
         try {
@@ -258,7 +256,7 @@ class SpeechRecognizerManager(context: Context) {
         }
     }
 
-    // ------------------------------------------------------------------ 音频采集
+    // 音频采集与静音判定
 
     private fun startAudioCapture() {
         val bufferSize = maxOf(
@@ -292,7 +290,7 @@ class SpeechRecognizerManager(context: Context) {
                 // 发送 PCM 数据
                 ws.send(buffer.toByteString(0, read))
 
-                // 简易能量静音检测
+                // 能量静音检测
                 var energy = 0.0
                 var i = 0
                 while (i < read - 1) {
@@ -345,7 +343,7 @@ class SpeechRecognizerManager(context: Context) {
         audioRecord = null
     }
 
-    // ------------------------------------------------------------------ 停止 / 释放
+    // 生命周期与释放
 
     fun stopListening() {
         stopListeningInternal()
@@ -372,7 +370,7 @@ class SpeechRecognizerManager(context: Context) {
         Log.i(TAG, "SpeechRecognizerManager released")
     }
 
-    // ------------------------------------------------------------------ 内部
+    // 内部清理
 
     private fun cleanup() {
         isRunning.set(false)

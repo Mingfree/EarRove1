@@ -93,6 +93,7 @@ class MyApplication : Application() {
     }
 
     /**
+     * 统一重试入口
      * 使用PrivacyUtils的安全方法重新初始化SDK
      */
     private fun retryBaiduSDKInitialization() {
@@ -106,13 +107,13 @@ class MyApplication : Application() {
             onFailure = { error ->
                 sdkInitializationSuccess = false
                 Log.e("MyApplication", "百度地图SDK重新初始化失败: $error")
-                // 可以在这里添加重试逻辑或通知用户
+                // TODO: 可以在这里添加重试逻辑或通知用户
             }
         )
     }
 
     /**
-     * 公开方法：初始化百度地图SDK（当用户同意隐私政策后调用）
+     * 给页面层调用的百度地图SDK初始化入口（用户同意协议后触发）
      * 现在调用PrivacyUtils的增强方法
      */
     fun initializeBaiduMapSDK() {
@@ -145,7 +146,7 @@ class MyApplication : Application() {
      */
     fun isBaiduMapSDKInitialized(): Boolean {
         return try {
-            // 检查三个状态的一致性
+            // 检查四个状态的一致性
             val privacyAgreed = container.privacyRepository.hasUserAgreedToBaiduMapPrivacy()
             val markedInitialized = container.privacyRepository.isBaiduSDKMarkedAsInitialized()
             val actualInitialized = container.privacyRepository.isBaiduSDKSafeInitialized()
@@ -228,9 +229,9 @@ class MyApplication : Application() {
      */
     private fun initializeSafeComponents() {
         Log.d("MyApplication", "初始化其他安全组件...")
-        // 例如：数据库、网络库、崩溃报告等
-        // 但不包括需要用户隐私同意的百度地图SDK
+        // 但不包括需要用户隐私同意的百度地图SDK，避免越过隐私同意边界
 
+        // TODO: 如果后续接入 DB/网络/崩溃上报，在这里统一初始化
         // 初始化协程（如果使用）
         // 初始化数据库（如果使用Room）
         // 初始化网络客户端（如果使用Retrofit）

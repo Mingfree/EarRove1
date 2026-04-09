@@ -22,11 +22,11 @@ import kotlinx.coroutines.flow.callbackFlow
 object BaiduMapUtils {
     private const val TAG = "BaiduMapUtils"
 
-    /** POI 周边搜索默认半径（米） */
+    /** 默认 50km，优先覆盖同城常见目的地。 */
     private const val POI_SEARCH_RADIUS = 50000 // 50公里
 
     /**
-     * 传统地理编码（不考虑当前位置），作为备用方案
+     * 全国地理编码备用方案：没有当前位置时也能给出结果。
      */
     fun geocodeAddress(address: String): Flow<LatLng?> = callbackFlow {
         val geoCoder = GeoCoder.newInstance()
@@ -44,7 +44,7 @@ object BaiduMapUtils {
             }
 
             override fun onGetReverseGeoCodeResult(result: ReverseGeoCodeResult?) {
-                // 不需要实现
+                // 这里只走正向地理编码，逆地理结果忽略
             }
         }
 
@@ -62,7 +62,7 @@ object BaiduMapUtils {
 
     /**
      * 基于当前位置的 POI 周边搜索，优先返回距离用户最近的结果。
-     * 如果周边搜索无结果，自动回退到全国地理编码。
+     * 如果周边搜索无结果，自动回退到全国地理编码，尽量避免直接失败。
      *
      * @param keyword  搜索关键词（地名）
      * @param center   当前位置（经纬度）
@@ -225,7 +225,7 @@ object BaiduMapUtils {
     }
 
     /**
-     * 地理编码备用（当 POI 搜索无结果时使用）
+     * 地理编码备用（当 POI 搜索无结果时使用，避免直接报错）
      */
     private fun fallbackGeocode(address: String, callback: (LatLng?) -> Unit) {
         val geoCoder = GeoCoder.newInstance()

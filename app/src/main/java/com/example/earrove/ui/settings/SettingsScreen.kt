@@ -23,42 +23,31 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.earrove.data.privacy.PrivacyRepositoryImpl
-import com.example.earrove.data.settings.SettingsRepositoryImpl
-import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
-import com.example.earrove.domain.usecase.settings.SettingsInteractor
+import com.example.earrove.R
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.EarRoveTheme
-import com.example.earrove.R
+
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
-    val settingsInteractor = remember(context) {
-        SettingsInteractor(SettingsRepositoryImpl(context))
-    }
-    val privacyInteractor = remember(context) {
-        PrivacyConsentInteractor(PrivacyRepositoryImpl(context))
-    }
-
-    var speechRate by remember { mutableFloatStateOf(settingsInteractor.loadSnapshot().ttsSpeechRate) }
-    var hapticFeedbackEnabled by remember { mutableStateOf(settingsInteractor.loadSnapshot().hapticEnabled) }
-    var visualAssistEnabled by remember { mutableStateOf(settingsInteractor.loadSnapshot().visualAssistEnabled) }
-    var homeAddress by remember { mutableStateOf(settingsInteractor.loadSnapshot().homeAddress) }
+    val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.defaultFactory(context))
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
@@ -74,12 +63,12 @@ fun SettingsScreen(navController: NavController) {
     val revokeConfirmText = stringResource(id = R.string.settings_revoke_confirm)
     val revokeCancelText = stringResource(id = R.string.settings_revoke_cancel)
 
-    val a11ySpeechRateDesc = stringResource(id = R.string.a11y_speech_rate_slider_desc, speechRate)
+    val a11ySpeechRateDesc = stringResource(id = R.string.a11y_speech_rate_slider_desc, uiState.ttsSpeechRate)
     val a11yHapticToggleDesc =
-        if (hapticFeedbackEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
+        if (uiState.hapticEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
         else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
     val a11yVisualAssistToggleDesc =
-        if (visualAssistEnabled) stringResource(id = R.string.a11y_visual_assist_toggle_desc_enabled)
+        if (uiState.visualAssistEnabled) stringResource(id = R.string.a11y_visual_assist_toggle_desc_enabled)
         else stringResource(id = R.string.a11y_visual_assist_toggle_desc_disabled)
 
     Scaffold(
@@ -94,36 +83,28 @@ fun SettingsScreen(navController: NavController) {
                 .padding(AppSpacing.large)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Speech Rate Setting
             SettingItem(
                 title = ttsSpeedTitle,
                 content = {
                     Slider(
-                        value = speechRate,
-                        onValueChange = {
-                            speechRate = it
-                            settingsInteractor.updateTtsSpeechRate(it)
-                        },
+                        value = uiState.ttsSpeechRate,
+                        onValueChange = { viewModel.onTtsSpeechRateChange(it) },
                         valueRange = 0.5f..2.0f,
-                        steps = 5, // Provides 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0
-                        modifier = Modifier.semantics { 
+                        steps = 5,
+                        modifier = Modifier.semantics {
                             contentDescription = a11ySpeechRateDesc
                         }
                     )
                 }
             )
 
-            // Haptic Feedback Setting
             SettingItem(
                 title = hapticTitle,
                 content = {
                     Switch(
-                        checked = hapticFeedbackEnabled,
-                        onCheckedChange = {
-                            hapticFeedbackEnabled = it
-                            settingsInteractor.updateHapticEnabled(it)
-                        },
-                        modifier = Modifier.semantics { 
+                        checked = uiState.hapticEnabled,
+                        onCheckedChange = { viewModel.onHapticEnabledChange(it) },
+                        modifier = Modifier.semantics {
                             contentDescription = a11yHapticToggleDesc
                         }
                     )
@@ -134,10 +115,9 @@ fun SettingsScreen(navController: NavController) {
                 title = visualAssistTitle,
                 content = {
                     Switch(
-                        checked = visualAssistEnabled,
+                        checked = uiState.visualAssistEnabled,
                         onCheckedChange = {
-                            visualAssistEnabled = it
-                            settingsInteractor.updateVisualAssistEnabled(it)
+                            viewModel.onVisualAssistEnabledChange(it)
                             (context as? ComponentActivity)?.recreate()
                         },
                         modifier = Modifier.semantics {
@@ -168,8 +148,8 @@ fun SettingsScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = homeAddress,
-                onValueChange = { homeAddress = it },
+                value = uiState.homeAddress,
+                onValueChange = { viewModel.onHomeAddressDraftChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 placeholder = { Text("例如：北京市海淀区XX路XX号") }
@@ -180,21 +160,13 @@ fun SettingsScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = {
-                        if (homeAddress.isNotBlank()) {
-                            homeAddress = homeAddress.trim()
-                            settingsInteractor.saveHomeAddress(homeAddress)
-                        }
-                    },
+                    onClick = { viewModel.saveHomeAddressFromDraft() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("保存家地址")
                 }
                 OutlinedButton(
-                    onClick = {
-                        homeAddress = ""
-                        settingsInteractor.clearHomeAddress()
-                    },
+                    onClick = { viewModel.clearHomeAddress() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("清除家地址")
@@ -216,7 +188,7 @@ fun SettingsScreen(navController: NavController) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        privacyInteractor.revokeAllPrivacyAgreements()
+                        viewModel.revokeAllPrivacyAgreements()
                         showRevokeDialog = false
                         (context as? ComponentActivity)?.recreate()
                     }
@@ -248,7 +220,7 @@ private fun SettingItem(title: String, content: @Composable () -> Unit) {
             modifier = Modifier.weight(1f)
         )
         Box(modifier = Modifier.weight(1f)) {
-             content()
+            content()
         }
     }
 }

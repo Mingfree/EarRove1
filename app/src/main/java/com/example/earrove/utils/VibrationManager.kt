@@ -8,6 +8,7 @@ import android.os.VibratorManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.example.earrove.MyApplication
 import com.example.earrove.data.settings.SettingsRepository
 import com.example.earrove.data.settings.SettingsRepositoryImpl
 
@@ -69,7 +70,8 @@ class VibrationManager(
 @Composable
 fun rememberVibrationManager(): VibrationManager {
     val context = LocalContext.current
-    return remember {
-        VibrationManager(context, SettingsRepositoryImpl(context))
+    val app = context.applicationContext as? MyApplication
+    return remember(context) {
+        VibrationManager(context, app?.container?.settingsRepository ?: SettingsRepositoryImpl(context))
     }
 }

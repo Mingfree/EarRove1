@@ -104,6 +104,7 @@ import com.example.earrove.ui.theme.WarningOrange
 import com.example.earrove.ui.theme.AppSize
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.R
+import com.example.earrove.domain.arbitration.AccessibilityEvent
 import com.example.earrove.utils.Arbitrator
 import com.example.earrove.utils.BaiduMapUtils
 import com.example.earrove.utils.DestinationExtractor
@@ -696,7 +697,7 @@ fun NavigationScreen(
                     viewModel.obstacleDistance.value = obstacle.distance
 
                     // 通过仲裁器播报障碍物
-                    arbitrator.announceObstacle(viewModel.obstacleType.value)
+                    arbitrator.submit(AccessibilityEvent.Obstacle(viewModel.obstacleType.value))
 
                     // 3秒后清除障碍物提示
                     delay(3000)
@@ -719,9 +720,11 @@ fun NavigationScreen(
                     viewModel.trafficLightStatus.value = trafficLight
 
                     // 通过仲裁器播报红绿灯
-                    arbitrator.announceTrafficLight(
-                        trafficLightService.getTrafficLightDescription(trafficLight),
-                        trafficLight.countdown
+                    arbitrator.submit(
+                        AccessibilityEvent.Nav.TrafficLight(
+                            trafficLightService.getTrafficLightDescription(trafficLight),
+                            trafficLight.countdown
+                        )
                     )
 
                     // 5秒后清除红绿灯提示
@@ -798,10 +801,12 @@ fun NavigationScreen(
                     if (route != null) {
                         viewModel.navigationState.value = NavigationState.NAVIGATING
                         navigationService.startNavigation(destination)
-                        arbitrator.announceRouteStart(
-                            destination,
-                            route.totalDistance,
-                            route.totalDuration / 60
+                        arbitrator.submit(
+                            AccessibilityEvent.Nav.RouteStart(
+                                destination,
+                                route.totalDistance,
+                                route.totalDuration / 60
+                            )
                         )
                     } else {
                         ttsManager.speak(context.getString(R.string.nav_tts_route_plan_timeout))
@@ -925,7 +930,7 @@ fun NavigationScreen(
                     locationManager.stopLocation()
                     obstacleService.stopMonitoring()
                     trafficLightService.stopMonitoring()
-                    arbitrator.announceDestination(viewModel.destinationText.value)
+                    arbitrator.submit(AccessibilityEvent.Nav.Destination(viewModel.destinationText.value))
                 },
                 onNextStep = {
                     navigationService.moveToNextStep()?.let { nextStep ->
@@ -937,7 +942,7 @@ fun NavigationScreen(
                             "ARRIVE" -> context.getString(R.string.nav_turn_arrive)
                             else -> context.getString(R.string.nav_turn_continue_forward)
                         }
-                        arbitrator.announceTurn(direction, nextStep.distance)
+                        arbitrator.submit(AccessibilityEvent.Nav.Turn(direction, nextStep.distance))
                     }
                 }
             )
@@ -958,7 +963,7 @@ fun NavigationScreen(
                     locationManager.stopLocation()
                     obstacleService.stopMonitoring()
                     trafficLightService.stopMonitoring()
-                    arbitrator.announceDestination(viewModel.destinationText.value)
+                    arbitrator.submit(AccessibilityEvent.Nav.Destination(viewModel.destinationText.value))
                 }
             )
         }

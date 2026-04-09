@@ -19,11 +19,13 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import com.example.earrove.data.settings.SettingsRepository
 import com.example.earrove.data.settings.SettingsRepositoryImpl
+import com.example.earrove.MyApplication
+import com.example.earrove.domain.arbitration.ArbitrationSpeech
 
 class TTSManager(
     context: Context,
     private val settingsRepository: SettingsRepository
-) {
+) : ArbitrationSpeech {
     constructor(context: Context) : this(context, SettingsRepositoryImpl(context))
 
     private val appContext: Context = context.applicationContext
@@ -250,7 +252,7 @@ class TTSManager(
         // 不支持 resume
     }
 
-    fun stop() {
+    override fun stop() {
         baiduSynthesizer?.stop()
         systemTts?.stop()
         isSpeaking.set(false)
@@ -261,7 +263,7 @@ class TTSManager(
     /**
      * 播报文字并挂起，直到播放完成或被停止。
      */
-    suspend fun speakAndWait(text: String) {
+    override suspend fun speakAndWait(text: String) {
         if (!isInitialized) return
         suspendCancellableCoroutine { cont ->
             onFinishCallback = {
@@ -301,8 +303,9 @@ class TTSManager(
 @Composable
 fun rememberTTSManager(): TTSManager {
     val context = LocalContext.current
-    return remember {
-        TTSManager(context, SettingsRepositoryImpl(context))
+    val app = context.applicationContext as? MyApplication
+    return remember(context) {
+        TTSManager(context, app?.container?.settingsRepository ?: SettingsRepositoryImpl(context))
     }
 }
 

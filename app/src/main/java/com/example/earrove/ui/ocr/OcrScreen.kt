@@ -56,8 +56,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,9 +84,7 @@ import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
 import com.example.earrove.ui.theme.AppSize
 import com.example.earrove.ui.theme.AppSpacing
-import com.example.earrove.utils.AppConfig
 import com.example.earrove.utils.TTSManager
-import com.example.earrove.utils.VolcengineArkService
 import com.example.earrove.utils.rememberTTSManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -101,6 +101,8 @@ fun OcrScreen(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val ttsManager = rememberTTSManager()
+    val ocrViewModel: OcrViewModel = viewModel()
+    val ui by ocrViewModel.uiState.collectAsStateWithLifecycle()
 
     // User-visible strings (moved from hard-coded literals to resources where feasible)
     val screenTitle = context.getString(R.string.ocr_screen_title)
@@ -140,14 +142,9 @@ fun OcrScreen(navController: NavController) {
     // 权限管理
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
-    // 状态
-    var isRecognizing by remember { mutableStateOf(false) }
-    var recognitionResult by remember { mutableStateOf("") }
-    var isFlashlightOn by remember { mutableStateOf(false) }
-    var statusText by remember { mutableStateOf(statusInitial) }
-
-    // 火山引擎服务
-    val arkService = remember { VolcengineArkService() }
+    LaunchedEffect(Unit) {
+        ocrViewModel.setStatusText(statusInitial)
+    }
 
     // CameraX
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
@@ -157,42 +154,23 @@ fun OcrScreen(navController: NavController) {
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        if (uri != null && !isRecognizing) {
-            isRecognizing = true
-            statusText = statusRecognizingAlbum
-            recognitionResult = ""
+        if (uri != null && !ui.isRecognizing) {
             ttsManager.speak(statusRecognizing)
-
             coroutineScope.launch {
-                try {
-                    val base64 = uriToBase64(context, uri)
-                    Log.d(TAG, "相册图片 Base64 长度: ${base64.length}")
-
-                    val result = arkService.recognizeImage(base64)
-                    result.onSuccess { text ->
-                        recognitionResult = text
-                        statusText = statusRecognitionDone
-                        isRecognizing = false
-                        ttsManager.speak(text)
-                    }.onFailure { error ->
-                        recognitionResult = context.getString(
-                            R.string.ocr_recognition_failed_with_msg,
-                            error.message ?: ""
-                        )
-                        statusText = statusRecognitionFailedRetry
-                        isRecognizing = false
-                        ttsManager.speak(statusRecognitionFailedRetry)
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "处理相册图片异常: ${e.message}", e)
-                    recognitionResult = context.getString(
-                        R.string.ocr_recognition_failed_with_msg,
-                        e.message ?: ""
-                    )
-                    statusText = statusRecognitionFailedRetry
-                    isRecognizing = false
-                    ttsManager.speak(statusRecognitionFailed)
-                }
+                val base64 = uriToBase64(context, uri)
+                Log.d(TAG, "相册图片 Base64 长度: ${base64.length}")
+                ocrViewModel.runAlbumRecognition(
+                    base64 = base64,
+                    statusRecognizing = statusRecognizingAlbum,
+                    statusDone = statusRecognitionDone,
+                    statusFailedRetry = statusRecognitionFailedRetry,
+                    statusFailed = statusRecognitionFailed,
+                    formatFailure = { msg ->
+                        context.getString(R.string.ocr_recognition_failed_with_msg, msg)
+                    },
+                    onSpeak = { text -> ttsManager.speak(text) },
+                    onSpeakFailure = { ttsManager.speak(it) }
+                )
             }
         }
     }
@@ -200,7 +178,6 @@ fun OcrScreen(navController: NavController) {
     // 清理资源
     DisposableEffect(Unit) {
         onDispose {
-            arkService.shutdown()
             ttsManager.release()
         }
     }
@@ -213,8 +190,8 @@ fun OcrScreen(navController: NavController) {
     }
 
     val accessibilityLabel = when {
-        isRecognizing -> a11yRecognizing
-        recognitionResult.isNotEmpty() -> context.getString(R.string.ocr_a11y_result, recognitionResult)
+        ui.isRecognizing -> a11yRecognizing
+        ui.recognitionResult.isNotEmpty() -> context.getString(R.string.ocr_a11y_result, ui.recognitionResult)
         else -> a11yModeHint
     }
 
@@ -236,7 +213,7 @@ fun OcrScreen(navController: NavController) {
                     modifier = Modifier.fillMaxSize(),
                     onImageCaptureReady = { capture -> imageCapture = capture },
                     onCameraReady = { cam -> camera = cam },
-                    isFlashlightOn = isFlashlightOn
+                    isFlashlightOn = ui.isFlashlightOn
                 )
 
                 // 顶部状态栏
@@ -251,7 +228,7 @@ fun OcrScreen(navController: NavController) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = statusText,
+                        text = ui.statusText,
                         color = PremiumGold,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
@@ -263,7 +240,7 @@ fun OcrScreen(navController: NavController) {
                 }
 
                 // 识别结果显示区
-                if (recognitionResult.isNotEmpty()) {
+                if (ui.recognitionResult.isNotEmpty()) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -287,7 +264,7 @@ fun OcrScreen(navController: NavController) {
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = recognitionResult,
+                                text = ui.recognitionResult,
                                 color = PureWhite,
                                 style = MaterialTheme.typography.bodyLarge
                             )
@@ -299,7 +276,7 @@ fun OcrScreen(navController: NavController) {
                                 OutlinedButton(
                                     onClick = {
                                         clipboardManager.setPrimaryClip(
-                                            ClipData.newPlainText("ocr_result", recognitionResult)
+                                            ClipData.newPlainText("ocr_result", ui.recognitionResult)
                                         )
                                         ttsManager.speak(actionCopiedSpeak)
                                     },
@@ -310,7 +287,7 @@ fun OcrScreen(navController: NavController) {
 
                                 OutlinedButton(
                                     onClick = {
-                                        ttsManager.speak(recognitionResult)
+                                        ttsManager.speak(ui.recognitionResult)
                                     },
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -334,8 +311,9 @@ fun OcrScreen(navController: NavController) {
                     // 闪光灯按钮
                     IconButton(
                         onClick = {
-                            isFlashlightOn = !isFlashlightOn
-                            camera?.cameraControl?.enableTorch(isFlashlightOn)
+                            val next = !ui.isFlashlightOn
+                            ocrViewModel.updateState { it.copy(isFlashlightOn = next) }
+                            camera?.cameraControl?.enableTorch(next)
                         },
                         modifier = Modifier
                             .size(AppSize.fab)
@@ -346,13 +324,13 @@ fun OcrScreen(navController: NavController) {
                             .semantics { traversalIndex = 0f }
                     ) {
                         Icon(
-                            imageVector = if (isFlashlightOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                            contentDescription = if (isFlashlightOn) {
+                            imageVector = if (ui.isFlashlightOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                            contentDescription = if (ui.isFlashlightOn) {
                                 "$flashlightEnabledState，$flashlightOffDesc"
                             } else {
                                 "$flashlightDisabledState，$flashlightOnDesc"
                             },
-                            tint = if (isFlashlightOn) PremiumGold else PureWhite,
+                            tint = if (ui.isFlashlightOn) PremiumGold else PureWhite,
                             modifier = Modifier.size(AppSize.iconMedium)
                         )
                     }
@@ -360,37 +338,53 @@ fun OcrScreen(navController: NavController) {
                     // 拍照识别按钮
                     FloatingActionButton(
                         onClick = {
-                            if (!isRecognizing) {
-                                isRecognizing = true
-                                statusText = statusRecognizingCamera
-                                recognitionResult = ""
+                            if (!ui.isRecognizing) {
+                                ocrViewModel.updateState {
+                                    it.copy(
+                                        isRecognizing = true,
+                                        statusText = statusRecognizingCamera,
+                                        recognitionResult = ""
+                                    )
+                                }
                                 ttsManager.speak(statusRecognizing)
 
                                 imageCapture?.let { capture ->
                                     captureAndRecognize(
                                         context = context,
                                         imageCapture = capture,
-                                        arkService = arkService,
+                                        ocrViewModel = ocrViewModel,
                                         ttsManager = ttsManager,
                                         coroutineScope = coroutineScope,
                                         onResult = { result ->
-                                            recognitionResult = result
-                                            statusText = statusRecognitionDone
-                                            isRecognizing = false
+                                            ocrViewModel.updateState {
+                                                it.copy(
+                                                    recognitionResult = result,
+                                                    statusText = statusRecognitionDone,
+                                                    isRecognizing = false
+                                                )
+                                            }
                                         },
                                         onError = { error ->
-                                            recognitionResult = context.getString(
-                                                R.string.ocr_recognition_failed_with_msg,
-                                                error
-                                            )
-                                            statusText = statusRecognitionFailedRetry
-                                            isRecognizing = false
+                                            ocrViewModel.updateState {
+                                                it.copy(
+                                                    recognitionResult = context.getString(
+                                                        R.string.ocr_recognition_failed_with_msg,
+                                                        error
+                                                    ),
+                                                    statusText = statusRecognitionFailedRetry,
+                                                    isRecognizing = false
+                                                )
+                                            }
                                             ttsManager.speak(statusRecognitionFailedRetry)
                                         }
                                     )
                                 } ?: run {
-                                    statusText = cameraNotReadyToast
-                                    isRecognizing = false
+                                    ocrViewModel.updateState {
+                                        it.copy(
+                                            statusText = cameraNotReadyToast,
+                                            isRecognizing = false
+                                        )
+                                    }
                                     ttsManager.speak(cameraNotReadySpeak)
                                 }
                             }
@@ -401,10 +395,10 @@ fun OcrScreen(navController: NavController) {
                                 contentDescription = captureButtonA11y
                                 traversalIndex = 1f
                             },
-                        containerColor = if (isRecognizing) Color.Gray else PremiumGold,
+                        containerColor = if (ui.isRecognizing) Color.Gray else PremiumGold,
                         shape = CircleShape
                     ) {
-                        if (isRecognizing) {
+                        if (ui.isRecognizing) {
                             CircularProgressIndicator(
                                 color = PureBlack,
                                 modifier = Modifier.size(AppSize.iconLarge),
@@ -423,7 +417,7 @@ fun OcrScreen(navController: NavController) {
                     // 相册选择按钮
                     IconButton(
                         onClick = {
-                            if (!isRecognizing) {
+                            if (!ui.isRecognizing) {
                                 photoPickerLauncher.launch(
                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                 )
@@ -538,7 +532,7 @@ private fun CameraPreview(
 private fun captureAndRecognize(
     context: Context,
     imageCapture: ImageCapture,
-    arkService: VolcengineArkService,
+    ocrViewModel: OcrViewModel,
     ttsManager: TTSManager,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
     onResult: (String) -> Unit,
@@ -557,7 +551,7 @@ private fun captureAndRecognize(
                         Log.d(TAG, "图片已捕获，Base64 长度: ${base64.length}")
 
                         // 调用火山引擎 API
-                        val result = arkService.recognizeImage(base64)
+                        val result = ocrViewModel.recognizeImage(base64)
 
                         result.onSuccess { text ->
                             onResult(text)

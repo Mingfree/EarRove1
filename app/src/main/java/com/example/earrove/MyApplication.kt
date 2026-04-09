@@ -7,11 +7,12 @@ import android.util.Log
 import com.baidu.mapapi.CoordType
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.common.BaiduMapSDKException
-import com.example.earrove.data.privacy.PrivacyRepositoryImpl
+import com.example.earrove.di.AppContainer
 
 class MyApplication : Application() {
 
-    private val privacyRepository by lazy { PrivacyRepositoryImpl(this) }
+    lateinit var container: AppContainer
+        private set
 
     companion object {
         // 单例实例
@@ -32,19 +33,20 @@ class MyApplication : Application() {
 
         // 设置实例
         instance = this
+        container = AppContainer(this)
 
         Log.d("MyApplication", "MyApplication onCreate开始")
 
         // 检查是否首次启动
-        if (privacyRepository.isFirstLaunch()) {
+        if (container.privacyRepository.isFirstLaunch()) {
             Log.d("MyApplication", "首次启动应用")
-            privacyRepository.markAsNotFirstLaunch()
+            container.privacyRepository.markAsNotFirstLaunch()
         } else {
             Log.d("MyApplication", "非首次启动应用")
         }
 
         // 检查用户是否已同意隐私政策
-        if (privacyRepository.hasUserAgreedToBaiduMapPrivacy()) {
+        if (container.privacyRepository.hasUserAgreedToBaiduMapPrivacy()) {
             // 用户已同意，初始化百度地图SDK（在主线程）
             initializeBaiduMapSDKOnAppStart()
         } else {
@@ -68,11 +70,11 @@ class MyApplication : Application() {
             sdkInitializationAttempted = true
 
             // 检查SDK是否已经通过PrivacyUtils初始化
-            val storedInitialized = privacyRepository.isBaiduSDKMarkedAsInitialized()
+            val storedInitialized = container.privacyRepository.isBaiduSDKMarkedAsInitialized()
 
             if (storedInitialized) {
                 // 如果已经标记为初始化，检查实际状态
-                val actualInitialized = privacyRepository.isBaiduSDKSafeInitialized()
+                val actualInitialized = container.privacyRepository.isBaiduSDKSafeInitialized()
                 if (actualInitialized) {
                     sdkInitializationSuccess = true
                     Log.d("MyApplication", "SDK已通过PrivacyUtils成功初始化")
@@ -96,7 +98,7 @@ class MyApplication : Application() {
     private fun retryBaiduSDKInitialization() {
         Log.d("MyApplication", "开始重新初始化百度地图SDK...")
 
-        privacyRepository.retryBaiduSDKInitialization(
+        container.privacyRepository.retryBaiduSDKInitialization(
             onSuccess = {
                 sdkInitializationSuccess = true
                 Log.d("MyApplication", "百度地图SDK重新初始化成功")
@@ -116,7 +118,7 @@ class MyApplication : Application() {
     fun initializeBaiduMapSDK() {
         Log.d("MyApplication", "收到请求初始化百度地图SDK")
 
-        if (!privacyRepository.hasUserAgreedToBaiduMapPrivacy()) {
+        if (!container.privacyRepository.hasUserAgreedToBaiduMapPrivacy()) {
             Log.w("MyApplication", "用户未同意百度地图隐私政策，无法初始化SDK")
             return
         }
@@ -125,7 +127,7 @@ class MyApplication : Application() {
         sdkInitializationAttempted = true
 
         // 使用PrivacyUtils的安全初始化方法
-        privacyRepository.retryBaiduSDKInitialization(
+        container.privacyRepository.retryBaiduSDKInitialization(
             onSuccess = {
                 sdkInitializationSuccess = true
                 Log.d("MyApplication", "百度地图SDK初始化成功")
@@ -144,9 +146,9 @@ class MyApplication : Application() {
     fun isBaiduMapSDKInitialized(): Boolean {
         return try {
             // 检查三个状态的一致性
-            val privacyAgreed = privacyRepository.hasUserAgreedToBaiduMapPrivacy()
-            val markedInitialized = privacyRepository.isBaiduSDKMarkedAsInitialized()
-            val actualInitialized = privacyRepository.isBaiduSDKSafeInitialized()
+            val privacyAgreed = container.privacyRepository.hasUserAgreedToBaiduMapPrivacy()
+            val markedInitialized = container.privacyRepository.isBaiduSDKMarkedAsInitialized()
+            val actualInitialized = container.privacyRepository.isBaiduSDKSafeInitialized()
             val appStateInitialized = sdkInitializationSuccess
 
             Log.d("MyApplication", "SDK状态检查: " +
@@ -165,7 +167,7 @@ class MyApplication : Application() {
                 // 如果隐私已同意但状态不一致，尝试修复
                 Log.w("MyApplication", "SDK状态不一致，尝试修复...")
                 if (markedInitialized != actualInitialized) {
-                    privacyRepository.markBaiduSDKAsInitialized(actualInitialized)
+                    container.privacyRepository.markBaiduSDKAsInitialized(actualInitialized)
                 }
 
                 if (!actualInitialized && !sdkInitializationAttempted) {
@@ -188,9 +190,9 @@ class MyApplication : Application() {
      */
     fun getBaiduSDKStatusReport(): Map<String, Any> {
         return mapOf(
-            "privacyAgreed" to privacyRepository.hasUserAgreedToBaiduMapPrivacy(),
-            "markedInitialized" to privacyRepository.isBaiduSDKMarkedAsInitialized(),
-            "actualInitialized" to privacyRepository.isBaiduSDKSafeInitialized(),
+            "privacyAgreed" to container.privacyRepository.hasUserAgreedToBaiduMapPrivacy(),
+            "markedInitialized" to container.privacyRepository.isBaiduSDKMarkedAsInitialized(),
+            "actualInitialized" to container.privacyRepository.isBaiduSDKSafeInitialized(),
             "appAttempted" to sdkInitializationAttempted,
             "appSuccess" to sdkInitializationSuccess,
             "sdkInitialized" to try { SDKInitializer.isInitialized() } catch (e: Exception) { false }
@@ -206,10 +208,10 @@ class MyApplication : Application() {
         // 重置状态
         sdkInitializationAttempted = false
         sdkInitializationSuccess = false
-        privacyRepository.markBaiduSDKAsInitialized(false)
+        container.privacyRepository.markBaiduSDKAsInitialized(false)
 
         // 使用PrivacyUtils的安全方法
-        privacyRepository.retryBaiduSDKInitialization(
+        container.privacyRepository.retryBaiduSDKInitialization(
             onSuccess = {
                 sdkInitializationSuccess = true
                 onComplete(true, null)

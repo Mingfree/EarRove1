@@ -104,6 +104,9 @@ Windows：
 EarRove227/
 ├─ app/                         # 主应用模块（Compose UI、导航、OCR、设置等）
 │  ├─ src/main/java/com/example/earrove/
+│  │  ├─ data/                  # 数据层（settings/privacy repository）
+│  │  ├─ domain/                # 领域层（usecase/arbitration）
+│  │  ├─ di/                    # 轻量手动 DI 容器（AppContainer）
 │  │  ├─ ui/                    # 页面与组件（home/navigation/ocr/settings/help）
 │  │  ├─ navigation/            # 导航相关服务与逻辑
 │  │  └─ utils/                 # 配置、权限、仲裁、TTS、隐私等工具
@@ -126,7 +129,20 @@ EarRove227/
 
 # 仪器测试（需连接设备）
 ./gradlew :app:connectedDebugAndroidTest
+
+# 代码风格检查（P4 引入）
+./gradlew ktlintCheck
+./gradlew ktlintFormat
 ```
+
+## 最近架构改动（P3/P4）
+
+- P3：完成 `settings/privacy` 的 data/domain 抽离，UI 不再直接操作 SharedPreferences。
+- P3：`SettingsScreen` 与 `OcrScreen` 已引入 ViewModel，状态管理从 Composable 中解耦。
+- P3：仲裁器统一为 `AccessibilityEvent` 输入，优先级规则集中处理。
+- P3：新增 `AppContainer`（轻量手动 DI），关键依赖可被 fake 替换。
+- P4：新增单测（`PrivacyConsentInteractor`、`Arbitrator` 相关）与 UI 冒烟测试。
+- P4：新增发布前无障碍验收清单：`docs/accessibility-checklist.md`。
 
 ## 常见问题
 
@@ -141,6 +157,14 @@ EarRove227/
 
 - Gradle 构建失败  
   先确认 JDK 11、Android SDK 版本与网络环境，再执行 `gradlew clean` 后重试。
+
+- `testDebugUnitTest` 出现 `GradleWorkerMain` / `Could not write standard input`  
+  通常是本地 Gradle 测试执行器缓存损坏或守护进程异常。建议依次执行：
+  `./gradlew --stop`、`./gradlew clean`、删除 `~/.gradle/caches` 中损坏条目后重试。
+
+- `connectedDebugAndroidTest` 出现 TLS handshake 失败  
+  常见于代理/证书链/企业网关问题。请检查系统代理、证书信任链、以及对
+  `repo.maven.apache.org`、`dl.google.com` 的 HTTPS 连通性。
 
 ## 安全与合规建议
 

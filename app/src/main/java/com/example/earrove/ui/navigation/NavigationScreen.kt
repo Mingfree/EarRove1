@@ -197,6 +197,7 @@ fun NavigationScreen(
     var routePlanJob by remember { mutableStateOf<Job?>(null) }
     // 跟踪录音 Job（父级 scope，不会因 StandbyScreen 移除被取消）
     var listeningJob by remember { mutableStateOf<Job?>(null) }
+    var isEntryPrepared by remember { mutableStateOf(false) }
 
     // 权限检查
     var permissionsGranted by remember { mutableStateOf(false) }
@@ -595,6 +596,23 @@ fun NavigationScreen(
                 }
             }
         }
+        return
+    }
+
+    // 页面重入时统一重置为待机态，避免短暂渲染上一次导航状态造成“旧UI闪现”
+    LaunchedEffect(Unit) {
+        viewModel.navigationState.value = NavigationState.STANDBY
+        viewModel.isObstacleDetected.value = false
+        viewModel.isTrafficLightDetected.value = false
+        isEntryPrepared = true
+    }
+
+    if (!isEntryPrepared) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(PureBlack)
+        )
         return
     }
 

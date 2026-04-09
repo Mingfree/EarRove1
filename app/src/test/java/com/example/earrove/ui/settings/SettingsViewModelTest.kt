@@ -9,8 +9,8 @@ import org.junit.Test
 
 class SettingsViewModelTest {
 
-    private class FakeSettingsInteractor : SettingsInteractor(
-        object : SettingsRepository {
+    private fun fakeSettingsInteractor(): SettingsInteractor {
+        val repo = object : SettingsRepository {
             private var rate = 1f
             private var haptic = true
             private var visual = false
@@ -39,10 +39,11 @@ class SettingsViewModelTest {
                 home = ""
             }
         }
-    )
+        return SettingsInteractor(repo)
+    }
 
-    private class FakePrivacyInteractor : PrivacyConsentInteractor(
-        object : PrivacyRepository {
+    private fun fakePrivacyInteractor(): PrivacyConsentInteractor {
+        val repo = object : PrivacyRepository {
             override fun isFirstLaunch() = false
             override fun markAsNotFirstLaunch() {}
             override fun hasUserAgreedToAppPrivacy() = true
@@ -64,19 +65,20 @@ class SettingsViewModelTest {
             override fun getPrivacyPolicyText() = ""
             override fun getBaiduMapPrivacySummary() = ""
         }
-    )
+        return PrivacyConsentInteractor(repo)
+    }
 
     @Test
     fun onTtsSpeechRateChange_updatesState() {
-        val vm = SettingsViewModel(FakeSettingsInteractor(), FakePrivacyInteractor())
+        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
         vm.onTtsSpeechRateChange(1.5f)
         assertEquals(1.5f, vm.uiState.value.ttsSpeechRate, 0.001f)
     }
 
     @Test
     fun initialState_matchesInteractorSnapshot() {
-        val settings = FakeSettingsInteractor()
-        val vm = SettingsViewModel(settings, FakePrivacyInteractor())
-        assertEquals(settings.loadSnapshot(), vm.uiState.value)
+        val settingsInteractor = fakeSettingsInteractor()
+        val vm = SettingsViewModel(settingsInteractor, fakePrivacyInteractor())
+        assertEquals(settingsInteractor.loadSnapshot(), vm.uiState.value)
     }
 }

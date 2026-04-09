@@ -11,11 +11,12 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.earrove.MyApplication
 import com.example.earrove.data.settings.SettingsRepository
 import com.example.earrove.data.settings.SettingsRepositoryImpl
+import com.example.earrove.domain.arbitration.ArbitrationHaptics
 
 class VibrationManager(
     context: Context,
     private val settingsRepository: SettingsRepository
-) {
+) : ArbitrationHaptics {
     constructor(context: Context) : this(context, SettingsRepositoryImpl(context))
 
     private val appContext = context.applicationContext
@@ -27,7 +28,7 @@ class VibrationManager(
         context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     }
 
-    fun vibrateForObstacle() {
+    override fun vibrateForObstacle() {
         if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = longArrayOf(0, 100, 100, 100) // 短震2次
@@ -39,7 +40,7 @@ class VibrationManager(
         }
     }
 
-    fun vibrateForTurn(direction: String) {
+    override fun vibrateForTurn(direction: String) {
         if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 长震1次，配合语音提示
@@ -50,7 +51,7 @@ class VibrationManager(
         }
     }
 
-    fun vibrateForTrafficLight() {
+    override fun vibrateForTrafficLight() {
         if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = longArrayOf(0, 100, 100, 100, 100, 100) // 三次短震

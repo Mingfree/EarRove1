@@ -3,19 +3,23 @@ package com.example.earrove.utils
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.example.earrove.R
 import com.example.earrove.domain.arbitration.AccessibilityEvent
+import com.example.earrove.domain.arbitration.ArbitrationHaptics
 import com.example.earrove.domain.arbitration.ArbitrationSpeech
+import com.example.earrove.domain.arbitration.ArbitrationTextProvider
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class Arbitrator(
-    private val context: Context,
+    private val textProvider: ArbitrationTextProvider,
     private val speech: ArbitrationSpeech,
-    private val vibrationManager: VibrationManager
+    private val haptics: ArbitrationHaptics,
+    dispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
-    private val uiScope = CoroutineScope(Dispatchers.Main)
+    private val uiScope = CoroutineScope(SupervisorJob() + dispatcher)
 
     enum class Priority {
         OBSTACLE,
@@ -53,36 +57,31 @@ class Arbitrator(
     fun submit(event: AccessibilityEvent) {
         when (event) {
             is AccessibilityEvent.Obstacle -> speakWithPriority(
-                context.getString(R.string.arb_obstacle_template, event.obstacleType),
+                textProvider.obstacleText(event.obstacleType),
                 Priority.OBSTACLE,
-                { vibrationManager.vibrateForObstacle() }
+                { haptics.vibrateForObstacle() }
             )
 
             is AccessibilityEvent.Nav.Turn -> speakWithPriority(
-                context.getString(R.string.arb_turn_template, event.distanceMeters, event.direction),
+                textProvider.turnText(event.distanceMeters, event.direction),
                 Priority.NAVIGATION,
-                { vibrationManager.vibrateForTurn(event.direction) }
+                { haptics.vibrateForTurn(event.direction) }
             )
 
             is AccessibilityEvent.Nav.TrafficLight -> speakWithPriority(
-                context.getString(R.string.arb_traffic_light_template, event.status, event.countdown),
+                textProvider.trafficLightText(event.status, event.countdown),
                 Priority.NAVIGATION,
-                { vibrationManager.vibrateForTrafficLight() }
+                { haptics.vibrateForTrafficLight() }
             )
 
             is AccessibilityEvent.Nav.Destination -> speakWithPriority(
-                context.getString(R.string.arb_destination_template, event.name),
+                textProvider.destinationText(event.name),
                 Priority.INFO,
                 null
             )
 
             is AccessibilityEvent.Nav.RouteStart -> speakWithPriority(
-                context.getString(
-                    R.string.arb_route_start_template,
-                    event.destination,
-                    event.distance,
-                    event.duration
-                ),
+                textProvider.routeStartText(event.destination, event.distance, event.duration),
                 Priority.NAVIGATION,
                 null
             )
@@ -109,6 +108,10 @@ fun rememberArbitrator(
     vibrationManager: VibrationManager
 ): Arbitrator {
     return remember {
-        Arbitrator(context, ttsManager, vibrationManager)
+        Arbitrator(
+            textProvider = AndroidArbitrationTextProvider(context),
+            speech = ttsManager,
+            haptics = vibrationManager
+        )
     }
 }

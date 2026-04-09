@@ -21,6 +21,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,6 +43,8 @@ import com.example.earrove.ui.theme.AppSize
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.DeepGray
 import com.example.earrove.ui.theme.EarRoveTheme
+import com.example.earrove.utils.rememberTTSManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -46,8 +54,19 @@ fun HomeScreen(navController: NavController) {
     val ocrTitle = stringResource(id = R.string.home_ocr_title)
     val ocrSubtitle = stringResource(id = R.string.home_ocr_subtitle)
     val ocrA11y = stringResource(id = R.string.a11y_home_ocr_entry)
+    val ocrGuideSpeak = stringResource(id = R.string.home_ocr_guide_speak)
     val settingsText = stringResource(id = R.string.home_settings)
     val helpText = stringResource(id = R.string.home_help)
+
+    val ttsManager = rememberTTSManager()
+    val scope = rememberCoroutineScope()
+    var isOcrGuideSpeaking by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            ttsManager.release()
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // 1. Navigation Mode Card
@@ -69,7 +88,18 @@ fun HomeScreen(navController: NavController) {
             backgroundColor = DeepGray,
             icon = Icons.Default.TextFields,
             contentDescription = ocrA11y,
-            onClick = { navController.navigate("ocr") }
+            onClick = {
+                if (isOcrGuideSpeaking) return@HomeCard
+                isOcrGuideSpeaking = true
+                scope.launch {
+                    try {
+                        ttsManager.speakAndWait(ocrGuideSpeak)
+                    } finally {
+                        isOcrGuideSpeaking = false
+                        navController.navigate("ocr")
+                    }
+                }
+            }
         )
 
         // 3. Bottom Action Bar

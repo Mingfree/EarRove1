@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.R
+import com.example.earrove.ui.theme.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +39,7 @@ fun HelpScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .padding(16.dp)
+                .padding(AppSpacing.large)
                 .verticalScroll(rememberScrollState())
         ) {
             HelpSection(
@@ -61,11 +62,11 @@ fun HelpScreen(navController: NavController) {
 
 @Composable
 private fun HelpSection(title: String, content: String) {
-    Column(modifier = Modifier.padding(bottom = 24.dp)) {
+    Column(modifier = Modifier.padding(bottom = AppSpacing.xLarge)) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = AppSpacing.small)
         )
         Text(
             text = content,

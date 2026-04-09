@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.earrove.utils.PrivacyUtils
 import com.example.earrove.ui.common.EarRoveTopAppBar
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.R
 import com.example.earrove.utils.SettingsStore
@@ -43,6 +44,7 @@ fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     var speechRate by remember { mutableFloatStateOf(SettingsStore.getTtsSpeechRate(context)) }
     var hapticFeedbackEnabled by remember { mutableStateOf(SettingsStore.isHapticEnabled(context)) }
+    var visualAssistEnabled by remember { mutableStateOf(SettingsStore.isVisualAssistEnabled(context)) }
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
@@ -50,6 +52,7 @@ fun SettingsScreen(navController: NavController) {
     val ttsSpeedTitle = stringResource(id = R.string.settings_tts_speed_title)
     val hapticTitle = stringResource(id = R.string.settings_haptic_title)
     val privacyTitle = stringResource(id = R.string.settings_privacy_title)
+    val visualAssistTitle = stringResource(id = R.string.settings_visual_assist_title)
 
     val revokeButtonText = stringResource(id = R.string.settings_revoke_button)
     val revokeDialogTitle = stringResource(id = R.string.settings_revoke_dialog_title)
@@ -61,6 +64,9 @@ fun SettingsScreen(navController: NavController) {
     val a11yHapticToggleDesc =
         if (hapticFeedbackEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
         else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
+    val a11yVisualAssistToggleDesc =
+        if (visualAssistEnabled) stringResource(id = R.string.a11y_visual_assist_toggle_desc_enabled)
+        else stringResource(id = R.string.a11y_visual_assist_toggle_desc_disabled)
 
     Scaffold(
         topBar = {
@@ -71,7 +77,7 @@ fun SettingsScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(AppSpacing.large)
         ) {
             // Speech Rate Setting
             SettingItem(
@@ -104,6 +110,23 @@ fun SettingsScreen(navController: NavController) {
                         },
                         modifier = Modifier.semantics { 
                             contentDescription = a11yHapticToggleDesc
+                        }
+                    )
+                }
+            )
+
+            SettingItem(
+                title = visualAssistTitle,
+                content = {
+                    Switch(
+                        checked = visualAssistEnabled,
+                        onCheckedChange = {
+                            visualAssistEnabled = it
+                            SettingsStore.setVisualAssistEnabled(context, it)
+                            (context as? ComponentActivity)?.recreate()
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = a11yVisualAssistToggleDesc
                         }
                     )
                 }
@@ -160,7 +183,7 @@ private fun SettingItem(title: String, content: @Composable () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = AppSpacing.large),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

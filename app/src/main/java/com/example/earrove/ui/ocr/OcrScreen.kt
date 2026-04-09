@@ -64,6 +64,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,6 +80,8 @@ import com.example.earrove.R
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
+import com.example.earrove.ui.theme.AppSize
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.utils.AppConfig
 import com.example.earrove.utils.TTSManager
 import com.example.earrove.utils.VolcengineArkService
@@ -235,7 +241,7 @@ fun OcrScreen(navController: NavController) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                            .padding(AppSpacing.large)
                         .align(Alignment.TopCenter),
                     colors = CardDefaults.cardColors(
                         containerColor = PureBlack.copy(alpha = 0.7f)
@@ -249,7 +255,8 @@ fun OcrScreen(navController: NavController) {
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp)
+                            .padding(AppSpacing.medium)
+                            .semantics { liveRegion = LiveRegionMode.Polite }
                     )
                 }
 
@@ -282,7 +289,7 @@ fun OcrScreen(navController: NavController) {
                                 color = PureWhite,
                                 style = MaterialTheme.typography.bodyLarge
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(AppSpacing.medium))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -317,7 +324,8 @@ fun OcrScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 40.dp, start = 32.dp, end = 32.dp),
+                        .padding(bottom = 40.dp, start = AppSpacing.xxLarge, end = AppSpacing.xxLarge)
+                        .semantics { isTraversalGroup = true },
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -328,17 +336,18 @@ fun OcrScreen(navController: NavController) {
                             camera?.cameraControl?.enableTorch(isFlashlightOn)
                         },
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(AppSize.fab)
                             .background(
                                 PureBlack.copy(alpha = 0.6f),
                                 CircleShape
                             )
+                            .semantics { traversalIndex = 0f }
                     ) {
                         Icon(
                             imageVector = if (isFlashlightOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
                             contentDescription = if (isFlashlightOn) flashlightOffDesc else flashlightOnDesc,
                             tint = if (isFlashlightOn) PremiumGold else PureWhite,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(AppSize.iconMedium)
                         )
                     }
 
@@ -381,15 +390,18 @@ fun OcrScreen(navController: NavController) {
                             }
                         },
                         modifier = Modifier
-                            .size(80.dp)
-                            .semantics { contentDescription = captureButtonA11y },
+                            .size(AppSize.fabLarge)
+                            .semantics {
+                                contentDescription = captureButtonA11y
+                                traversalIndex = 1f
+                            },
                         containerColor = if (isRecognizing) Color.Gray else PremiumGold,
                         shape = CircleShape
                     ) {
                         if (isRecognizing) {
                             CircularProgressIndicator(
                                 color = PureBlack,
-                                modifier = Modifier.size(36.dp),
+                                modifier = Modifier.size(AppSize.iconLarge),
                                 strokeWidth = 3.dp
                             )
                         } else {
@@ -397,7 +409,7 @@ fun OcrScreen(navController: NavController) {
                                 imageVector = Icons.Default.CameraAlt,
                                 contentDescription = null,
                                 tint = PureBlack,
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(AppSize.iconLarge)
                             )
                         }
                     }
@@ -412,18 +424,21 @@ fun OcrScreen(navController: NavController) {
                             }
                         },
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(AppSize.fab)
                             .background(
                                 PureBlack.copy(alpha = 0.6f),
                                 CircleShape
                             )
-                            .semantics { contentDescription = pickPhotoA11y }
+                            .semantics {
+                                contentDescription = pickPhotoA11y
+                                traversalIndex = 2f
+                            }
                     ) {
                         Icon(
                             imageVector = Icons.Default.PhotoLibrary,
                             contentDescription = photoLabel,
                             tint = PureWhite,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(AppSize.iconMedium)
                         )
                     }
                 }

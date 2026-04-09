@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.earrove.R
+import com.example.earrove.ui.theme.AppSize
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.DeepGray
 import com.example.earrove.ui.theme.EarRoveTheme
 
@@ -90,7 +92,7 @@ private fun HomeCard(
             .fillMaxWidth()
             .background(backgroundColor)
             .clickable(onClick = onClick)
-            .padding(32.dp)
+            .padding(AppSpacing.xxLarge)
             .semantics(mergeDescendants = true) { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center
     ) {
@@ -102,9 +104,9 @@ private fun HomeCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (backgroundColor == DeepGray) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(AppSize.fabLarge)
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.xLarge))
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineLarge.copy(
@@ -112,7 +114,7 @@ private fun HomeCard(
                     color = if (backgroundColor == DeepGray) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary
                 )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.small))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyLarge.copy(
@@ -133,7 +135,7 @@ private fun BottomActionBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(vertical = 16.dp),
+            .padding(vertical = AppSpacing.large),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -166,7 +168,7 @@ private fun ActionButton(
         contentDescription = contentDescription,
         tint = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
-            .size(28.dp)
+            .size(AppSize.iconMedium)
             .clickable(onClick = onClick)
             .semantics { this.contentDescription = contentDescription }
     )

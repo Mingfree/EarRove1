@@ -35,3 +35,26 @@ val EarRoveTypography = Typography(
         letterSpacing = 0.sp
     )
 )
+
+val EarRoveVisualAssistTypography = Typography(
+    headlineLarge = EarRoveTypography.headlineLarge.copy(
+        fontSize = 36.sp,
+        lineHeight = 44.sp
+    ),
+    headlineMedium = EarRoveTypography.headlineMedium.copy(
+        fontSize = 30.sp,
+        lineHeight = 38.sp
+    ),
+    bodyLarge = EarRoveTypography.bodyLarge.copy(
+        fontSize = 28.sp,
+        lineHeight = 36.sp
+    ),
+    bodyMedium = EarRoveTypography.bodyMedium.copy(
+        fontSize = 24.sp,
+        lineHeight = 32.sp
+    ),
+    labelLarge = EarRoveTypography.labelLarge.copy(
+        fontSize = 26.sp,
+        lineHeight = 34.sp
+    )
+)

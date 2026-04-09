@@ -65,6 +65,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -96,6 +100,8 @@ import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
 import com.example.earrove.ui.theme.WarningOrange
+import com.example.earrove.ui.theme.AppSize
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.R
 import com.example.earrove.utils.Arbitrator
 import com.example.earrove.utils.BaiduMapUtils
@@ -206,7 +212,7 @@ fun NavigationScreen(
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.large)
                 ) {
                     Text(
                         text = permDeniedTitle,
@@ -434,7 +440,7 @@ fun NavigationScreen(
             ) {
                 CircularProgressIndicator(
                     color = PremiumGold,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(AppSize.iconXLarge)
                 )
 
                 Text(
@@ -466,7 +472,7 @@ fun NavigationScreen(
                         containerColor = PremiumGold.copy(alpha = 0.8f),
                         contentColor = PureBlack
                     ),
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier.padding(top = AppSpacing.large)
                 ) {
                     Text(text = stringResource(id = R.string.nav_check_privacy_status))
                 }
@@ -537,7 +543,7 @@ fun NavigationScreen(
                     imageVector = Icons.Default.LocationOff,
                     contentDescription = stringResource(id = R.string.nav_location_unavailable_a11y),
                     tint = WarningOrange,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(AppSize.iconXLarge)
                 )
 
                 Text(
@@ -1088,7 +1094,8 @@ private fun StandbyScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .padding(AppSpacing.xxLarge)
+                    .semantics { isTraversalGroup = true },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom
             ) {
@@ -1149,6 +1156,7 @@ private fun StandbyScreen(
                                 .clickable { onMicClick() }
                                 .semantics {
                                     contentDescription = micA11yDesc
+                                    traversalIndex = 0f
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -1162,7 +1170,7 @@ private fun StandbyScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppSpacing.large))
 
                         // 提示文字
                         Text(
@@ -1176,7 +1184,7 @@ private fun StandbyScreen(
                                 }
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(AppSpacing.small))
 
                         Text(
                             text = standbyPromptHint,
@@ -1185,7 +1193,7 @@ private fun StandbyScreen(
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppSpacing.large))
 
                         // 快速目的地按钮
                         Button(
@@ -1193,7 +1201,8 @@ private fun StandbyScreen(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = PremiumGold.copy(alpha = 0.8f),
                                 contentColor = PureBlack
-                            )
+                            ),
+                            modifier = Modifier.semantics { traversalIndex = 1f }
                         ) {
                             Text(
                                 text = if (showSuggestions) hideSuggestionsText else showSuggestionsText
@@ -1375,7 +1384,8 @@ private fun ListeningScreen(
                     text = stringResource(id = R.string.nav_listening_prompt),
                     style = MaterialTheme.typography.headlineMedium,
                     color = PureWhite,
-                    textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -1429,7 +1439,8 @@ private fun PlanningRouteScreen(
                     text = stringResource(id = R.string.nav_planning_route_template, destination),
                     style = MaterialTheme.typography.headlineMedium,
                     color = PureWhite,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -1712,7 +1723,8 @@ private fun NavigationControlBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(PureBlack.copy(alpha = 0.9f))
-            .padding(16.dp),
+                    .padding(AppSpacing.large)
+                    .semantics { isTraversalGroup = true },
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         // 下一步按钮
@@ -1723,6 +1735,7 @@ private fun NavigationControlBar(
                 contentColor = PureBlack
             ),
             modifier = Modifier.weight(1f)
+                .semantics { traversalIndex = 0f }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -1746,6 +1759,7 @@ private fun NavigationControlBar(
                 contentColor = PureBlack
             ),
             modifier = Modifier.weight(1f)
+                .semantics { traversalIndex = 1f }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -1779,6 +1793,7 @@ private fun NavigationControlBar(
                 contentColor = PureBlack
             ),
             modifier = Modifier.weight(1f)
+                .semantics { traversalIndex = 2f }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically

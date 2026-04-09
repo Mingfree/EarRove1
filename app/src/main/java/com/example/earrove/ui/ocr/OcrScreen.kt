@@ -107,6 +107,7 @@ fun OcrScreen(navController: NavController) {
     // User-visible strings (moved from hard-coded literals to resources where feasible)
     val screenTitle = context.getString(R.string.ocr_screen_title)
     val resultHeading = context.getString(R.string.ocr_heading_result)
+    val guideSpeak = context.getString(R.string.home_ocr_guide_speak)
 
     val statusInitial = context.getString(R.string.ocr_status_initial)
     val statusRecognizingAlbum = context.getString(R.string.ocr_status_recognizing_album)
@@ -144,6 +145,7 @@ fun OcrScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         ocrViewModel.setStatusText(statusInitial)
+        ttsManager.speak(guideSpeak)
     }
 
     // CameraX

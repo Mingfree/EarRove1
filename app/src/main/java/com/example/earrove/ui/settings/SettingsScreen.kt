@@ -62,6 +62,10 @@ fun SettingsScreen(navController: NavController) {
     val revokeDialogText = stringResource(id = R.string.settings_revoke_dialog_text)
     val revokeConfirmText = stringResource(id = R.string.settings_revoke_confirm)
     val revokeCancelText = stringResource(id = R.string.settings_revoke_cancel)
+    val homeAddressTitle = stringResource(id = R.string.settings_home_address_title)
+    val homeAddressPlaceholder = stringResource(id = R.string.settings_home_address_placeholder)
+    val homeAddressSave = stringResource(id = R.string.settings_home_address_save)
+    val homeAddressClear = stringResource(id = R.string.settings_home_address_clear)
 
     val a11ySpeechRateDesc = stringResource(id = R.string.a11y_speech_rate_slider_desc, uiState.ttsSpeechRate)
     val a11yHapticToggleDesc =
@@ -143,7 +147,7 @@ fun SettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "预设“家”地址",
+                text = homeAddressTitle,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -152,7 +156,7 @@ fun SettingsScreen(navController: NavController) {
                 onValueChange = { viewModel.onHomeAddressDraftChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("例如：北京市海淀区XX路XX号") }
+                placeholder = { Text(homeAddressPlaceholder) }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -163,13 +167,13 @@ fun SettingsScreen(navController: NavController) {
                     onClick = { viewModel.saveHomeAddressFromDraft() },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("保存家地址")
+                    Text(homeAddressSave)
                 }
                 OutlinedButton(
                     onClick = { viewModel.clearHomeAddress() },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("清除家地址")
+                    Text(homeAddressClear)
                 }
             }
         }

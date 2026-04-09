@@ -164,6 +164,67 @@ object BaiduMapUtils {
     }
 
     /**
+     * 获取附近候选 POI 列表（名称 + 坐标 + 距离），按距离从近到远排序。
+     */
+    fun searchNearbyPoiCandidates(
+        keyword: String,
+        center: LatLng,
+        radius: Int = 3000,
+        limit: Int = 5
+    ): Flow<List<NearbyPoiCandidate>> = callbackFlow {
+        val poiSearch = PoiSearch.newInstance()
+        val listener = object : OnGetPoiSearchResultListener {
+            override fun onGetPoiResult(result: PoiResult?) {
+                val candidates = if (result?.error == SearchResult.ERRORNO.NO_ERROR) {
+                    result.allPoi
+                        ?.asSequence()
+                        ?.mapNotNull { poi ->
+                            val name = poi.name?.trim()
+                            val location = poi.location
+                            if (name.isNullOrBlank() || location == null) {
+                                null
+                            } else {
+                                NearbyPoiCandidate(
+                                    name = name,
+                                    location = location,
+                                    distanceMeters = (poi.distance ?: Int.MAX_VALUE)
+                                )
+                            }
+                        }
+                        ?.sortedBy { it.distanceMeters }
+                        ?.distinctBy { it.name to it.location.latitude to it.location.longitude }
+                        ?.take(limit)
+                        ?.toList()
+                        .orEmpty()
+                } else {
+                    emptyList()
+                }
+                trySend(candidates)
+                poiSearch.destroy()
+            }
+
+            override fun onGetPoiDetailResult(result: PoiDetailResult?) {}
+            override fun onGetPoiDetailResult(result: PoiDetailSearchResult?) {}
+            override fun onGetPoiIndoorResult(result: PoiIndoorResult?) {}
+        }
+
+        poiSearch.setOnGetPoiSearchResultListener(listener)
+        poiSearch.searchNearby(
+            PoiNearbySearchOption()
+                .keyword(keyword)
+                .location(center)
+                .radius(radius)
+                .sortType(PoiSortType.distance_from_near_to_far)
+                .pageNum(0)
+                .pageCapacity(limit)
+        )
+
+        awaitClose {
+            poiSearch.destroy()
+        }
+    }
+
+    /**
      * 地理编码备用（当 POI 搜索无结果时使用）
      */
     private fun fallbackGeocode(address: String, callback: (LatLng?) -> Unit) {
@@ -189,3 +250,9 @@ object BaiduMapUtils {
         )
     }
 }
+
+data class NearbyPoiCandidate(
+    val name: String,
+    val location: LatLng,
+    val distanceMeters: Int
+)

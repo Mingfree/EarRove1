@@ -27,7 +27,21 @@ object ConfigValidator {
         return v.isBlank() || v.startsWith("YOUR-")
     }
 
+    private fun isRunningInstrumentationTest(): Boolean {
+        return runCatching {
+            val clazz = Class.forName("androidx.test.platform.app.InstrumentationRegistry")
+            val method = clazz.getMethod("getInstrumentation")
+            method.invoke(null)
+            true
+        }.getOrDefault(false)
+    }
+
     fun checkEssentialConfig(context: Context): CheckResult {
+        // androidTest 环境下不应被本地占位符配置拦截（避免 UI 冒烟测试无法运行）
+        if (isRunningInstrumentationTest()) {
+            return CheckResult(missing = emptyList(), isOk = true)
+        }
+
         val missing = mutableListOf<String>()
 
         if (isDashScopeMissing()) {

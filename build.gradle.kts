@@ -9,10 +9,6 @@ plugins {
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
-    repositories {
-        mavenCentral()
-    }
-
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         // 固定 ktlint 版本，避免随插件小版本漂移
         version.set("1.5.0")

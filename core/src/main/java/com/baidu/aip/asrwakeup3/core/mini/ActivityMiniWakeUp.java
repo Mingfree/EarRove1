@@ -26,10 +26,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Created by fujiayi on 2017/8/15.
- */
-
 public class ActivityMiniWakeUp extends AppCompatActivity implements EventListener {
     protected TextView txtLog;
     protected TextView txtResult;

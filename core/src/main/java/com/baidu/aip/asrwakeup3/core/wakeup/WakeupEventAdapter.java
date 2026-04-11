@@ -5,10 +5,6 @@ import com.baidu.aip.asrwakeup3.core.wakeup.listener.IWakeupListener;
 import com.baidu.speech.EventListener;
 import com.baidu.speech.asr.SpeechConstant;
 
-/**
- * Created by fujiayi on 2017/6/20.
- */
-
 public class WakeupEventAdapter implements EventListener {
     private IWakeupListener listener;
 
@@ -20,7 +16,7 @@ public class WakeupEventAdapter implements EventListener {
   // 基于DEMO唤醒3.1 开始回调事件
     @Override
     public void onEvent(String name, String params, byte[] data, int offset, int length) {
-        // android studio日志Monitor 中搜索 WakeupEventAdapter即可看见下面一行的日志
+        // 在 Logcat 中搜索 WakeupEventAdapter 可查看下面一行的日志
         MyLogger.info(TAG, "wakeup name:" + name + "; params:" + params);
         if (SpeechConstant.CALLBACK_EVENT_WAKEUP_SUCCESS.equals(name)) { // 识别唤醒词成功
             WakeUpResult result = WakeUpResult.parseJson(name, params);

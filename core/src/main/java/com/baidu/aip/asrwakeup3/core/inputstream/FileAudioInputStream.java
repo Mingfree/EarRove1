@@ -11,8 +11,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Created by fujiayi on 2017/11/27.
- * <p>
  * 解决大文件的输入问题。
  * 文件大时不能通过Infile参数一下子输入。
  */

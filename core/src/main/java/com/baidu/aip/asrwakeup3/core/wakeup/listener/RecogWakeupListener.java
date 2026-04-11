@@ -4,10 +4,6 @@ import android.os.Handler;
 import com.baidu.aip.asrwakeup3.core.recog.IStatus;
 import com.baidu.aip.asrwakeup3.core.wakeup.WakeUpResult;
 
-/**
- * Created by fujiayi on 2017/9/21.
- */
-
 public class RecogWakeupListener extends SimpleWakeupListener implements IStatus {
 
     private static final String TAG = "RecogWakeupListener";

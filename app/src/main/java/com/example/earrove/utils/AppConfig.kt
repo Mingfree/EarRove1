@@ -3,8 +3,7 @@ package com.example.earrove.utils
 import com.example.earrove.BuildConfig
 
 /**
- * 应用配置类
- * 集中管理所有配置参数（对标 android_baidu 的 AppConfig.java）
+ * 应用配置类，集中管理配置参数。
  *
  * 敏感配置（API Key 等）通过 BuildConfig 注入，避免硬编码在仓库中。
  */

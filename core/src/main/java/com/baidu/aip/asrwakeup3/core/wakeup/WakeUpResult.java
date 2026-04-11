@@ -5,9 +5,6 @@ import com.baidu.speech.asr.SpeechConstant;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Created by fujiayi on 2017/6/24.
- */
 public class WakeUpResult {
     private String name;
     private String origalJson;

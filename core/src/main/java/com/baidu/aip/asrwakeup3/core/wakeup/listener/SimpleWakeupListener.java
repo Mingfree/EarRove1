@@ -4,10 +4,6 @@ package com.baidu.aip.asrwakeup3.core.wakeup.listener;
 import com.baidu.aip.asrwakeup3.core.util.MyLogger;
 import com.baidu.aip.asrwakeup3.core.wakeup.WakeUpResult;
 
-/**
- * Created by fujiayi on 2017/6/21.
- */
-
 public class SimpleWakeupListener implements IWakeupListener {
 
     private static final String TAG = "SimpleWakeupListener";

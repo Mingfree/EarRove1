@@ -8,10 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import com.baidu.aip.asrwakeup3.core.recog.RecogResult;
 
-/**
- * Created by fujiayi on 2017/6/14.
- */
-
 public class RecogEventAdapter implements EventListener {
 
     private IRecogListener listener;

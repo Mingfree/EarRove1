@@ -14,10 +14,6 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-/**
- * Created by fujiayi on 2017/6/20.
- */
-
 public class MyWakeup {
 
 

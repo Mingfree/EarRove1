@@ -18,7 +18,6 @@ import org.json.JSONObject;
 import java.util.Map;
 
 /**
- * Created by fujiayi on 2017/6/13.
  * EventManager内的方法如send 都可以在主线程中进行，SDK中做过处理
  */
 

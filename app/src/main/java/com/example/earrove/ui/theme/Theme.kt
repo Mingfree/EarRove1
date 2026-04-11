@@ -17,7 +17,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = DeepGray,              // Surface for cards, sheets etc.
     onBackground = PureWhite,        // Default text color
     onSurface = PureWhite,           // Text on surfaces
-    onSurfaceVariant = PureWhite,    // For less prominent text/icons
+    onSurfaceVariant = OnSurfaceMuted, // Captions, placeholders, less prominent text
     error = WarningOrange,           // For warnings
     onError = PureBlack              // Text on warning elements
 )

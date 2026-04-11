@@ -28,7 +28,7 @@ EarRove 是一款面向视障用户的 Android 辅助应用，聚焦「无障碍
 - Android SDK
   - `compileSdk = 36`
   - `targetSdk = 36`
-  - `minSdk = 24`
+  - `minSdk = 26`
 - 可联网的 Android 真机（推荐，便于权限/定位/语音链路验证）
 
 ## 快速开始

@@ -12,6 +12,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+
+enum class HomeAddressSaveResult {
+    Saved,
+    Empty,
+    Failed
+}
+
+enum class HomeAddressClearResult {
+    Cleared,
+    NothingToClear,
+    Failed
+}
+
 class SettingsViewModel(
     private val settingsInteractor: SettingsInteractor,
     private val privacyInteractor: PrivacyConsentInteractor
@@ -34,17 +47,31 @@ class SettingsViewModel(
         _uiState.update { it.copy(homeAddress = value) }
     }
 
-    fun saveHomeAddressFromDraft() {
+    fun saveHomeAddressFromDraft(): HomeAddressSaveResult {
         val addr = _uiState.value.homeAddress.trim()
-        if (addr.isNotBlank()) {
+        if (addr.isBlank()) return HomeAddressSaveResult.Empty
+        return try {
             settingsInteractor.saveHomeAddress(addr)
             _uiState.update { it.copy(homeAddress = addr) }
+            HomeAddressSaveResult.Saved
+        } catch (_: Exception) {
+            HomeAddressSaveResult.Failed
         }
     }
 
-    fun clearHomeAddress() {
-        settingsInteractor.clearHomeAddress()
-        _uiState.update { it.copy(homeAddress = "") }
+    fun clearHomeAddress(): HomeAddressClearResult {
+        val hadSaved = !settingsInteractor.getHomeAddressOrNull().isNullOrBlank()
+        val hasDraft = _uiState.value.homeAddress.isNotBlank()
+        if (!hadSaved && !hasDraft) {
+            return HomeAddressClearResult.NothingToClear
+        }
+        return try {
+            settingsInteractor.clearHomeAddress()
+            _uiState.update { it.copy(homeAddress = "") }
+            HomeAddressClearResult.Cleared
+        } catch (_: Exception) {
+            HomeAddressClearResult.Failed
+        }
     }
 
     fun revokeAllPrivacyAgreements() {

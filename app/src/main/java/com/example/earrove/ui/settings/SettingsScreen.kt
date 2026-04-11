@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +20,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.earrove.R
+import kotlinx.coroutines.launch
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.EarRoveTheme
@@ -65,6 +72,26 @@ fun SettingsScreen(navController: NavController) {
     val homeAddressPlaceholder = stringResource(id = R.string.settings_home_address_placeholder)
     val homeAddressSave = stringResource(id = R.string.settings_home_address_save)
     val homeAddressClear = stringResource(id = R.string.settings_home_address_clear)
+    val homeAddressSavedSnackbar = stringResource(id = R.string.settings_home_address_saved)
+    val homeAddressEmptySnackbar = stringResource(id = R.string.settings_home_address_empty_hint)
+    val homeAddressFailedSnackbar = stringResource(id = R.string.settings_home_address_save_failed)
+    val homeAddressClearedSnackbar = stringResource(id = R.string.settings_home_address_cleared)
+    val homeAddressClearNothingSnackbar = stringResource(id = R.string.settings_home_address_clear_nothing)
+    val homeAddressClearFailedSnackbar = stringResource(id = R.string.settings_home_address_clear_failed)
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    fun showZhSnackbar(message: String) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = null,
+                withDismissAction = false,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     val a11ySpeechRateDesc = stringResource(id = R.string.a11y_speech_rate_slider_desc, uiState.ttsSpeechRate)
     val a11yHapticToggleDesc =
@@ -72,6 +99,14 @@ fun SettingsScreen(navController: NavController) {
         else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .imePadding()
+            )
+        },
         topBar = {
             EarRoveTopAppBar(title = settingsTitle, onNavigateUp = { navController.popBackStack() })
         }
@@ -150,13 +185,27 @@ fun SettingsScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = { viewModel.saveHomeAddressFromDraft() },
+                    onClick = {
+                        val message = when (viewModel.saveHomeAddressFromDraft()) {
+                            HomeAddressSaveResult.Saved -> homeAddressSavedSnackbar
+                            HomeAddressSaveResult.Empty -> homeAddressEmptySnackbar
+                            HomeAddressSaveResult.Failed -> homeAddressFailedSnackbar
+                        }
+                        showZhSnackbar(message)
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(homeAddressSave)
                 }
                 OutlinedButton(
-                    onClick = { viewModel.clearHomeAddress() },
+                    onClick = {
+                        val message = when (viewModel.clearHomeAddress()) {
+                            HomeAddressClearResult.Cleared -> homeAddressClearedSnackbar
+                            HomeAddressClearResult.NothingToClear -> homeAddressClearNothingSnackbar
+                            HomeAddressClearResult.Failed -> homeAddressClearFailedSnackbar
+                        }
+                        showZhSnackbar(message)
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(homeAddressClear)

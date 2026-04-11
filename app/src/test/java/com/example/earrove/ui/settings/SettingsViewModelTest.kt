@@ -75,4 +75,42 @@ class SettingsViewModelTest {
         val vm = SettingsViewModel(settingsInteractor, fakePrivacyInteractor())
         assertEquals(settingsInteractor.loadSnapshot(), vm.uiState.value)
     }
+
+    @Test
+    fun saveHomeAddressFromDraft_blank_returnsEmpty() {
+        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        vm.onHomeAddressDraftChange("   ")
+        assertEquals(HomeAddressSaveResult.Empty, vm.saveHomeAddressFromDraft())
+    }
+
+    @Test
+    fun saveHomeAddressFromDraft_valid_returnsSaved_andPersists() {
+        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        vm.onHomeAddressDraftChange("  北京市测试路1号  ")
+        assertEquals(HomeAddressSaveResult.Saved, vm.saveHomeAddressFromDraft())
+        assertEquals("北京市测试路1号", vm.uiState.value.homeAddress)
+    }
+
+    @Test
+    fun clearHomeAddress_whenEmpty_returnsNothingToClear() {
+        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        assertEquals(HomeAddressClearResult.NothingToClear, vm.clearHomeAddress())
+    }
+
+    @Test
+    fun clearHomeAddress_whenDraftOnly_returnsCleared() {
+        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        vm.onHomeAddressDraftChange("  草稿  ")
+        assertEquals(HomeAddressClearResult.Cleared, vm.clearHomeAddress())
+        assertEquals("", vm.uiState.value.homeAddress)
+    }
+
+    @Test
+    fun clearHomeAddress_whenSaved_returnsCleared() {
+        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        vm.onHomeAddressDraftChange("北京市")
+        vm.saveHomeAddressFromDraft()
+        assertEquals(HomeAddressClearResult.Cleared, vm.clearHomeAddress())
+        assertEquals("", vm.uiState.value.homeAddress)
+    }
 }

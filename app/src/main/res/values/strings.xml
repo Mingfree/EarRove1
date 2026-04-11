@@ -40,6 +40,12 @@
     <string name="settings_home_address_placeholder">例如：北京市海淀区XX路XX号</string>
     <string name="settings_home_address_save">保存家地址</string>
     <string name="settings_home_address_clear">清除家地址</string>
+    <string name="settings_home_address_saved">家地址已保存</string>
+    <string name="settings_home_address_empty_hint">请先填写家地址</string>
+    <string name="settings_home_address_save_failed">保存失败，请重试</string>
+    <string name="settings_home_address_cleared">家地址已清除</string>
+    <string name="settings_home_address_clear_nothing">当前没有可清除的内容</string>
+    <string name="settings_home_address_clear_failed">清除失败，请重试</string>
     <string name="a11y_speech_rate_slider_desc">朗读速度调节器，当前值为 %1$.2f</string>
     <string name="a11y_haptic_toggle_desc_enabled">震动反馈开关，当前为 开启</string>
     <string name="a11y_haptic_toggle_desc_disabled">震动反馈开关，当前为 关闭</string>

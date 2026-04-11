@@ -30,11 +30,6 @@ class SettingsViewModel(
         _uiState.update { it.copy(hapticEnabled = value) }
     }
 
-    fun onVisualAssistEnabledChange(value: Boolean) {
-        settingsInteractor.updateVisualAssistEnabled(value)
-        _uiState.update { it.copy(visualAssistEnabled = value) }
-    }
-
     fun onHomeAddressDraftChange(value: String) {
         _uiState.update { it.copy(homeAddress = value) }
     }

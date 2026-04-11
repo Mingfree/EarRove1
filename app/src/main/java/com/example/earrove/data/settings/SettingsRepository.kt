@@ -10,9 +10,6 @@ interface SettingsRepository {
     fun isHapticEnabled(): Boolean
     fun setHapticEnabled(value: Boolean)
 
-    fun isVisualAssistEnabled(): Boolean
-    fun setVisualAssistEnabled(value: Boolean)
-
     fun getHomeAddress(): String?
     fun setHomeAddress(value: String)
     fun clearHomeAddress()

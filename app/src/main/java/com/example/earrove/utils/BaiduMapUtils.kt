@@ -1,6 +1,8 @@
 package com.example.earrove.utils
 
+import android.location.Location
 import android.util.Log
+import kotlin.math.roundToInt
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.search.core.SearchResult
 import com.baidu.mapapi.search.geocode.GeoCodeResult
@@ -24,6 +26,26 @@ object BaiduMapUtils {
 
     /** 默认 50km，优先覆盖同城常见目的地。 */
     private const val POI_SEARCH_RADIUS = 50000 // 50公里
+
+    /**
+     * 周边检索返回的 [com.baidu.mapapi.search.core.PoiInfo.distance] 在部分机型/SDK 上恒为 0，
+     * 此时用当前检索中心点与 POI 坐标计算直线距离（米）作为展示与排序依据。
+     */
+    private fun distanceFromSearchCenterMeters(
+        center: LatLng,
+        poiLatLng: LatLng,
+        sdkDistanceMeters: Int?
+    ): Int {
+        val d = sdkDistanceMeters
+        if (d != null && d > 0) return d
+        val results = FloatArray(1)
+        Location.distanceBetween(
+            center.latitude, center.longitude,
+            poiLatLng.latitude, poiLatLng.longitude,
+            results
+        )
+        return results[0].roundToInt().coerceAtLeast(0)
+    }
 
     /**
      * 全国地理编码备用方案：没有当前位置时也能给出结果。
@@ -187,7 +209,11 @@ object BaiduMapUtils {
                                 NearbyPoiCandidate(
                                     name = name,
                                     location = location,
-                                    distanceMeters = (poi.distance ?: Int.MAX_VALUE)
+                                    distanceMeters = distanceFromSearchCenterMeters(
+                                        center,
+                                        location,
+                                        poi.distance
+                                    )
                                 )
                             }
                         }

@@ -55,7 +55,6 @@ fun SettingsScreen(navController: NavController) {
     val ttsSpeedTitle = stringResource(id = R.string.settings_tts_speed_title)
     val hapticTitle = stringResource(id = R.string.settings_haptic_title)
     val privacyTitle = stringResource(id = R.string.settings_privacy_title)
-    val visualAssistTitle = stringResource(id = R.string.settings_visual_assist_title)
 
     val revokeButtonText = stringResource(id = R.string.settings_revoke_button)
     val revokeDialogTitle = stringResource(id = R.string.settings_revoke_dialog_title)
@@ -71,9 +70,6 @@ fun SettingsScreen(navController: NavController) {
     val a11yHapticToggleDesc =
         if (uiState.hapticEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
         else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
-    val a11yVisualAssistToggleDesc =
-        if (uiState.visualAssistEnabled) stringResource(id = R.string.a11y_visual_assist_toggle_desc_enabled)
-        else stringResource(id = R.string.a11y_visual_assist_toggle_desc_disabled)
 
     Scaffold(
         topBar = {
@@ -110,22 +106,6 @@ fun SettingsScreen(navController: NavController) {
                         onCheckedChange = { viewModel.onHapticEnabledChange(it) },
                         modifier = Modifier.semantics {
                             contentDescription = a11yHapticToggleDesc
-                        }
-                    )
-                }
-            )
-
-            SettingItem(
-                title = visualAssistTitle,
-                content = {
-                    Switch(
-                        checked = uiState.visualAssistEnabled,
-                        onCheckedChange = {
-                            viewModel.onVisualAssistEnabledChange(it)
-                            (context as? ComponentActivity)?.recreate()
-                        },
-                        modifier = Modifier.semantics {
-                            contentDescription = a11yVisualAssistToggleDesc
                         }
                     )
                 }

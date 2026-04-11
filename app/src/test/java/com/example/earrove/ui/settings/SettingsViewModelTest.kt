@@ -13,7 +13,6 @@ class SettingsViewModelTest {
         val repo = object : SettingsRepository {
             private var rate = 1f
             private var haptic = true
-            private var visual = false
             private var home = ""
             override fun getTtsSpeechRate() = rate
             override fun setTtsSpeechRate(value: Float) {
@@ -23,11 +22,6 @@ class SettingsViewModelTest {
             override fun isHapticEnabled() = haptic
             override fun setHapticEnabled(value: Boolean) {
                 haptic = value
-            }
-
-            override fun isVisualAssistEnabled() = visual
-            override fun setVisualAssistEnabled(value: Boolean) {
-                visual = value
             }
 
             override fun getHomeAddress(): String? = home.ifBlank { null }

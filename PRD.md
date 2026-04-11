@@ -38,7 +38,7 @@
 
 ### <font style="color:rgb(31, 31, 31);">3.3 通用模块：无障碍体验 (Accessibility)</font>
 + **<font style="color:rgb(31, 31, 31);">F-UI-01 读屏适配</font>**<font style="color:rgb(31, 31, 31);">：全线控件支持 TalkBack，添加 </font>`<font style="color:rgb(68, 71, 70);">contentDescription</font>`<font style="color:rgb(31, 31, 31);">。</font>
-+ **<font style="color:rgb(31, 31, 31);">F-UI-02 高对比度 UI</font>**<font style="color:rgb(31, 31, 31);">：黑底黄字/白字大号字体设计。</font>
++ **<font style="color:rgb(31, 31, 31);">F-UI-02 高对比度 UI</font>**<font style="color:rgb(31, 31, 31);">：采用固定高对比主题（黑底、强调色与高可读性粗体字号）；不设独立的「视觉辅助模式」设置项。</font>
 
 ---
 

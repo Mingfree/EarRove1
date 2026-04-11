@@ -1162,13 +1162,52 @@ private fun StandbyScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
+            // 当前位置栏：固定贴顶（与底部控制卡片分层，避免互相挤压）
+            viewModel.currentLocation.value?.let { location ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppSpacing.large)
+                        .padding(top = AppSpacing.small)
+                        .align(Alignment.TopCenter),
+                    colors = CardDefaults.cardColors(
+                        containerColor = PureBlack.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = currentLocationLabel,
+                            tint = PremiumGold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = currentLocationLabel,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = PureWhite.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                text = location.addrStr ?: locatingText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = PureWhite,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(AppSpacing.xxLarge)
                     .semantics { isTraversalGroup = true }
             ) {
-                // 控制卡片（固定贴底，不受定位栏显示影响）
+                // 控制卡片（固定贴底）
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1335,45 +1374,6 @@ private fun StandbyScreen(
                                         Spacer(modifier = Modifier.weight(1f))
                                     }
                                 }
-                            }
-                        }
-                    }
-                }
-
-                // 当前位置显示（悬浮在控制卡片上方）
-                viewModel.currentLocation.value?.let { location ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 380.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = PureBlack.copy(alpha = 0.8f)
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = currentLocationLabel,
-                                tint = PremiumGold
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column {
-                                Text(
-                                    text = currentLocationLabel,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = PureWhite.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    text = location.addrStr ?: locatingText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = PureWhite,
-                                    maxLines = 1
-                                )
                             }
                         }
                     }

@@ -136,7 +136,13 @@ fun SettingsScreen(navController: NavController) {
                 onValueChange = { viewModel.onHomeAddressDraftChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text(homeAddressPlaceholder) }
+                placeholder = {
+                    Text(
+                        text = homeAddressPlaceholder,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(

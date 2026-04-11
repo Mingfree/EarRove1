@@ -98,6 +98,19 @@ Windows：
 - 应用会进行启动自检：如果仍使用占位符密钥，会提示你修复配置并重新构建。
 - 使用导航/OCR 前，请授予定位、相机、麦克风等必要权限。
 
+## 文档
+
+| 文档 | 路径 | 说明 |
+| --- | --- | --- |
+| 用户手册（面向最终用户） | [`用户手册.md`](用户手册.md) | 功能说明与操作步骤，体例参考 `docs/sample.md` |
+| 设计与开发文档（面向评审/归档） | [`设计与开发文档.md`](设计与开发文档.md) | 需求—设计—测试—安装—总结，体例参考 `docs/Design and Development Documentation Sample.md` |
+| 详细使用说明（技术向） | [`docs/使用说明-详细版.md`](docs/使用说明-详细版.md) | 架构、模块、门禁与排障 |
+| 产品需求 | [`docs/PRD.md`](docs/PRD.md) | PRD |
+| 测试用例 | [`docs/测试用例-EarRove.md`](docs/测试用例-EarRove.md) | 功能与场景用例表 |
+| 任务清单 | [`docs/tasks.md`](docs/tasks.md) | 分阶段改进 |
+| 无障碍验收 | [`docs/accessibility-checklist.md`](docs/accessibility-checklist.md) | 发布前检查 |
+| 模板样例（勿当正式用户文档） | `docs/sample.md`、`docs/Design and Development Documentation Sample.md` | 软著/大赛格式参考 |
+
 ## 项目结构
 
 ```text
@@ -112,9 +125,10 @@ EarRove227/
 │  │  └─ utils/                 # 配置、权限、仲裁、TTS、隐私等工具
 │  └─ libs/                     # 本地 AAR/SO（百度相关依赖）
 ├─ core/                        # 历史/补充能力模块（当前默认未在 settings 中 include）
-├─ docs/                        # 文档
-├─ PRD.md                       # 产品需求文档
-├─ tasks.md                     # 分阶段改进任务清单
+├─ docs/                        # 文档（PRD、测试用例、详细说明、模板等）
+├─ README.md                    # 本文件
+├─ 用户手册.md
+├─ 设计与开发文档.md
 └─ config.sample.properties     # 本地配置模板
 ```
 

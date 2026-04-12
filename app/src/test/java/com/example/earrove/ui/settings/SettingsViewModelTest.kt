@@ -131,6 +131,17 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun saveHomeAddressFromDraft_latinGibberish_returnsInvalidFormat() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
+        vm.onHomeAddressDraftChange("sha忒啦")
+        assertEquals(HomeAddressSaveResult.InvalidFormat, vm.saveHomeAddressFromDraft())
+    }
+
+    @Test
     fun saveHomeAddressFromDraft_notFound_returnsNotRecognizedOnMap() = runTest {
         val vm = SettingsViewModel(
             fakeSettingsInteractor(),

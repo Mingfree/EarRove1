@@ -24,4 +24,10 @@ class HomeAddressInputRulesTest {
         assertTrue(HomeAddressInputRules.isFormatValid("北京市海淀区"))
         assertFalse(HomeAddressInputRules.isFormatValid("北".repeat(201)))
     }
+
+    @Test
+    fun isFormatValid_rejects_latin_noise_with_few_ideographs() {
+        assertFalse(HomeAddressInputRules.isFormatValid("sha忒啦"))
+        assertTrue(HomeAddressInputRules.isFormatValid("北京市海淀区中关村大街1号"))
+    }
 }

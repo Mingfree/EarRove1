@@ -133,8 +133,14 @@ object BaiduMapUtils {
     /**
      * 将用户输入解析为坐标：先正向地理编码（适合门牌），失败则 Sug 联想（适合高校/校区/POI 名），
      * 再按需做城市内 POI 检索。与保存家地址、导航「家」共用，避免仅地理编码无法识别地名。
+     * 结果会过滤掉境外误匹配点，避免乱码解析到国外仍被当作「家」。
      */
     suspend fun resolveAddressOrPoiToLatLng(address: String): LatLng? {
+        val raw = resolveAddressOrPoiToLatLngRaw(address)
+        return raw?.takeIf { isPlausibleDomesticNavigationTarget(it) }
+    }
+
+    private suspend fun resolveAddressOrPoiToLatLngRaw(address: String): LatLng? {
         val trimmed = address.trim()
         if (trimmed.isEmpty()) return null
 
@@ -160,6 +166,15 @@ object BaiduMapUtils {
         }
 
         return null
+    }
+
+    /**
+     * 百度坐标下大致中国（含港澳台）范围，过滤乱码/误检索命中的境外坐标。
+     */
+    fun isPlausibleDomesticNavigationTarget(latLng: LatLng): Boolean {
+        val lat = latLng.latitude
+        val lng = latLng.longitude
+        return lat in 17.2..55.0 && lng in 72.0..136.0
     }
 
     private suspend fun firstLatLngFromSuggestion(keyword: String): LatLng? =

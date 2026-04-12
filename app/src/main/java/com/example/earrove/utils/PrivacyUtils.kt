@@ -199,9 +199,9 @@ object PrivacyUtils {
         - 可以卸载应用停止所有数据收集
         
         5. 联系我们
-        - 如有隐私相关问题，请联系：privacy@earrove.com
+        - 如有隐私相关问题，请联系：3071271189@qq.com
         
-        更新日期：2024年1月
+        更新日期：2026年4月
         """.trimIndent()
     }
 

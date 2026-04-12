@@ -45,8 +45,6 @@ git clone https://github.com/Mingfree/EarRove1.git
 cd EarRove1
 ```
 
-> 本地文件夹名可能为 `EarRove227` 等，以下命令均在**项目根目录**执行即可。
-
 ### 2) 配置密钥（必做）
 
 项目通过 `local.properties` 注入敏感配置，避免密钥硬编码到仓库。

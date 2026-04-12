@@ -1,5 +1,7 @@
 package com.example.earrove.ui.settings
 
+import android.content.Context
+import android.view.accessibility.AccessibilityManager
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
@@ -54,6 +57,7 @@ import com.example.earrove.ui.theme.EarRoveTheme
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
+    val composeView = LocalView.current
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.defaultFactory(context))
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val homeAddressSaveInProgress by viewModel.homeAddressSaveInProgress.collectAsStateWithLifecycle()
@@ -89,8 +93,15 @@ fun SettingsScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    fun showZhSnackbar(message: String) {
+    fun announceHomeAddressForScreenReader(message: String) {
+        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager ?: return
+        if (!am.isEnabled || !am.isTouchExplorationEnabled) return
+        composeView.post { composeView.announceForAccessibility(message) }
+    }
+
+    fun showHomeAddressFeedback(message: String) {
         scope.launch {
+            announceHomeAddressForScreenReader(message)
             snackbarHostState.showSnackbar(
                 message = message,
                 actionLabel = null,
@@ -239,7 +250,7 @@ fun SettingsScreen(navController: NavController) {
                                 HomeAddressSaveResult.GeocodeError -> homeAddressGeocodeErrorSnackbar
                                 HomeAddressSaveResult.Failed -> homeAddressFailedSnackbar
                             }
-                            showZhSnackbar(message)
+                            showHomeAddressFeedback(message)
                         }
                     },
                     enabled = !homeAddressSaveInProgress,
@@ -254,7 +265,7 @@ fun SettingsScreen(navController: NavController) {
                             HomeAddressClearResult.NothingToClear -> homeAddressClearNothingSnackbar
                             HomeAddressClearResult.Failed -> homeAddressClearFailedSnackbar
                         }
-                        showZhSnackbar(message)
+                        showHomeAddressFeedback(message)
                     },
                     modifier = Modifier.weight(1f)
                 ) {

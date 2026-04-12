@@ -1,16 +1,21 @@
 # EarRove 聆途
 
 EarRove 是一款面向视障用户的 Android 辅助应用，聚焦「无障碍出行 + 视觉信息获取」两类核心场景。  
-项目基于 Jetpack Compose 构建 UI，集成百度地图能力进行步行导航，并结合本地/云端识别与语音播报，提供语音 + 震动的多模态交互体验。
+项目基于 Jetpack Compose 构建 UI，集成百度地图能力进行步行导航，并结合语音识别、本地 OCR 与语音播报，提供语音 + 震动的多模态交互体验。
 
 ## 核心功能
 
-- 智能导航：语音输入目的地，提供步行引导与转向提示。
-- 障碍预警：在导航过程中输出前方风险提示（语音 + 震动）。
-- 交通灯提示：在部分场景下提供信号灯状态与倒计时播报。
-- 文字识别（OCR）：识别图像文字并朗读，支持拍照与相册输入。
-- 无障碍优化：适配 TalkBack，提供高对比视觉风格与可读控件语义。
-- 隐私同意与启动自检：首次进入需同意隐私政策，并在关键配置缺失时给出可读提示。
+- **智能导航**：点击麦克风语音输入目的地，步行导航过程中播报距离与转向等信息。
+- **提示模式（设置，默认关闭）**：开启后，在导航进行中会**模拟**前方障碍物与路口红绿灯的语音与震动提示，用于体验播报优先级与震动编码；**并非**真实路况检测。关闭后仅使用常规步行导航播报。
+- **文字识别（OCR）**：CameraX 预览识别文字并朗读；支持相册选图；提供**复制**、**重播**与闪光灯辅助暗光拍摄。
+- **设置**：朗读速度、震动总开关、提示模式、「家」地址（与导航推荐联动）、撤回隐私同意等。
+- **帮助中心**：应用内说明导航、OCR 操作与震动反馈含义（与实现一致：障碍物两次短震、转向长震一次、红绿灯三次短震）。
+- **无障碍**：TalkBack 语义、高对比界面；**隐私同意**与**启动自检**（占位密钥时给出可读修复指引）。
+
+## 近期更新
+
+- 设置页新增「**提示模式**」开关（持久化，默认关），控制导航中是否启用模拟红绿灯与避障流。
+- 帮助中心文案更新：麦克风输入、提示模式说明、OCR 复制/重播/闪光灯，以及震动说明与代码行为对齐。
 
 ## 技术栈
 
@@ -18,8 +23,8 @@ EarRove 是一款面向视障用户的 Android 辅助应用，聚焦「无障碍
 - UI：Jetpack Compose
 - 构建：Gradle 8.13 + AGP 8.13.2
 - 地图与导航：百度地图相关 SDK（本地 `app/libs`）
-- 相机与图像：CameraX
-- 语音与模型相关能力：百度语音/TTS、DashScope、Ark（通过配置注入）
+- 相机与图像：CameraX；OCR：Google ML Kit（本地 bundled）
+- 语音与模型：百度语音/TTS、DashScope、Volcengine Ark 等（通过 `local.properties` / BuildConfig 注入）
 
 ## 环境要求
 
@@ -36,9 +41,11 @@ EarRove 是一款面向视障用户的 Android 辅助应用，聚焦「无障碍
 ### 1) 克隆项目
 
 ```bash
-git clone https://github.com/Mingfree/EarRove1/
+git clone https://github.com/Mingfree/EarRove1.git
 cd EarRove1
 ```
+
+> 本地文件夹名可能为 `EarRove227` 等，以下命令均在**项目根目录**执行即可。
 
 ### 2) 配置密钥（必做）
 
@@ -114,14 +121,14 @@ Windows：
 ## 项目结构
 
 ```text
-EarRove227/
+<项目根>/
 ├─ app/                         # 主应用模块（Compose UI、导航、OCR、设置等）
 │  ├─ src/main/java/com/example/earrove/
 │  │  ├─ data/                  # 数据层（settings/privacy repository）
 │  │  ├─ domain/                # 领域层（usecase/arbitration）
 │  │  ├─ di/                    # 轻量手动 DI 容器（AppContainer）
 │  │  ├─ ui/                    # 页面与组件（home/navigation/ocr/settings/help）
-│  │  ├─ navigation/            # 导航相关服务与逻辑
+│  │  ├─ navigation/            # 导航相关服务与逻辑（含模拟避障/红绿灯服务）
 │  │  └─ utils/                 # 配置、权限、仲裁、TTS、隐私等工具
 │  └─ libs/                     # 本地 AAR/SO（百度相关依赖）
 ├─ core/                        # 历史/补充能力模块（当前默认未在 settings 中 include）
@@ -142,7 +149,7 @@ EarRove227/
 # 仪器测试（需连接设备）
 ./gradlew :app:connectedDebugAndroidTest
 
-# 代码风格检查（P4 引入）
+# 代码风格检查（ktlint）
 ./gradlew ktlintCheck
 ./gradlew ktlintFormat
 ```
@@ -165,7 +172,7 @@ EarRove227/
   检查隐私协议是否完整同意；检查网络、定位服务与权限状态。
 
 - OCR 无法工作  
-  确认相机权限已授权，设备相机可用，并在光线不足时开启补光。
+  确认相机权限已授权，设备相机可用，并在光线不足时使用闪光灯。
 
 - Gradle 构建失败  
   先确认 JDK 11、Android SDK 版本与网络环境，再执行 `gradlew clean` 后重试。

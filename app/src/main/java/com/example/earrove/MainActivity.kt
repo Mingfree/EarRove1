@@ -33,6 +33,7 @@ import com.example.earrove.ui.theme.PureWhite
 import com.example.earrove.data.privacy.PrivacyRepositoryImpl
 import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
 import androidx.compose.foundation.background
+import com.example.earrove.utils.rememberTTSManager
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -565,13 +566,20 @@ fun EarRoveApp() {
             }
         }
     } else {
+        val ttsManager = rememberTTSManager()
+        DisposableEffect(ttsManager) {
+            onDispose {
+                ttsManager.release()
+            }
+        }
+
         // 正常显示导航
         NavHost(navController = navController, startDestination = "home") {
             composable("home") {
                 HomeScreen(navController = navController)
             }
             composable("navigation") {
-                NavigationScreen(navController = navController)
+                NavigationScreen(navController = navController, ttsManager = ttsManager)
             }
             composable("ocr") {
                 OcrScreen(navController = navController)

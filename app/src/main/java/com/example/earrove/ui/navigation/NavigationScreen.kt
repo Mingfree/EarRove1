@@ -123,7 +123,6 @@ import com.example.earrove.utils.TTSManager
 import com.example.earrove.utils.VibrationManager
 import com.example.earrove.utils.rememberArbitrator
 import com.example.earrove.utils.rememberSpeechRecognizer
-import com.example.earrove.utils.rememberTTSManager
 import com.example.earrove.utils.rememberVibrationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -185,6 +184,7 @@ private data class DestinationSuggestion(
 @Composable
 fun NavigationScreen(
     navController: NavController,
+    ttsManager: TTSManager,
     viewModel: NavigationViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -616,8 +616,7 @@ fun NavigationScreen(
         return
     }
 
-    // 其他管理器初始化
-    val ttsManager = rememberTTSManager()
+    // 其他管理器初始化（TTS 由 EarRoveApp 持有，避免离开导航页 dispose 时 release 打断跳转后的播报）
     val vibrationManager = rememberVibrationManager()
     val speechRecognizer = rememberSpeechRecognizer()
     val arbitrator = rememberArbitrator(context, ttsManager, vibrationManager)
@@ -785,8 +784,6 @@ fun NavigationScreen(
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            // 退出页面时清理 TTS 和语音识别资源
-            ttsManager.release()
             speechRecognizer.destroy()
         }
     }

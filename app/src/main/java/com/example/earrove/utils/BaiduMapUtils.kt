@@ -32,8 +32,25 @@ import kotlin.coroutines.resume
 object BaiduMapUtils {
     private const val TAG = "BaiduMapUtils"
 
+    /**
+     * 与正向地理编码 [GeoCodeOption.city] 搭配：地址里已含「xx市」时，应优先用该市作为检索城市；
+     * 全程使用「全国」时，易出现「北京市东城区…」这类完整地址解析失败。
+     */
+    private val GEO_CITY_PREFIXES: List<String> = listOf(
+        "北京市", "上海市", "天津市", "重庆市",
+        "广州市", "深圳市", "南京市", "成都市", "杭州市", "武汉市", "西安市", "苏州市",
+        "郑州市", "长沙市", "沈阳市", "青岛市", "合肥市", "佛山市", "东莞市", "宁波市",
+        "无锡市", "昆明市", "福州市", "石家庄市", "哈尔滨市", "长春市", "厦门市", "南宁市",
+        "温州市", "常州市", "金华市", "烟台市", "泉州市", "唐山市", "大连市", "南昌市",
+        "贵阳市", "海口市", "兰州市", "银川市", "西宁市", "乌鲁木齐市", "拉萨市", "呼和浩特市",
+        "中山市", "惠州市", "保定市", "临沂市", "济宁市", "漳州市", "盐城市", "廊坊市"
+    ).sortedByDescending { it.length }
+
     /** 默认 50km，优先覆盖同城常见目的地。 */
     private const val POI_SEARCH_RADIUS = 50000 // 50公里
+
+    private fun inferGeoCityPrefix(address: String): String? =
+        GEO_CITY_PREFIXES.firstOrNull { address.startsWith(it) }
 
     /**
      * 周边检索返回的 [com.baidu.mapapi.search.core.PoiInfo.distance] 在部分机型/SDK 上恒为 0，
@@ -56,9 +73,9 @@ object BaiduMapUtils {
     }
 
     /**
-     * 全国地理编码备用方案：没有当前位置时也能给出结果。
+     * 正向地理编码。[geoCity] 应与地址行政范围一致；完整「北京市xx区…」类输入请传「北京市」，勿固定「全国」。
      */
-    fun geocodeAddress(address: String): Flow<LatLng?> = callbackFlow {
+    fun geocodeAddress(address: String, geoCity: String = AppConfig.DEFAULT_CITY): Flow<LatLng?> = callbackFlow {
         val geoCoder = GeoCoder.newInstance()
 
         val listener = object : OnGetGeoCoderResultListener {
@@ -70,7 +87,6 @@ object BaiduMapUtils {
                     Log.e(TAG, "地址解析失败: ${result?.error}")
                     trySend(null)
                 }
-                geoCoder.destroy()
             }
 
             override fun onGetReverseGeoCodeResult(result: ReverseGeoCodeResult?) {
@@ -82,64 +98,68 @@ object BaiduMapUtils {
         geoCoder.geocode(
             com.baidu.mapapi.search.geocode.GeoCodeOption()
                 .address(address)
-                .city(AppConfig.DEFAULT_CITY)
+                .city(geoCity)
         )
 
         awaitClose {
-            geoCoder.destroy()
+            // 仅在此处释放；勿在回调里 destroy，否则 first() 结束触发 awaitClose 会二次 destroy 抛异常
+            runCatching { geoCoder.destroy() }
         }
+    }
+
+    private suspend fun geocodeWithCityVariants(addr: String): LatLng? {
+        if (addr.isBlank()) return null
+        val cities = buildList {
+            inferGeoCityPrefix(addr)?.let { add(it) }
+            add(AppConfig.DEFAULT_CITY)
+        }.distinct()
+        val variants = buildList {
+            add(addr)
+            inferGeoCityPrefix(addr)?.let { prefix ->
+                if (addr.startsWith(prefix)) {
+                    val rest = addr.removePrefix(prefix).trim()
+                    if (rest.length >= 2) add(rest)
+                }
+            }
+        }.distinct()
+        for (city in cities) {
+            for (v in variants) {
+                geocodeAddress(v, city).first()?.let { return it }
+            }
+        }
+        return null
     }
 
     /**
      * 将用户输入解析为坐标：先正向地理编码（适合门牌），失败则 Sug 联想（适合高校/校区/POI 名），
      * 再按需做城市内 POI 检索。与保存家地址、导航「家」共用，避免仅地理编码无法识别地名。
      */
-    fun resolveAddressOrPoiToLatLng(address: String): Flow<LatLng?> = callbackFlow {
+    suspend fun resolveAddressOrPoiToLatLng(address: String): LatLng? {
         val trimmed = address.trim()
-        if (trimmed.isEmpty()) {
-            trySend(null)
-            return@callbackFlow
-        }
+        if (trimmed.isEmpty()) return null
 
-        var loc = geocodeAddress(trimmed).first()
-        if (loc != null) {
-            trySend(loc)
-            return@callbackFlow
-        }
+        geocodeWithCityVariants(trimmed)?.let { return it }
 
         val compact = trimmed.replace(Regex("\\s+"), "")
         if (compact.length >= 4 && compact != trimmed) {
-            loc = geocodeAddress(compact).first()
-            if (loc != null) {
-                trySend(loc)
-                return@callbackFlow
-            }
+            geocodeWithCityVariants(compact)?.let { return it }
         }
 
-        loc = firstLatLngFromSuggestion(trimmed)
-        if (loc != null) {
-            trySend(loc)
-            return@callbackFlow
-        }
+        firstLatLngFromSuggestion(trimmed)?.let { return it }
 
         if (compact.length >= 4 && compact != trimmed) {
-            loc = firstLatLngFromSuggestion(compact)
-            if (loc != null) {
-                trySend(loc)
-                return@callbackFlow
-            }
+            firstLatLngFromSuggestion(compact)?.let { return it }
         }
 
         val city = inferCityForPoiCitySearch(trimmed)
         if (city != null) {
-            loc = firstLatLngFromPoiCity(trimmed, city) ?: firstLatLngFromPoiCity(compact, city)
-            if (loc != null) {
-                trySend(loc)
-                return@callbackFlow
+            firstLatLngFromPoiCity(trimmed, city)?.let { return it }
+            if (compact.isNotBlank()) {
+                firstLatLngFromPoiCity(compact, city)?.let { return it }
             }
         }
 
-        trySend(null)
+        return null
     }
 
     private suspend fun firstLatLngFromSuggestion(keyword: String): LatLng? =
@@ -166,8 +186,10 @@ object BaiduMapUtils {
                 }
             })
             val ok = runCatching {
+                val sugCity = inferGeoCityPrefix(keyword) ?: "全国"
                 val option = SuggestionSearchOption()
                     .keyword(keyword)
+                    .city(sugCity)
                     .citylimit(false)
                 sug.requestSuggestion(option)
             }.getOrElse { e ->

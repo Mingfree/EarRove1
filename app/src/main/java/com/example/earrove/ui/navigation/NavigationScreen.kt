@@ -879,7 +879,7 @@ fun NavigationScreen(
                                             LatLng(currentLoc.latitude, currentLoc.longitude)
                                         ).first()
                                     } else {
-                                        BaiduMapUtils.resolveAddressOrPoiToLatLng(placeName).first()
+                                        BaiduMapUtils.resolveAddressOrPoiToLatLng(placeName)
                                     }
                                     if (location != null) {
                                         planAndStartNavigation(placeName, location)
@@ -1316,7 +1316,7 @@ private fun StandbyScreen(
                                                     scope.launch {
                                                         try {
                                                             val location = withContext(Dispatchers.IO) {
-                                                                baiduMapUtils.resolveAddressOrPoiToLatLng(latestHomeAddress).first()
+                                                                baiduMapUtils.resolveAddressOrPoiToLatLng(latestHomeAddress)
                                                             }
                                                             if (location != null) {
                                                                 onStartNavigation(recommendHomeLabel, location)

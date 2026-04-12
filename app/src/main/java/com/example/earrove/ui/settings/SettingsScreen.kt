@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,6 +63,8 @@ fun SettingsScreen(navController: NavController) {
     val settingsTitle = stringResource(id = R.string.settings_title)
     val ttsSpeedTitle = stringResource(id = R.string.settings_tts_speed_title)
     val hapticTitle = stringResource(id = R.string.settings_haptic_title)
+    val simulatedNavAlertsTitle = stringResource(id = R.string.settings_simulated_nav_alerts_title)
+    val simulatedNavAlertsSubtitle = stringResource(id = R.string.settings_simulated_nav_alerts_subtitle)
     val privacyTitle = stringResource(id = R.string.settings_privacy_title)
 
     val revokeButtonText = stringResource(id = R.string.settings_revoke_button)
@@ -101,6 +104,12 @@ fun SettingsScreen(navController: NavController) {
     val a11yHapticToggleDesc =
         if (uiState.hapticEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
         else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
+    val a11ySimulatedNavAlertsDesc =
+        if (uiState.simulatedNavAlertsEnabled) {
+            stringResource(id = R.string.a11y_simulated_nav_alerts_toggle_desc_enabled)
+        } else {
+            stringResource(id = R.string.a11y_simulated_nav_alerts_toggle_desc_disabled)
+        }
 
     Scaffold(
         snackbarHost = {
@@ -149,6 +158,37 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = AppSpacing.large),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = simulatedNavAlertsTitle,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = simulatedNavAlertsSubtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.semantics { hideFromAccessibility() }
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    Switch(
+                        checked = uiState.simulatedNavAlertsEnabled,
+                        onCheckedChange = { viewModel.onSimulatedNavAlertsChange(it) },
+                        modifier = Modifier.semantics {
+                            contentDescription = a11ySimulatedNavAlertsDesc
+                        }
+                    )
+                }
+            }
 
             SettingItem(
                 title = privacyTitle,

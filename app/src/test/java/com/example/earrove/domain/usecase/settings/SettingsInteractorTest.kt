@@ -9,6 +9,7 @@ class SettingsInteractorTest {
     private class FakeSettingsRepository : SettingsRepository {
         var rate = 1.0f
         var haptic = true
+        var simulatedNavAlerts = false
         var home: String? = null
 
         override fun getTtsSpeechRate(): Float = rate
@@ -19,6 +20,11 @@ class SettingsInteractorTest {
         override fun isHapticEnabled(): Boolean = haptic
         override fun setHapticEnabled(value: Boolean) {
             haptic = value
+        }
+
+        override fun isSimulatedNavAlertsEnabled(): Boolean = simulatedNavAlerts
+        override fun setSimulatedNavAlertsEnabled(value: Boolean) {
+            simulatedNavAlerts = value
         }
 
         override fun getHomeAddress(): String? = home
@@ -36,12 +42,14 @@ class SettingsInteractorTest {
         val repo = FakeSettingsRepository().apply {
             rate = 1.5f
             haptic = false
+            simulatedNavAlerts = true
             home = "测试地址"
         }
         val sut = SettingsInteractor(repo)
         val snap = sut.loadSnapshot()
         assertEquals(1.5f, snap.ttsSpeechRate, 0.001f)
         assertEquals(false, snap.hapticEnabled)
+        assertEquals(true, snap.simulatedNavAlertsEnabled)
         assertEquals("测试地址", snap.homeAddress)
     }
 

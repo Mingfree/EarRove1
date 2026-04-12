@@ -25,6 +25,13 @@ class SettingsRepositoryImpl(
         prefs.edit().putBoolean(KEY_HAPTIC_ENABLED, value).apply()
     }
 
+    override fun isSimulatedNavAlertsEnabled(): Boolean =
+        prefs.getBoolean(KEY_SIMULATED_NAV_ALERTS, false)
+
+    override fun setSimulatedNavAlertsEnabled(value: Boolean) {
+        prefs.edit().putBoolean(KEY_SIMULATED_NAV_ALERTS, value).apply()
+    }
+
     override fun getHomeAddress(): String? {
         val value = prefs.getString(KEY_HOME_ADDRESS, null)?.trim()
         return if (value.isNullOrBlank()) null else value
@@ -42,6 +49,7 @@ class SettingsRepositoryImpl(
         private const val PREFS_NAME = "earrove_settings"
         private const val KEY_TTS_SPEECH_RATE = "tts_speech_rate"
         private const val KEY_HAPTIC_ENABLED = "haptic_enabled"
+        private const val KEY_SIMULATED_NAV_ALERTS = "simulated_nav_alerts"
         private const val KEY_HOME_ADDRESS = "home_address"
     }
 }

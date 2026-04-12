@@ -10,6 +10,10 @@ interface SettingsRepository {
     fun isHapticEnabled(): Boolean
     fun setHapticEnabled(value: Boolean)
 
+    /** 是否在导航中播放模拟的红绿灯与避障提示（默认关闭） */
+    fun isSimulatedNavAlertsEnabled(): Boolean
+    fun setSimulatedNavAlertsEnabled(value: Boolean)
+
     fun getHomeAddress(): String?
     fun setHomeAddress(value: String)
     fun clearHomeAddress()

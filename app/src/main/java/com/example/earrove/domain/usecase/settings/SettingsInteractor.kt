@@ -12,6 +12,7 @@ class SettingsInteractor(
     fun loadSnapshot(): SettingsSnapshot = SettingsSnapshot(
         ttsSpeechRate = settingsRepository.getTtsSpeechRate(),
         hapticEnabled = settingsRepository.isHapticEnabled(),
+        simulatedNavAlertsEnabled = settingsRepository.isSimulatedNavAlertsEnabled(),
         homeAddress = settingsRepository.getHomeAddress().orEmpty()
     )
 
@@ -21,6 +22,10 @@ class SettingsInteractor(
 
     fun updateHapticEnabled(value: Boolean) {
         settingsRepository.setHapticEnabled(value)
+    }
+
+    fun updateSimulatedNavAlertsEnabled(value: Boolean) {
+        settingsRepository.setSimulatedNavAlertsEnabled(value)
     }
 
     fun saveHomeAddress(trimmed: String) {

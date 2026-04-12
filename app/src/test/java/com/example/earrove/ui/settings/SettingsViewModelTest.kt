@@ -16,6 +16,7 @@ class SettingsViewModelTest {
         val repo = object : SettingsRepository {
             private var rate = 1f
             private var haptic = true
+            private var simulatedNavAlerts = false
             private var home = ""
             override fun getTtsSpeechRate() = rate
             override fun setTtsSpeechRate(value: Float) {
@@ -25,6 +26,11 @@ class SettingsViewModelTest {
             override fun isHapticEnabled() = haptic
             override fun setHapticEnabled(value: Boolean) {
                 haptic = value
+            }
+
+            override fun isSimulatedNavAlertsEnabled() = simulatedNavAlerts
+            override fun setSimulatedNavAlertsEnabled(value: Boolean) {
+                simulatedNavAlerts = value
             }
 
             override fun getHomeAddress(): String? = home.ifBlank { null }
@@ -77,6 +83,18 @@ class SettingsViewModelTest {
         )
         vm.onTtsSpeechRateChange(1.5f)
         assertEquals(1.5f, vm.uiState.value.ttsSpeechRate, 0.001f)
+    }
+
+    @Test
+    fun onSimulatedNavAlertsChange_updatesState() {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
+        assertEquals(false, vm.uiState.value.simulatedNavAlertsEnabled)
+        vm.onSimulatedNavAlertsChange(true)
+        assertEquals(true, vm.uiState.value.simulatedNavAlertsEnabled)
     }
 
     @Test

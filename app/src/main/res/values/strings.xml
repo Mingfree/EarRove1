@@ -30,6 +30,8 @@
     <string name="settings_title">设置</string>
     <string name="settings_tts_speed_title">朗读速度</string>
     <string name="settings_haptic_title">震动反馈</string>
+    <string name="settings_simulated_nav_alerts_title">提示模式</string>
+    <string name="settings_simulated_nav_alerts_subtitle">开启后模拟红绿灯与避障提示</string>
     <string name="settings_privacy_title">隐私设置</string>
     <string name="settings_revoke_button">撤回隐私同意</string>
     <string name="settings_revoke_dialog_title">撤回隐私同意？</string>
@@ -42,7 +44,7 @@
     <string name="settings_home_address_clear">清除家地址</string>
     <string name="settings_home_address_saved">家地址已保存</string>
     <string name="settings_home_address_empty_hint">请先填写家地址</string>
-    <string name="settings_home_address_invalid_format">地址格式不合规，请填写含地名的完整地址（参考示例）</string>
+    <string name="settings_home_address_invalid_format">地址格式不合规，请填写含地名的完整地址</string>
     <string name="settings_home_address_not_on_map">地图无法识别该地址，请修改后重试</string>
     <string name="settings_home_address_geocode_error">网络异常，无法校验地址，请稍后重试</string>
     <string name="settings_home_address_save_failed">保存失败，请重试</string>
@@ -52,6 +54,8 @@
     <string name="a11y_speech_rate_slider_desc">朗读速度调节器，当前值为 %1$.2f</string>
     <string name="a11y_haptic_toggle_desc_enabled">震动反馈开关，当前为 开启</string>
     <string name="a11y_haptic_toggle_desc_disabled">震动反馈开关，当前为 关闭</string>
+    <string name="a11y_simulated_nav_alerts_toggle_desc_enabled">模拟红绿灯与避障提示开关，当前为 开启</string>
+    <string name="a11y_simulated_nav_alerts_toggle_desc_disabled">模拟红绿灯与避障提示开关，当前为 关闭</string>
 
     <!-- Startup gate -->
     <string name="startup_config_missing_title">启动自检失败：配置缺失</string>

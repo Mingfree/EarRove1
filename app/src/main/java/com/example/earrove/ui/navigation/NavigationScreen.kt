@@ -704,9 +704,10 @@ fun NavigationScreen(
         }
     }
 
-    // 处理障碍物检测（模拟）—— 仅在正式导航时启动，避免干扰语音输入
+    // 处理障碍物检测（模拟）—— 仅在本开关开启且正式导航时启动，避免干扰语音输入
     LaunchedEffect(viewModel.navigationState.value) {
-        if (viewModel.navigationState.value == NavigationState.NAVIGATING) {
+        val simulationOn = settingsRepository.isSimulatedNavAlertsEnabled()
+        if (viewModel.navigationState.value == NavigationState.NAVIGATING && simulationOn) {
             obstacleService.startMonitoring().collectLatest { obstacle ->
                 obstacle?.let {
                     viewModel.isObstacleDetected.value = true
@@ -722,15 +723,15 @@ fun NavigationScreen(
                 }
             }
         } else {
-            // 非导航状态时停止监测并清除提示
             obstacleService.stopMonitoring()
             viewModel.isObstacleDetected.value = false
         }
     }
 
-    // 处理红绿灯检测（模拟）—— 仅在正式导航时启动，避免干扰语音输入
+    // 处理红绿灯检测（模拟）—— 仅在本开关开启且正式导航时启动，避免干扰语音输入
     LaunchedEffect(viewModel.navigationState.value) {
-        if (viewModel.navigationState.value == NavigationState.NAVIGATING) {
+        val simulationOn = settingsRepository.isSimulatedNavAlertsEnabled()
+        if (viewModel.navigationState.value == NavigationState.NAVIGATING && simulationOn) {
             trafficLightService.startMonitoring().collectLatest { trafficLight ->
                 trafficLight?.let {
                     viewModel.isTrafficLightDetected.value = true
@@ -750,7 +751,6 @@ fun NavigationScreen(
                 }
             }
         } else {
-            // 非导航状态时停止监测并清除提示
             trafficLightService.stopMonitoring()
             viewModel.isTrafficLightDetected.value = false
         }

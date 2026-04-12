@@ -56,6 +56,11 @@ class SettingsViewModel(
         _uiState.update { it.copy(hapticEnabled = value) }
     }
 
+    fun onSimulatedNavAlertsChange(value: Boolean) {
+        settingsInteractor.updateSimulatedNavAlertsEnabled(value)
+        _uiState.update { it.copy(simulatedNavAlertsEnabled = value) }
+    }
+
     fun onHomeAddressDraftChange(value: String) {
         _uiState.update { it.copy(homeAddress = value) }
     }

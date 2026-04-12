@@ -6,5 +6,6 @@ package com.example.earrove.domain.model
 data class SettingsSnapshot(
     val ttsSpeechRate: Float,
     val hapticEnabled: Boolean,
+    val simulatedNavAlertsEnabled: Boolean,
     val homeAddress: String
 )

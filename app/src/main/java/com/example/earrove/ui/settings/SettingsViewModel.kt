@@ -2,20 +2,29 @@ package com.example.earrove.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.earrove.MyApplication
 import com.example.earrove.data.privacy.PrivacyRepositoryImpl
 import com.example.earrove.data.settings.SettingsRepositoryImpl
 import com.example.earrove.domain.model.SettingsSnapshot
 import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
 import com.example.earrove.domain.usecase.settings.SettingsInteractor
+import com.example.earrove.domain.validation.HomeAddressGeocodeOutcome
+import com.example.earrove.domain.validation.HomeAddressGeocodeVerifier
+import com.example.earrove.domain.validation.HomeAddressInputRules
+import com.example.earrove.utils.BaiduHomeAddressGeocodeVerifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 enum class HomeAddressSaveResult {
     Saved,
     Empty,
+    InvalidFormat,
+    NotRecognizedOnMap,
+    GeocodeError,
     Failed
 }
 
@@ -27,11 +36,15 @@ enum class HomeAddressClearResult {
 
 class SettingsViewModel(
     private val settingsInteractor: SettingsInteractor,
-    private val privacyInteractor: PrivacyConsentInteractor
+    private val privacyInteractor: PrivacyConsentInteractor,
+    private val homeAddressGeocodeVerifier: HomeAddressGeocodeVerifier
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(settingsInteractor.loadSnapshot())
     val uiState: StateFlow<SettingsSnapshot> = _uiState.asStateFlow()
+
+    private val _homeAddressSaveInProgress = MutableStateFlow(false)
+    val homeAddressSaveInProgress: StateFlow<Boolean> = _homeAddressSaveInProgress.asStateFlow()
 
     fun onTtsSpeechRateChange(value: Float) {
         settingsInteractor.updateTtsSpeechRate(value)
@@ -47,15 +60,34 @@ class SettingsViewModel(
         _uiState.update { it.copy(homeAddress = value) }
     }
 
-    fun saveHomeAddressFromDraft(): HomeAddressSaveResult {
-        val addr = _uiState.value.homeAddress.trim()
-        if (addr.isBlank()) return HomeAddressSaveResult.Empty
+    suspend fun saveHomeAddressFromDraft(): HomeAddressSaveResult {
+        val normalized = HomeAddressInputRules.normalize(_uiState.value.homeAddress)
+        if (normalized.isBlank()) return HomeAddressSaveResult.Empty
+        if (!HomeAddressInputRules.isFormatValid(normalized)) return HomeAddressSaveResult.InvalidFormat
+
+        when (homeAddressGeocodeVerifier.verify(normalized)) {
+            HomeAddressGeocodeOutcome.NotFound -> return HomeAddressSaveResult.NotRecognizedOnMap
+            HomeAddressGeocodeOutcome.Error -> return HomeAddressSaveResult.GeocodeError
+            HomeAddressGeocodeOutcome.Resolved -> { /* continue */ }
+        }
+
         return try {
-            settingsInteractor.saveHomeAddress(addr)
-            _uiState.update { it.copy(homeAddress = addr) }
+            settingsInteractor.saveHomeAddress(normalized)
+            _uiState.update { it.copy(homeAddress = normalized) }
             HomeAddressSaveResult.Saved
         } catch (_: Exception) {
             HomeAddressSaveResult.Failed
+        }
+    }
+
+    fun saveHomeAddressFromDraftAsync(onResult: (HomeAddressSaveResult) -> Unit) {
+        viewModelScope.launch {
+            _homeAddressSaveInProgress.value = true
+            try {
+                onResult(saveHomeAddressFromDraft())
+            } finally {
+                _homeAddressSaveInProgress.value = false
+            }
         }
     }
 
@@ -81,11 +113,16 @@ class SettingsViewModel(
     companion object {
         fun factory(
             settingsInteractor: SettingsInteractor,
-            privacyInteractor: PrivacyConsentInteractor
+            privacyInteractor: PrivacyConsentInteractor,
+            homeAddressGeocodeVerifier: HomeAddressGeocodeVerifier
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return SettingsViewModel(settingsInteractor, privacyInteractor) as T
+                return SettingsViewModel(
+                    settingsInteractor,
+                    privacyInteractor,
+                    homeAddressGeocodeVerifier
+                ) as T
             }
         }
 
@@ -95,7 +132,9 @@ class SettingsViewModel(
                 ?: SettingsInteractor(SettingsRepositoryImpl(androidContext.applicationContext))
             val privacy = app?.container?.privacyInteractor
                 ?: PrivacyConsentInteractor(PrivacyRepositoryImpl(androidContext.applicationContext))
-            return factory(settings, privacy)
+            val verifier = app?.container?.homeAddressGeocodeVerifier
+                ?: BaiduHomeAddressGeocodeVerifier()
+            return factory(settings, privacy, verifier)
         }
     }
 }

@@ -4,6 +4,9 @@ import com.example.earrove.data.privacy.PrivacyRepository
 import com.example.earrove.data.settings.SettingsRepository
 import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
 import com.example.earrove.domain.usecase.settings.SettingsInteractor
+import com.example.earrove.domain.validation.HomeAddressGeocodeOutcome
+import com.example.earrove.domain.validation.HomeAddressGeocodeVerifier
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -62,9 +65,16 @@ class SettingsViewModelTest {
         return PrivacyConsentInteractor(repo)
     }
 
+    private fun verifierFixed(outcome: HomeAddressGeocodeOutcome) =
+        HomeAddressGeocodeVerifier { outcome }
+
     @Test
     fun onTtsSpeechRateChange_updatesState() {
-        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
         vm.onTtsSpeechRateChange(1.5f)
         assertEquals(1.5f, vm.uiState.value.ttsSpeechRate, 0.001f)
     }
@@ -72,20 +82,65 @@ class SettingsViewModelTest {
     @Test
     fun initialState_matchesInteractorSnapshot() {
         val settingsInteractor = fakeSettingsInteractor()
-        val vm = SettingsViewModel(settingsInteractor, fakePrivacyInteractor())
+        val vm = SettingsViewModel(
+            settingsInteractor,
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
         assertEquals(settingsInteractor.loadSnapshot(), vm.uiState.value)
     }
 
     @Test
-    fun saveHomeAddressFromDraft_blank_returnsEmpty() {
-        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+    fun saveHomeAddressFromDraft_blank_returnsEmpty() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
         vm.onHomeAddressDraftChange("   ")
         assertEquals(HomeAddressSaveResult.Empty, vm.saveHomeAddressFromDraft())
     }
 
     @Test
-    fun saveHomeAddressFromDraft_valid_returnsSaved_andPersists() {
-        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+    fun saveHomeAddressFromDraft_noIdeograph_returnsInvalidFormat() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
+        vm.onHomeAddressDraftChange("1234 Main St")
+        assertEquals(HomeAddressSaveResult.InvalidFormat, vm.saveHomeAddressFromDraft())
+    }
+
+    @Test
+    fun saveHomeAddressFromDraft_notFound_returnsNotRecognizedOnMap() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.NotFound)
+        )
+        vm.onHomeAddressDraftChange("北京市海淀区某某路某某号")
+        assertEquals(HomeAddressSaveResult.NotRecognizedOnMap, vm.saveHomeAddressFromDraft())
+    }
+
+    @Test
+    fun saveHomeAddressFromDraft_geocodeError_returnsGeocodeError() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Error)
+        )
+        vm.onHomeAddressDraftChange("北京市朝阳区三里屯")
+        assertEquals(HomeAddressSaveResult.GeocodeError, vm.saveHomeAddressFromDraft())
+    }
+
+    @Test
+    fun saveHomeAddressFromDraft_valid_returnsSaved_andPersists() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
         vm.onHomeAddressDraftChange("  北京市测试路1号  ")
         assertEquals(HomeAddressSaveResult.Saved, vm.saveHomeAddressFromDraft())
         assertEquals("北京市测试路1号", vm.uiState.value.homeAddress)
@@ -93,22 +148,34 @@ class SettingsViewModelTest {
 
     @Test
     fun clearHomeAddress_whenEmpty_returnsNothingToClear() {
-        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
         assertEquals(HomeAddressClearResult.NothingToClear, vm.clearHomeAddress())
     }
 
     @Test
     fun clearHomeAddress_whenDraftOnly_returnsCleared() {
-        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
         vm.onHomeAddressDraftChange("  草稿  ")
         assertEquals(HomeAddressClearResult.Cleared, vm.clearHomeAddress())
         assertEquals("", vm.uiState.value.homeAddress)
     }
 
     @Test
-    fun clearHomeAddress_whenSaved_returnsCleared() {
-        val vm = SettingsViewModel(fakeSettingsInteractor(), fakePrivacyInteractor())
-        vm.onHomeAddressDraftChange("北京市")
+    fun clearHomeAddress_whenSaved_returnsCleared() = runTest {
+        val vm = SettingsViewModel(
+            fakeSettingsInteractor(),
+            fakePrivacyInteractor(),
+            verifierFixed(HomeAddressGeocodeOutcome.Resolved)
+        )
+        vm.onHomeAddressDraftChange("北京市朝阳区")
         vm.saveHomeAddressFromDraft()
         assertEquals(HomeAddressClearResult.Cleared, vm.clearHomeAddress())
         assertEquals("", vm.uiState.value.homeAddress)

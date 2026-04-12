@@ -102,13 +102,16 @@ class SmokeNavigationAndSettingsTest {
         composeRule.onNodeWithContentDescription(settingsText).performClick()
         composeRule.onNodeWithText(settingsTitle).assertIsDisplayed()
 
-        val address = "北京市海淀区XX路1号"
+        val address = "北京市东城区东长安街"
         composeRule.onAllNodes(hasSetTextAction())[0]
             .performTextClearance()
         composeRule.onAllNodes(hasSetTextAction())[0]
             .performTextInput(address)
 
         composeRule.onNodeWithText("保存家地址").performClick()
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            nodeWithTextExists(ctx.getString(R.string.settings_home_address_saved))
+        }
 
         // 返回首页
         composeRule.onNodeWithContentDescription(ctx.getString(R.string.a11y_navigate_up)).performClick()

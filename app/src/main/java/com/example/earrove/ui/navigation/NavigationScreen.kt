@@ -879,7 +879,7 @@ fun NavigationScreen(
                                             LatLng(currentLoc.latitude, currentLoc.longitude)
                                         ).first()
                                     } else {
-                                        BaiduMapUtils.geocodeAddress(placeName).first()
+                                        BaiduMapUtils.resolveAddressOrPoiToLatLng(placeName).first()
                                     }
                                     if (location != null) {
                                         planAndStartNavigation(placeName, location)
@@ -1040,6 +1040,8 @@ private fun StandbyScreen(
     val cannotFindDestination = stringResource(id = R.string.nav_tts_cannot_find_destination)
     val locatingRetrySpeak = stringResource(id = R.string.nav_locating_retry_speak)
     val saveHomeAddressSpeak = stringResource(id = R.string.nav_save_home_address_speak)
+    val homeAddressNotFoundSpeak = stringResource(id = R.string.nav_home_address_not_found_speak)
+    val homeAddressNetworkErrorSpeak = stringResource(id = R.string.nav_home_address_network_error_speak)
     val planToHomeSpeak = stringResource(id = R.string.nav_plan_to_home_speak)
     val recommendHomeLabel = stringResource(id = R.string.nav_recommend_home_label)
     val recommendSupermarketLabel = stringResource(id = R.string.nav_recommend_supermarket_label)
@@ -1314,15 +1316,16 @@ private fun StandbyScreen(
                                                     scope.launch {
                                                         try {
                                                             val location = withContext(Dispatchers.IO) {
-                                                                baiduMapUtils.geocodeAddress(latestHomeAddress).first()
+                                                                baiduMapUtils.resolveAddressOrPoiToLatLng(latestHomeAddress).first()
                                                             }
                                                             if (location != null) {
                                                                 onStartNavigation(recommendHomeLabel, location)
                                                             } else {
-                                                                ttsManager.speak(cannotFindDestination)
+                                                                ttsManager.speak(homeAddressNotFoundSpeak)
+                                                                navController.navigate("settings")
                                                             }
                                                         } catch (_: Exception) {
-                                                            ttsManager.speak(parseAddressFailSpeak)
+                                                            ttsManager.speak(homeAddressNetworkErrorSpeak)
                                                         }
                                                     }
                                                     return@DestinationSuggestionButton

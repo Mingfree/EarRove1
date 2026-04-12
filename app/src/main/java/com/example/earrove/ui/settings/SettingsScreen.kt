@@ -55,6 +55,7 @@ fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.defaultFactory(context))
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val homeAddressSaveInProgress by viewModel.homeAddressSaveInProgress.collectAsStateWithLifecycle()
 
     var showRevokeDialog by remember { mutableStateOf(false) }
 
@@ -74,6 +75,9 @@ fun SettingsScreen(navController: NavController) {
     val homeAddressClear = stringResource(id = R.string.settings_home_address_clear)
     val homeAddressSavedSnackbar = stringResource(id = R.string.settings_home_address_saved)
     val homeAddressEmptySnackbar = stringResource(id = R.string.settings_home_address_empty_hint)
+    val homeAddressInvalidSnackbar = stringResource(id = R.string.settings_home_address_invalid_format)
+    val homeAddressNotOnMapSnackbar = stringResource(id = R.string.settings_home_address_not_on_map)
+    val homeAddressGeocodeErrorSnackbar = stringResource(id = R.string.settings_home_address_geocode_error)
     val homeAddressFailedSnackbar = stringResource(id = R.string.settings_home_address_save_failed)
     val homeAddressClearedSnackbar = stringResource(id = R.string.settings_home_address_cleared)
     val homeAddressClearNothingSnackbar = stringResource(id = R.string.settings_home_address_clear_nothing)
@@ -186,13 +190,19 @@ fun SettingsScreen(navController: NavController) {
             ) {
                 OutlinedButton(
                     onClick = {
-                        val message = when (viewModel.saveHomeAddressFromDraft()) {
-                            HomeAddressSaveResult.Saved -> homeAddressSavedSnackbar
-                            HomeAddressSaveResult.Empty -> homeAddressEmptySnackbar
-                            HomeAddressSaveResult.Failed -> homeAddressFailedSnackbar
+                        viewModel.saveHomeAddressFromDraftAsync { result ->
+                            val message = when (result) {
+                                HomeAddressSaveResult.Saved -> homeAddressSavedSnackbar
+                                HomeAddressSaveResult.Empty -> homeAddressEmptySnackbar
+                                HomeAddressSaveResult.InvalidFormat -> homeAddressInvalidSnackbar
+                                HomeAddressSaveResult.NotRecognizedOnMap -> homeAddressNotOnMapSnackbar
+                                HomeAddressSaveResult.GeocodeError -> homeAddressGeocodeErrorSnackbar
+                                HomeAddressSaveResult.Failed -> homeAddressFailedSnackbar
+                            }
+                            showZhSnackbar(message)
                         }
-                        showZhSnackbar(message)
                     },
+                    enabled = !homeAddressSaveInProgress,
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(homeAddressSave)

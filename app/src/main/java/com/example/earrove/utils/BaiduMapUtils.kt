@@ -16,10 +16,18 @@ import com.baidu.mapapi.search.poi.PoiIndoorResult
 import com.baidu.mapapi.search.poi.PoiNearbySearchOption
 import com.baidu.mapapi.search.poi.PoiResult
 import com.baidu.mapapi.search.poi.PoiSearch
+import com.baidu.mapapi.search.poi.PoiCitySearchOption
 import com.baidu.mapapi.search.poi.PoiSortType
+import com.baidu.mapapi.search.sug.OnGetSuggestionResultListener
+import com.baidu.mapapi.search.sug.SuggestionResult
+import com.baidu.mapapi.search.sug.SuggestionSearch
+import com.baidu.mapapi.search.sug.SuggestionSearchOption
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 object BaiduMapUtils {
     private const val TAG = "BaiduMapUtils"
@@ -80,6 +88,154 @@ object BaiduMapUtils {
         awaitClose {
             geoCoder.destroy()
         }
+    }
+
+    /**
+     * 将用户输入解析为坐标：先正向地理编码（适合门牌），失败则 Sug 联想（适合高校/校区/POI 名），
+     * 再按需做城市内 POI 检索。与保存家地址、导航「家」共用，避免仅地理编码无法识别地名。
+     */
+    fun resolveAddressOrPoiToLatLng(address: String): Flow<LatLng?> = callbackFlow {
+        val trimmed = address.trim()
+        if (trimmed.isEmpty()) {
+            trySend(null)
+            return@callbackFlow
+        }
+
+        var loc = geocodeAddress(trimmed).first()
+        if (loc != null) {
+            trySend(loc)
+            return@callbackFlow
+        }
+
+        val compact = trimmed.replace(Regex("\\s+"), "")
+        if (compact.length >= 4 && compact != trimmed) {
+            loc = geocodeAddress(compact).first()
+            if (loc != null) {
+                trySend(loc)
+                return@callbackFlow
+            }
+        }
+
+        loc = firstLatLngFromSuggestion(trimmed)
+        if (loc != null) {
+            trySend(loc)
+            return@callbackFlow
+        }
+
+        if (compact.length >= 4 && compact != trimmed) {
+            loc = firstLatLngFromSuggestion(compact)
+            if (loc != null) {
+                trySend(loc)
+                return@callbackFlow
+            }
+        }
+
+        val city = inferCityForPoiCitySearch(trimmed)
+        if (city != null) {
+            loc = firstLatLngFromPoiCity(trimmed, city) ?: firstLatLngFromPoiCity(compact, city)
+            if (loc != null) {
+                trySend(loc)
+                return@callbackFlow
+            }
+        }
+
+        trySend(null)
+    }
+
+    private suspend fun firstLatLngFromSuggestion(keyword: String): LatLng? =
+        suspendCancellableCoroutine { cont ->
+            if (keyword.isBlank()) {
+                cont.resume(null)
+                return@suspendCancellableCoroutine
+            }
+            val sug = SuggestionSearch.newInstance()
+            fun finish(value: LatLng?) {
+                runCatching { sug.destroy() }
+                if (cont.isActive) cont.resume(value)
+            }
+            sug.setOnGetSuggestionResultListener(object : OnGetSuggestionResultListener {
+                override fun onGetSuggestionResult(result: SuggestionResult?) {
+                    val pt = if (result != null && result.error == SearchResult.ERRORNO.NO_ERROR) {
+                        result.allSuggestions
+                            ?.mapNotNull { it.pt }
+                            ?.firstOrNull()
+                    } else {
+                        null
+                    }
+                    finish(pt)
+                }
+            })
+            val ok = runCatching {
+                val option = SuggestionSearchOption()
+                    .keyword(keyword)
+                    .citylimit(false)
+                sug.requestSuggestion(option)
+            }.getOrElse { e ->
+                Log.e(TAG, "Sug 检索发起失败", e)
+                false
+            }
+            if (!ok) finish(null)
+            cont.invokeOnCancellation { runCatching { sug.destroy() } }
+        }
+
+    private suspend fun firstLatLngFromPoiCity(keyword: String, city: String): LatLng? =
+        suspendCancellableCoroutine { cont ->
+            if (keyword.isBlank()) {
+                cont.resume(null)
+                return@suspendCancellableCoroutine
+            }
+            val poiSearch = PoiSearch.newInstance()
+            fun finish(value: LatLng?) {
+                runCatching { poiSearch.destroy() }
+                if (cont.isActive) cont.resume(value)
+            }
+            poiSearch.setOnGetPoiSearchResultListener(object : OnGetPoiSearchResultListener {
+                override fun onGetPoiResult(result: PoiResult?) {
+                    val pt = if (result?.error == SearchResult.ERRORNO.NO_ERROR
+                        && result.allPoi != null
+                        && result.allPoi.isNotEmpty()
+                    ) {
+                        result.allPoi[0].location
+                    } else {
+                        null
+                    }
+                    finish(pt)
+                }
+
+                override fun onGetPoiDetailResult(result: PoiDetailResult?) {}
+                override fun onGetPoiDetailResult(result: PoiDetailSearchResult?) {}
+                override fun onGetPoiIndoorResult(result: PoiIndoorResult?) {}
+            })
+            val ok = runCatching {
+                poiSearch.searchInCity(
+                    PoiCitySearchOption()
+                        .city(city)
+                        .keyword(keyword)
+                        .pageNum(0)
+                        .pageCapacity(10)
+                )
+            }.getOrElse { e ->
+                Log.e(TAG, "城市 POI 检索发起失败", e)
+                false
+            }
+            if (!ok) finish(null)
+            cont.invokeOnCancellation { runCatching { poiSearch.destroy() } }
+        }
+
+    /**
+     * 无「xx市」时根据常见关键词推断城市，用于 [firstLatLngFromPoiCity] 兜底。
+     */
+    private fun inferCityForPoiCitySearch(address: String): String? {
+        when {
+            address.contains("北京") -> return "北京市"
+            address.contains("上海") -> return "上海市"
+            address.contains("天津") -> return "天津市"
+            address.contains("重庆") -> return "重庆市"
+            address.contains("广州") -> return "广州市"
+            address.contains("深圳") -> return "深圳市"
+            address.contains("中央民族大学") -> return "北京市"
+        }
+        return null
     }
 
     /**

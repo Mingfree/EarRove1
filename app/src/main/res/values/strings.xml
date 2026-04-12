@@ -19,12 +19,11 @@
     <!-- Help -->
     <string name="help_center_title">帮助中心</string>
     <string name="help_nav_title">智能导航</string>
-    <string name="help_nav_content">通过语音输入目的地，应用将为您提供实时步行导航。在导航过程中，应用会通过语音和震动提示您前方的障碍物、红绿灯以及转向信息。</string>
+    <string name="help_nav_content">通过点击麦克风按钮语音输入目的地，应用将为您提供实时步行导航。在导航过程中，应用会通过语音和震动提示行走距离和转向信息，并播报模拟的障碍物和红绿灯信息（本功能主要用于震动和语音播报的优先级测试，您可以在设置中开启「提示模式」并体验，未来可扩展真实避障红绿灯体验）。</string>
     <string name="help_ocr_title">文字识别</string>
-    <string name="help_ocr_content">将摄像头对准需要识别的文字，如路牌、菜单、衣物或药品说明，应用将实时朗读识别到的内容。此功能完全在本地运行，保护您的隐私安全。</string>
+    <string name="help_ocr_content">将摄像头对准需要识别的文字，如路牌、菜单、衣物或药品说明，应用将实时朗读识别到的内容，点击「复制」可以将识别结果框中的文字复制，点击「重播」可以从头开始朗读识别结果，若拍摄环境较暗您可以点击屏幕左下角闪光灯按钮重新尝试拍摄。</string>
     <string name="help_haptic_title">震动反馈说明</string>
-    <string name="help_haptic_content">- 障碍物警示：两次短促的震动
-- 红绿灯提示：一次震动</string>
+    <string name="help_haptic_content">- 障碍物警示：两次短促的震动\n- 转向提示：长震一次\n- 红绿灯提示：三次短促的震动</string>
 
     <!-- Settings -->
     <string name="settings_title">设置</string>

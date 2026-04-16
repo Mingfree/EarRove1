@@ -64,7 +64,7 @@ object AppConfig {
 用户：天安门 → 天安门"""
 
     /** 大模型模型名 */
-    const val LLM_MODEL = "qwen-turbo"
+    const val LLM_MODEL = "qwen-flash"
     /** 大模型最大 token */
     const val LLM_MAX_TOKENS = 100
     /** 大模型温度（低温度 = 更确定的结果） */

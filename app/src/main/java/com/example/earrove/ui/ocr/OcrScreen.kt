@@ -88,18 +88,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 private const val TAG = "EarRove_OcrScreen"
-
-/** 等待 TTS 完成初始化的上限；超时则跳过引导，避免冷启动时权限申请被无限期拖延 */
-private const val TTS_READY_TIMEOUT_MS = 3_000L
-
-/** 轮询 TTS 就绪状态的间隔 */
-private const val TTS_READY_POLL_MS = 100L
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -151,23 +143,14 @@ fun OcrScreen(
     // 相机权限管理
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
-    // 先播报语音引导，播完再申请相机权限，避免引导语音与系统权限弹窗重叠。
-    //
-    // 这里刻意不对播报本身设超时：引导语在慢语速（设置可至 0.5x）下可达十几秒，
-    // 若超时后直接放行，权限弹窗仍会盖在未播完的语音上，正是本改动要避免的情形。
-    // 仅对「等待 TTS 就绪」设上限：冷启动时引擎尚未初始化完成，无限等待会卡住权限申请；
-    // 超时则跳过引导（speakAndWaitOrSkip 亦会因未初始化而跳过），保证流程能继续。
+    // 进入页面即播报语音引导（不等待播完，避免拖慢进入识别流程）
     LaunchedEffect(Unit) {
         ocrViewModel.setStatusText(statusInitial)
-        val ready = withTimeoutOrNull(TTS_READY_TIMEOUT_MS) {
-            while (!ttsManager.isInitialized) {
-                delay(TTS_READY_POLL_MS)
-            }
-            true
-        } ?: false
-        if (ready) {
-            ttsManager.speakAndWaitOrSkip(guideSpeak)
-        }
+        ttsManager.speak(guideSpeak)
+    }
+
+    // 请求相机权限（与引导播报各自独立，不互相等待）
+    LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
             cameraPermissionState.launchPermissionRequest()
         }

@@ -268,12 +268,11 @@ class TTSManager(
     /**
      * 播报文字并挂起，直到播放完成或被停止。
      *
-     * 未初始化时不挂起、直接返回 false，调用方据此判断引导语是否真的播过。
-     *
-     * @return true 表示已完整播报结束；false 表示未初始化、未实际播报。
+     * 未初始化时直接返回（不挂起）。等待者登记在队列中，由播放完成回调逐个唤醒；
+     * 这样并发调用不会互相抢用回调（原实现为单一回调槽）。
      */
-    suspend fun speakAndWaitOrSkip(text: String): Boolean {
-        if (!isInitialized) return false
+    override suspend fun speakAndWait(text: String) {
+        if (!isInitialized) return
         val waiter = CompletableDeferred<Unit>()
         pendingWaits.add(waiter)
         try {
@@ -293,11 +292,6 @@ class TTSManager(
         } finally {
             pendingWaits.remove(waiter)
         }
-        return true
-    }
-
-    override suspend fun speakAndWait(text: String) {
-        speakAndWaitOrSkip(text)
     }
 
     fun release() {

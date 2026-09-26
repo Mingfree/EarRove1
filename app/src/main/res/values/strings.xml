@@ -268,7 +268,7 @@
     <string name="privacy_app_checkbox">同意 EarRove 应用隐私政策</string>
     <string name="privacy_baidu_checkbox">同意百度地图SDK隐私政策</string>
     <string name="privacy_view_detail">查看详情</string>
-    <string name="privacy_important_tip">重要提示：\n1. 导航功能需要百度地图SDK支持\n2. 位置信息仅用于本地导航计算\n3. 所有数据均在设备本地处理，不会上传</string>
+    <string name="privacy_important_tip">重要提示：\n1. 导航功能需要百度地图SDK支持\n2. 语音识别与文字识别需要联网，语音与图片会上传至第三方识别服务\n3. 位置信息仅用于本机导航计算与周边地点检索</string>
     <string name="privacy_back">← 返回</string>
     <string name="privacy_detail_title">EarRove 隐私政策</string>
     <string name="privacy_baidu_detail_title">百度地图SDK隐私政策</string>

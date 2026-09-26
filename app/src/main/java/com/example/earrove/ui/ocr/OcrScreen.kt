@@ -55,7 +55,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,14 +88,18 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 private const val TAG = "EarRove_OcrScreen"
 
-/** 语音引导等待上限：超过则直接进入识别流程，避免 TTS 异常导致权限申请被拖延 */
-private const val GUIDE_SPEAK_TIMEOUT_MS = 10_000L
+/** 等待 TTS 完成初始化的上限；超时则跳过引导，避免冷启动时权限申请被无限期拖延 */
+private const val TTS_READY_TIMEOUT_MS = 3_000L
+
+/** 轮询 TTS 就绪状态的间隔 */
+private const val TTS_READY_POLL_MS = 100L
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -148,17 +151,25 @@ fun OcrScreen(
     // 相机权限管理
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
-    // 引导播报的兜底上限：TTS 未就绪时 speakAndWait 会立即返回，但不能让权限申请被无限期拖延
-    val permissionState by rememberUpdatedState(cameraPermissionState)
-
-    // 先播报语音引导，播完再进入识别流程（含相机权限申请），避免引导语音与系统权限弹窗重叠
+    // 先播报语音引导，播完再申请相机权限，避免引导语音与系统权限弹窗重叠。
+    //
+    // 这里刻意不对播报本身设超时：引导语在慢语速（设置可至 0.5x）下可达十几秒，
+    // 若超时后直接放行，权限弹窗仍会盖在未播完的语音上，正是本改动要避免的情形。
+    // 仅对「等待 TTS 就绪」设上限：冷启动时引擎尚未初始化完成，无限等待会卡住权限申请；
+    // 超时则跳过引导（speakAndWaitOrSkip 亦会因未初始化而跳过），保证流程能继续。
     LaunchedEffect(Unit) {
         ocrViewModel.setStatusText(statusInitial)
-        withTimeoutOrNull(GUIDE_SPEAK_TIMEOUT_MS) {
-            ttsManager.speakAndWait(guideSpeak)
+        val ready = withTimeoutOrNull(TTS_READY_TIMEOUT_MS) {
+            while (!ttsManager.isInitialized) {
+                delay(TTS_READY_POLL_MS)
+            }
+            true
+        } ?: false
+        if (ready) {
+            ttsManager.speakAndWaitOrSkip(guideSpeak)
         }
-        if (!permissionState.status.isGranted) {
-            permissionState.launchPermissionRequest()
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
         }
     }
 

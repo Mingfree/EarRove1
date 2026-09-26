@@ -1049,6 +1049,7 @@ private fun StandbyScreen(
     val homeAddressNetworkErrorSpeak = stringResource(id = R.string.nav_home_address_network_error_speak)
     val planToHomeSpeak = stringResource(id = R.string.nav_plan_to_home_speak)
     val recommendHomeLabel = stringResource(id = R.string.nav_recommend_home_label)
+    val homeDestinationName = stringResource(id = R.string.nav_home_destination_name)
     val recommendSupermarketLabel = stringResource(id = R.string.nav_recommend_supermarket_label)
     val recommendSubwayLabel = stringResource(id = R.string.nav_recommend_subway_label)
     val recommendBusStopLabel = stringResource(id = R.string.nav_recommend_bus_stop_label)
@@ -1325,7 +1326,7 @@ private fun StandbyScreen(
                                                                 baiduMapUtils.resolveAddressOrPoiToLatLng(latestHomeAddress)
                                                             }
                                                             if (location != null) {
-                                                                onStartNavigation(recommendHomeLabel, location)
+                                                                onStartNavigation(homeDestinationName, location)
                                                             } else {
                                                                 ttsManager.speak(homeAddressNotFoundSpeak)
                                                                 navController.navigate("settings")

@@ -151,6 +151,8 @@
     <string name="nav_recommended_destinations">推荐目的地:</string>
     <string name="nav_recommended_destination_a11y_template">推荐目的地：%1$s</string>
     <string name="nav_recommend_home_label">家</string>
+    <!-- 作为「目的地名称」使用（导航界面显示与播报）；与按钮文案分开，改按钮措辞不影响播报 -->
+    <string name="nav_home_destination_name">家</string>
     <string name="nav_recommend_supermarket_label">附近超市</string>
     <string name="nav_recommend_subway_label">附近地铁站</string>
     <string name="nav_recommend_bus_stop_label">附近公交站</string>
@@ -256,7 +258,7 @@
     <string name="obstacle_pole">柱子</string>
     <string name="obstacle_wall">墙壁</string>
     <string name="obstacle_stairs">楼梯</string>
-    <string name="obstacle_unknown">障碍物</string>
+    <string name="obstacle_none">无</string>
 
     <!-- Navigation turn directions -->
     <string name="nav_turn_left">左转</string>

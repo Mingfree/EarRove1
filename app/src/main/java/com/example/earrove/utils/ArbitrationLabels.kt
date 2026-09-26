@@ -17,7 +17,8 @@ fun ObstacleType.labelRes(): Int = when (this) {
     ObstacleType.POLE -> R.string.obstacle_pole
     ObstacleType.WALL -> R.string.obstacle_wall
     ObstacleType.STAIRS -> R.string.obstacle_stairs
-    ObstacleType.NONE -> R.string.obstacle_unknown
+    // NONE 表示「无障碍物」，与「类型未知的障碍物」是两回事，故用独立文案
+    ObstacleType.NONE -> R.string.obstacle_none
 }
 
 @StringRes

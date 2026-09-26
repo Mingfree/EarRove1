@@ -10,12 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 import java.util.Locale
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import com.example.earrove.data.settings.SettingsRepository
 import com.example.earrove.data.settings.SettingsRepositoryImpl
@@ -52,9 +52,8 @@ class TTSManager(
     @Volatile
     private var pendingText = ""
 
-    /** 播放完成回调 */
-    @Volatile
-    private var onFinishCallback: (() -> Unit)? = null
+    /** 播放完成回调；按发起顺序登记，完成/出错/停止时只唤醒对应条目 */
+    private val pendingWaits = ConcurrentLinkedQueue<CompletableDeferred<Unit>>()
 
     /** 是否已初始化（任一引擎可用即为 true） */
     val isInitialized: Boolean
@@ -70,6 +69,24 @@ class TTSManager(
         initSystemTts(context)
     }
 
+    /**
+     * 唤醒最早一个等待中的 [speakAndWait] 调用方。
+     *
+     * 之所以只唤醒一个：TTS 自身按提交顺序播放，一次「播放完成」只对应最早那次请求。
+     * 若唤醒全部，后发起的调用会提前返回，重演原单槽回调互相抢用的缺陷。
+     */
+    private fun signalNextWaiter() {
+        pendingWaits.poll()?.complete(Unit)
+    }
+
+    /** 唤醒并清空所有等待者（用于 stop：当前播报被打断，无人应继续等待） */
+    private fun signalAllWaiters() {
+        while (true) {
+            val waiter = pendingWaits.poll() ?: break
+            waiter.complete(Unit)
+        }
+    }
+
     private fun initBaiduTts(context: Context) {
         try {
             baiduSynthesizer = com.baidu.aipe.tts.AipeSpeechSynthesizer(context.applicationContext)
@@ -83,19 +100,13 @@ class TTSManager(
                     com.baidu.tts.client.SynthesizerResponse.SynthesizeType.PLAY_FINISH -> {
                         Log.d(TAG, "百度 TTS play finish")
                         isSpeaking.set(false)
-                        handler.post {
-                            onFinishCallback?.invoke()
-                            onFinishCallback = null
-                        }
+                        handler.post { signalNextWaiter() }
                     }
                     com.baidu.tts.client.SynthesizerResponse.SynthesizeType.SYNTHESIZE_ERROR -> {
                         val err = response.synthesizerError
                         Log.e(TAG, "百度 TTS error: ${err?.description}")
                         isSpeaking.set(false)
-                        handler.post {
-                            onFinishCallback?.invoke()
-                            onFinishCallback = null
-                        }
+                        handler.post { signalNextWaiter() }
                     }
                     else -> { /* ignore */ }
                 }
@@ -140,20 +151,14 @@ class TTSManager(
                     override fun onDone(id: String?) {
                         Log.d(TAG, "系统 TTS 播放完成: $id")
                         isSpeaking.set(false)
-                        handler.post {
-                            onFinishCallback?.invoke()
-                            onFinishCallback = null
-                        }
+                        handler.post { signalNextWaiter() }
                     }
 
                     @Deprecated("Deprecated in Java")
                     override fun onError(id: String?) {
                         Log.e(TAG, "系统 TTS 播放错误: $id")
                         isSpeaking.set(false)
-                        handler.post {
-                            onFinishCallback?.invoke()
-                            onFinishCallback = null
-                        }
+                        handler.post { signalNextWaiter() }
                     }
                 })
 
@@ -256,22 +261,22 @@ class TTSManager(
         baiduSynthesizer?.stop()
         systemTts?.stop()
         isSpeaking.set(false)
-        onFinishCallback?.invoke()
-        onFinishCallback = null
+        // 当前播报已被打断，所有等待者都不应继续挂起
+        signalAllWaiters()
     }
 
     /**
      * 播报文字并挂起，直到播放完成或被停止。
+     *
+     * 未初始化时不挂起、直接返回 false，调用方据此判断引导语是否真的播过。
+     *
+     * @return true 表示已完整播报结束；false 表示未初始化、未实际播报。
      */
-    override suspend fun speakAndWait(text: String) {
-        if (!isInitialized) return
-        suspendCancellableCoroutine { cont ->
-            onFinishCallback = {
-                if (cont.isActive) cont.resume(Unit)
-            }
-            cont.invokeOnCancellation {
-                stop()
-            }
+    suspend fun speakAndWaitOrSkip(text: String): Boolean {
+        if (!isInitialized) return false
+        val waiter = CompletableDeferred<Unit>()
+        pendingWaits.add(waiter)
+        try {
             uiScope.launch {
                 pendingText = text
                 applySpeechRateFromSettings()
@@ -284,7 +289,15 @@ class TTSManager(
                     systemTts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
                 }
             }
+            waiter.await()
+        } finally {
+            pendingWaits.remove(waiter)
         }
+        return true
+    }
+
+    override suspend fun speakAndWait(text: String) {
+        speakAndWaitOrSkip(text)
     }
 
     fun release() {

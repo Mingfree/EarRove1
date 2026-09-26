@@ -51,11 +51,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -85,22 +85,27 @@ import com.example.earrove.ui.theme.PureWhite
 import com.example.earrove.ui.theme.AppSize
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.utils.TTSManager
-import com.example.earrove.utils.rememberTTSManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 private const val TAG = "EarRove_OcrScreen"
 
+/** 语音引导等待上限：超过则直接进入识别流程，避免 TTS 异常导致权限申请被拖延 */
+private const val GUIDE_SPEAK_TIMEOUT_MS = 10_000L
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun OcrScreen(navController: NavController) {
+fun OcrScreen(
+    navController: NavController,
+    ttsManager: TTSManager
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val ttsManager = rememberTTSManager()
     val ocrViewModel: OcrViewModel = viewModel()
     val ui by ocrViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -143,9 +148,18 @@ fun OcrScreen(navController: NavController) {
     // 相机权限管理
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
+    // 引导播报的兜底上限：TTS 未就绪时 speakAndWait 会立即返回，但不能让权限申请被无限期拖延
+    val permissionState by rememberUpdatedState(cameraPermissionState)
+
+    // 先播报语音引导，播完再进入识别流程（含相机权限申请），避免引导语音与系统权限弹窗重叠
     LaunchedEffect(Unit) {
         ocrViewModel.setStatusText(statusInitial)
-        ttsManager.speak(guideSpeak)
+        withTimeoutOrNull(GUIDE_SPEAK_TIMEOUT_MS) {
+            ttsManager.speakAndWait(guideSpeak)
+        }
+        if (!permissionState.status.isGranted) {
+            permissionState.launchPermissionRequest()
+        }
     }
 
     // CameraX 对象
@@ -177,19 +191,7 @@ fun OcrScreen(navController: NavController) {
         }
     }
 
-    // 清理资源
-    DisposableEffect(Unit) {
-        onDispose {
-            ttsManager.release()
-        }
-    }
-
-    // 请求权限
-    LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) {
-            cameraPermissionState.launchPermissionRequest()
-        }
-    }
+    // TTS 由 EarRoveApp 持有，随应用生命周期释放，此处不做 release
 
     val accessibilityLabel = when {
         ui.isRecognizing -> a11yRecognizing

@@ -582,7 +582,7 @@ fun EarRoveApp() {
                 NavigationScreen(navController = navController, ttsManager = ttsManager)
             }
             composable("ocr") {
-                OcrScreen(navController = navController)
+                OcrScreen(navController = navController, ttsManager = ttsManager)
             }
             composable("settings") {
                 SettingsScreen(navController = navController)

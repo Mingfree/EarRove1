@@ -5,11 +5,11 @@ package com.example.earrove.domain.arbitration
  */
 sealed class AccessibilityEvent {
 
-    data class Obstacle(val obstacleType: String) : AccessibilityEvent()
+    data class Obstacle(val obstacleType: ObstacleType) : AccessibilityEvent()
 
     sealed class Nav : AccessibilityEvent() {
-        data class Turn(val direction: String, val distanceMeters: Int) : Nav()
-        data class TrafficLight(val status: String, val countdown: Int) : Nav()
+        data class Turn(val turnType: TurnDirection, val distanceMeters: Int) : Nav()
+        data class TrafficLight(val status: TrafficLightStatus, val countdown: Int) : Nav()
         data class Destination(val name: String) : Nav()
         data class RouteStart(val destination: String, val distance: Int, val duration: Int) : Nav()
     }

@@ -127,6 +127,13 @@
 
 ### P2-T1 建立统一文案资源（移除硬编码中文字符串）
 - **关注点**：国际化与维护成本
+- **状态**：✅ 已完成
+- **实现说明**：UI 层文案此前已迁移；本次补齐**服务层**——`ObstacleDetectionService` / `TrafficLightService` 原先各自返回硬编码中文（`getObstacleDescription` / `getTrafficLightDescription`），现改为在仲裁层传递**枚举**，由本地化边界 `AndroidArbitrationTextProvider` 与 `ArbitrationLabels` 统一映射到 `strings.xml`：
+  - 新增 `ObstacleType` / `TrafficLightStatus` / `TurnDirection` 于 `domain/arbitration`（**领域层不依赖 `R`**，枚举→文案映射收口在 `utils/ArbitrationLabels.kt`）
+  - `NavigationStep.turnType` 由「未声明的字符串枚举」（`"LEFT"|"RIGHT"|…`）改为真正的 `TurnDirection`
+  - `AccessibilityEvent` 三个字段由 `String` 改为枚举；`Destination`/`RouteStart`/`Ocr`/`Info` 为真自由文本，保持 `String`
+  - 顺带修掉 `TrafficLightStatus.NONE -> ""` 会产出「，还有12秒」残缺播报的隐患
+- **残余（有意保留）**：`NavigationService` 解析百度返回中文指令用的 `contains("左转")` 属**输入解析**而非输出文案；`instruction`/`destination` 的兜底默认值（`"继续前进"`/`"目的地"`）作用于地图 SDK 数据，且该服务无 `Context`，暂不改动。
 - **开始**：
   - 扫描 `ui/*` 与 `utils/*` 中直接写死的文案
 - **结束（DoD）**：

@@ -7,7 +7,7 @@ class AccessibilityEventTest {
 
     @Test
     fun nav_events_are_distinct_sealed_subtypes() {
-        val turn: AccessibilityEvent = AccessibilityEvent.Nav.Turn("左转", 50)
+        val turn: AccessibilityEvent = AccessibilityEvent.Nav.Turn(TurnDirection.LEFT, 50)
         val info: AccessibilityEvent = AccessibilityEvent.Info("提示")
         assertTrue(turn is AccessibilityEvent.Nav)
         assertTrue(info is AccessibilityEvent.Info)

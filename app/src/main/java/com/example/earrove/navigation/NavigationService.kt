@@ -29,6 +29,7 @@ import com.baidu.mapapi.search.route.TransitRouteResult
 import com.baidu.mapapi.search.route.WalkingRouteLine
 import com.baidu.mapapi.search.route.WalkingRoutePlanOption
 import com.baidu.mapapi.search.route.WalkingRouteResult
+import com.example.earrove.domain.arbitration.TurnDirection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +38,7 @@ data class NavigationStep(
     val instruction: String,
     val distance: Int, // 米
     val duration: Int, // 秒
-    val turnType: String,
+    val turnType: TurnDirection,
     val points: List<LatLng> = emptyList()
 )
 
@@ -250,13 +251,13 @@ class NavigationService(context: Context) {
         return bitmap
     }
 
-    private fun parseTurnType(instruction: String): String {
+    private fun parseTurnType(instruction: String): TurnDirection {
         return when {
-            instruction.contains("左转") -> "LEFT"
-            instruction.contains("右转") -> "RIGHT"
-            instruction.contains("直行") || instruction.contains("前进") -> "STRAIGHT"
-            instruction.contains("到达") || instruction.contains("目的") -> "ARRIVE"
-            else -> "CONTINUE"
+            instruction.contains("左转") -> TurnDirection.LEFT
+            instruction.contains("右转") -> TurnDirection.RIGHT
+            instruction.contains("直行") || instruction.contains("前进") -> TurnDirection.STRAIGHT
+            instruction.contains("到达") || instruction.contains("目的") -> TurnDirection.ARRIVE
+            else -> TurnDirection.CONTINUE
         }
     }
 

@@ -250,6 +250,14 @@
     <string name="arb_destination_template">已到达%1$s</string>
     <string name="arb_route_start_template">开始导航前往%1$s，全程%2$d米，预计需要%3$d分钟</string>
 
+    <!-- Obstacle types (spoken via arb_obstacle_template) -->
+    <string name="obstacle_vehicle">车辆</string>
+    <string name="obstacle_pedestrian">行人</string>
+    <string name="obstacle_pole">柱子</string>
+    <string name="obstacle_wall">墙壁</string>
+    <string name="obstacle_stairs">楼梯</string>
+    <string name="obstacle_unknown">障碍物</string>
+
     <!-- Navigation turn directions -->
     <string name="nav_turn_left">左转</string>
     <string name="nav_turn_right">右转</string>

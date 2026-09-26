@@ -4,6 +4,9 @@ import com.example.earrove.domain.arbitration.AccessibilityEvent
 import com.example.earrove.domain.arbitration.ArbitrationHaptics
 import com.example.earrove.domain.arbitration.ArbitrationSpeech
 import com.example.earrove.domain.arbitration.ArbitrationTextProvider
+import com.example.earrove.domain.arbitration.ObstacleType
+import com.example.earrove.domain.arbitration.TrafficLightStatus
+import com.example.earrove.domain.arbitration.TurnDirection
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -14,9 +17,9 @@ import org.junit.Test
 class ArbitratorTest {
 
     private class FakeTextProvider : ArbitrationTextProvider {
-        override fun obstacleText(obstacleType: String) = "obstacle:$obstacleType"
-        override fun turnText(distanceMeters: Int, direction: String) = "turn:$distanceMeters:$direction"
-        override fun trafficLightText(status: String, countdown: Int) = "light:$status:$countdown"
+        override fun obstacleText(obstacleType: ObstacleType) = "obstacle:$obstacleType"
+        override fun turnText(distanceMeters: Int, turnType: TurnDirection) = "turn:$distanceMeters:$turnType"
+        override fun trafficLightText(status: TrafficLightStatus, countdown: Int) = "light:$status:$countdown"
         override fun destinationText(name: String) = "dest:$name"
         override fun routeStartText(destination: String, distance: Int, durationMinutes: Int) =
             "route:$destination:$distance:$durationMinutes"
@@ -31,7 +34,7 @@ class ArbitratorTest {
             obstacleCount++
         }
 
-        override fun vibrateForTurn(direction: String) {
+        override fun vibrateForTurn(turnType: TurnDirection) {
             turnCount++
         }
 
@@ -70,7 +73,7 @@ class ArbitratorTest {
         arbitrator.submit(AccessibilityEvent.Info("info"))
         testScheduler.runCurrent()
 
-        arbitrator.submit(AccessibilityEvent.Obstacle("barrier"))
+        arbitrator.submit(AccessibilityEvent.Obstacle(ObstacleType.VEHICLE))
         testScheduler.runCurrent()
 
         assertTrue("应该触发抢占 stop()", speech.stopCount >= 1)

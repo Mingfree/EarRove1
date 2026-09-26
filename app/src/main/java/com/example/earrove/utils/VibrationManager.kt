@@ -12,6 +12,7 @@ import com.example.earrove.MyApplication
 import com.example.earrove.data.settings.SettingsRepository
 import com.example.earrove.data.settings.SettingsRepositoryImpl
 import com.example.earrove.domain.arbitration.ArbitrationHaptics
+import com.example.earrove.domain.arbitration.TurnDirection
 
 class VibrationManager(
     context: Context,
@@ -40,7 +41,7 @@ class VibrationManager(
         }
     }
 
-    override fun vibrateForTurn(direction: String) {
+    override fun vibrateForTurn(turnType: TurnDirection) {
         if (!settingsRepository.isHapticEnabled()) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 长震1次，配合语音提示

@@ -63,9 +63,9 @@ class Arbitrator(
             )
 
             is AccessibilityEvent.Nav.Turn -> speakWithPriority(
-                textProvider.turnText(event.distanceMeters, event.direction),
+                textProvider.turnText(event.distanceMeters, event.turnType),
                 Priority.NAVIGATION,
-                { haptics.vibrateForTurn(event.direction) }
+                { haptics.vibrateForTurn(event.turnType) }
             )
 
             is AccessibilityEvent.Nav.TrafficLight -> speakWithPriority(

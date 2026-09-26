@@ -5,7 +5,7 @@ package com.example.earrove.domain.arbitration
  */
 interface ArbitrationHaptics {
     fun vibrateForObstacle()
-    fun vibrateForTurn(direction: String)
+    fun vibrateForTurn(turnType: TurnDirection)
     fun vibrateForTrafficLight()
 }
 

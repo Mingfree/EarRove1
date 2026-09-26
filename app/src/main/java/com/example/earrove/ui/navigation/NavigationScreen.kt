@@ -96,7 +96,8 @@ import com.example.earrove.navigation.NavigationStep
 import com.example.earrove.navigation.ObstacleDetectionService
 import com.example.earrove.navigation.TrafficLightService
 import com.example.earrove.navigation.TrafficLight
-import com.example.earrove.navigation.TrafficLightStatus
+import com.example.earrove.domain.arbitration.ObstacleType
+import com.example.earrove.domain.arbitration.TrafficLightStatus
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.ui.theme.PremiumGold
@@ -124,6 +125,7 @@ import com.example.earrove.utils.VibrationManager
 import com.example.earrove.utils.rememberArbitrator
 import com.example.earrove.utils.rememberSpeechRecognizer
 import com.example.earrove.utils.rememberVibrationManager
+import com.example.earrove.utils.labelRes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -164,7 +166,7 @@ class NavigationViewModel : androidx.lifecycle.ViewModel() {
     val remainingDistance = mutableStateOf(0)
     val remainingTime = mutableStateOf(0)
     val isObstacleDetected = mutableStateOf(false)
-    val obstacleType = mutableStateOf("")
+    val obstacleType = mutableStateOf(ObstacleType.NONE)
     val obstacleDistance = mutableStateOf(0)
     val trafficLightStatus = mutableStateOf<TrafficLight?>(null)
     val isTrafficLightDetected = mutableStateOf(false)
@@ -721,11 +723,11 @@ fun NavigationScreen(
             obstacleService.startMonitoring().collectLatest { obstacle ->
                 obstacle?.let {
                     viewModel.isObstacleDetected.value = true
-                    viewModel.obstacleType.value = obstacleService.getObstacleDescription(obstacle)
+                    viewModel.obstacleType.value = obstacle.type
                     viewModel.obstacleDistance.value = obstacle.distance
 
                     // 通过仲裁器播报障碍物
-                    arbitrator.submit(AccessibilityEvent.Obstacle(viewModel.obstacleType.value))
+                    arbitrator.submit(AccessibilityEvent.Obstacle(obstacle.type))
 
                     // 3秒后清除障碍物提示
                     delay(3000)
@@ -750,7 +752,7 @@ fun NavigationScreen(
                     // 通过仲裁器播报红绿灯
                     arbitrator.submit(
                         AccessibilityEvent.Nav.TrafficLight(
-                            trafficLightService.getTrafficLightDescription(trafficLight),
+                            trafficLight.status,
                             trafficLight.countdown
                         )
                     )
@@ -959,15 +961,10 @@ fun NavigationScreen(
                 },
                 onNextStep = {
                     navigationService.moveToNextStep()?.let { nextStep ->
-                        // 播报下一步指令
-                        val direction = when (nextStep.turnType) {
-                            "LEFT" -> context.getString(R.string.nav_turn_left)
-                            "RIGHT" -> context.getString(R.string.nav_turn_right)
-                            "STRAIGHT" -> context.getString(R.string.nav_turn_straight)
-                            "ARRIVE" -> context.getString(R.string.nav_turn_arrive)
-                            else -> context.getString(R.string.nav_turn_continue_forward)
-                        }
-                        arbitrator.submit(AccessibilityEvent.Nav.Turn(direction, nextStep.distance))
+                        // 播报下一步指令（转向文案由仲裁层的本地化边界渲染）
+                        arbitrator.submit(
+                            AccessibilityEvent.Nav.Turn(nextStep.turnType, nextStep.distance)
+                        )
                     }
                 }
             )
@@ -1063,7 +1060,7 @@ private fun StandbyScreen(
     val recommendBusStopQuery = stringResource(id = R.string.nav_recommend_bus_stop_query)
     val recommendSchoolQuery = stringResource(id = R.string.nav_recommend_school_query)
     val recommendHospitalQuery = stringResource(id = R.string.nav_recommend_hospital_query)
-    // 推荐位为固定类别入口（文案恒定）；真实地点名称在点击后按当前定位就近检索并展示。
+    // 推荐位为固定类别入口（文案恒定）；真实地点名称在点击后按当前定位就近检索展示。
     val recommendedDestinations = remember(
         recommendHomeLabel,
         recommendSupermarketLabel,
@@ -1845,7 +1842,7 @@ private fun NavigatingScreen(
                                     text = stringResource(
                                         id = R.string.nav_obstacle_alert_template,
                                         viewModel.obstacleDistance.value,
-                                        viewModel.obstacleType.value
+                                        stringResource(id = viewModel.obstacleType.value.labelRes())
                                     ),
                             style = MaterialTheme.typography.headlineMedium,
                             color = PureBlack,
@@ -1878,12 +1875,10 @@ private fun NavigatingScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = when (viewModel.trafficLightStatus.value?.status) {
-                                TrafficLightStatus.RED -> stringResource(id = R.string.nav_traffic_light_red)
-                                TrafficLightStatus.GREEN -> stringResource(id = R.string.nav_traffic_light_green)
-                                TrafficLightStatus.YELLOW -> stringResource(id = R.string.nav_traffic_light_yellow)
-                                else -> stringResource(id = R.string.nav_traffic_light_unknown)
-                            },
+                            text = stringResource(
+                                id = (viewModel.trafficLightStatus.value?.status
+                                    ?: TrafficLightStatus.NONE).labelRes()
+                            ),
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                             color = PureBlack,
                             fontWeight = FontWeight.Black

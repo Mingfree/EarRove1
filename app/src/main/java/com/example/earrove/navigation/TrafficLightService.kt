@@ -1,14 +1,12 @@
 package com.example.earrove.navigation
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.example.earrove.domain.arbitration.TrafficLightStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 data class TrafficLight(
@@ -17,16 +15,8 @@ data class TrafficLight(
     val distance: Int // 米
 )
 
-enum class TrafficLightStatus {
-    RED,
-    GREEN,
-    YELLOW,
-    NONE
-}
-
 class TrafficLightService {
     private val _currentTrafficLight = MutableStateFlow<TrafficLight?>(null)
-    private val scope = CoroutineScope(Dispatchers.IO)
     private var isMonitoring = false
 
     val currentTrafficLight: StateFlow<TrafficLight?> = _currentTrafficLight.asStateFlow()
@@ -61,14 +51,5 @@ class TrafficLightService {
     fun stopMonitoring() {
         isMonitoring = false
         _currentTrafficLight.value = null
-    }
-
-    fun getTrafficLightDescription(trafficLight: TrafficLight): String {
-        return when (trafficLight.status) {
-            TrafficLightStatus.RED -> "红灯"
-            TrafficLightStatus.GREEN -> "绿灯"
-            TrafficLightStatus.YELLOW -> "黄灯"
-            else -> ""
-        }
     }
 }

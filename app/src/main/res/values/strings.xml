@@ -143,8 +143,6 @@
     <string name="nav_standby_prompt_title">请点击麦克风说出目的地</string>
     <string name="nav_standby_prompt_a11y">请点击麦克风说出目的地，如需更改目的地请点击结束导航按钮</string>
     <string name="nav_standby_prompt_hint">可描述您的目的地，比如：导航到最近的火车站</string>
-    <string name="nav_show_recommended_destinations">显示推荐目的地</string>
-    <string name="nav_hide_recommended_destinations">隐藏推荐目的地</string>
     <string name="nav_parse_address_fail_speak">地址解析失败，请重试</string>
     <string name="nav_change_destination_speak">请说出新的目的地</string>
     <string name="nav_change_destination_a11y">点击此处更改目的地</string>
@@ -221,7 +219,6 @@
 
     <string name="nav_preview_title">导航屏幕预览</string>
     <string name="nav_preview_body">实际运行时将显示完整导航界面</string>
-    <string name="nav_home_label">家</string>
 
     <!-- Navigation TTS (P2-T1 partial completion) -->
     <string name="nav_tts_prompt_center_mic">请点击屏幕中央麦克风后，说明目的地。</string>

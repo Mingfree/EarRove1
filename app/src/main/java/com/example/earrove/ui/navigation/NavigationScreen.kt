@@ -175,7 +175,18 @@ class NavigationViewModel : androidx.lifecycle.ViewModel() {
     val isLocationStarted = mutableStateOf(false)
 }
 
+/** 推荐目的地的固定类别，用于稳定识别「家」等入口，避免以按钮文案作判定 */
+private enum class RecommendCategory {
+    HOME,
+    SUPERMARKET,
+    SUBWAY,
+    BUS_STOP,
+    SCHOOL,
+    HOSPITAL
+}
+
 private data class DestinationSuggestion(
+    val category: RecommendCategory,
     val label: String,
     val query: String
 )
@@ -1052,7 +1063,8 @@ private fun StandbyScreen(
     val recommendBusStopQuery = stringResource(id = R.string.nav_recommend_bus_stop_query)
     val recommendSchoolQuery = stringResource(id = R.string.nav_recommend_school_query)
     val recommendHospitalQuery = stringResource(id = R.string.nav_recommend_hospital_query)
-    val fixedRecommendedDestinations = remember(
+    // 推荐位为固定类别入口（文案恒定）；真实地点名称在点击后按当前定位就近检索并展示。
+    val recommendedDestinations = remember(
         recommendHomeLabel,
         recommendSupermarketLabel,
         recommendSubwayLabel,
@@ -1067,12 +1079,12 @@ private fun StandbyScreen(
         recommendHospitalQuery
     ) {
         listOf(
-            DestinationSuggestion(recommendHomeLabel, recommendHomeQuery),
-            DestinationSuggestion(recommendSupermarketLabel, recommendSupermarketQuery),
-            DestinationSuggestion(recommendSubwayLabel, recommendSubwayQuery),
-            DestinationSuggestion(recommendBusStopLabel, recommendBusStopQuery),
-            DestinationSuggestion(recommendSchoolLabel, recommendSchoolQuery),
-            DestinationSuggestion(recommendHospitalLabel, recommendHospitalQuery)
+            DestinationSuggestion(RecommendCategory.HOME, recommendHomeLabel, recommendHomeQuery),
+            DestinationSuggestion(RecommendCategory.SUPERMARKET, recommendSupermarketLabel, recommendSupermarketQuery),
+            DestinationSuggestion(RecommendCategory.SUBWAY, recommendSubwayLabel, recommendSubwayQuery),
+            DestinationSuggestion(RecommendCategory.BUS_STOP, recommendBusStopLabel, recommendBusStopQuery),
+            DestinationSuggestion(RecommendCategory.SCHOOL, recommendSchoolLabel, recommendSchoolQuery),
+            DestinationSuggestion(RecommendCategory.HOSPITAL, recommendHospitalLabel, recommendHospitalQuery)
         )
     }
     val changeDestinationSpeak = stringResource(id = R.string.nav_change_destination_speak)
@@ -1290,7 +1302,7 @@ private fun StandbyScreen(
 
                             Spacer(modifier = Modifier.height(AppSpacing.small))
 
-                            fixedRecommendedDestinations.chunked(3).forEach { rowItems ->
+                            recommendedDestinations.chunked(3).forEach { rowItems ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1302,7 +1314,7 @@ private fun StandbyScreen(
                                             destination = destination.label,
                                             modifier = Modifier.weight(1f),
                                             onClick = {
-                                                if (destination.label == recommendHomeLabel) {
+                                                if (destination.category == RecommendCategory.HOME) {
                                                     val latestHomeAddress = settingsRepository.getHomeAddress()?.trim()
                                                     if (latestHomeAddress.isNullOrEmpty()) {
                                                         ttsManager.speak(saveHomeAddressSpeak)

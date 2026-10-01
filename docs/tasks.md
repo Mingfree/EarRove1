@@ -146,6 +146,8 @@
 
 ### P2-T2 统一页面间距/字号/控件尺寸设计规范
 - **关注点**：视觉一致性
+- **状态**：✅ 已完成
+- **实现说明**：以 `DesignTokens.kt` 的 `AppSpacing`（4/8/12/16/24/32dp）与 `AppSize`（icon 20/28/36/48、fab 56/80、cardCorner 12dp）为唯一来源，替换命中 token 值的裸 `.dp`。本次补齐 `StartupGate.kt`（此前 0 token）、`NavigationScreen.kt`、`OcrScreen.kt`、`SettingsScreen.kt`；`HomeScreen`/`HelpScreen` 此前已 token 化。**有意保留**确有语义的一次性尺寸（如麦克风圆 120dp、控制按钮高 68dp、动画圆 200dp、按钮高 64dp、图标 60/100dp 等）——目标是「≥80% 页面统一 token」，非消灭所有 magic number。字号沿用 `MaterialTheme.typography`（个别 `fontSize = X.sp` 覆盖未纳入本次）。
 - **开始**：
   - 提取 `Spacing`、`Sizes`、`Typography` 规范常量
 - **结束（DoD）**：

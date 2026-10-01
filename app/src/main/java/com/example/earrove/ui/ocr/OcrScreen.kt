@@ -229,7 +229,7 @@ fun OcrScreen(
                     colors = CardDefaults.cardColors(
                         containerColor = PureBlack.copy(alpha = 0.7f)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSize.cardCorner)
                 ) {
                     Text(
                         text = ui.statusText,
@@ -248,17 +248,17 @@ fun OcrScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(horizontal = AppSpacing.large, vertical = AppSpacing.small)
                             .align(Alignment.TopCenter)
                             .padding(top = 72.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = PureBlack.copy(alpha = 0.8f)
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(AppSize.cardCorner)
                     ) {
                         Column(
                             modifier = Modifier
-                                .padding(16.dp)
+                                .padding(AppSpacing.large)
                                 .verticalScroll(rememberScrollState())
                         ) {
                             Text(
@@ -266,7 +266,7 @@ fun OcrScreen(
                                 color = PremiumGold,
                                 style = MaterialTheme.typography.titleMedium
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(AppSpacing.small))
                             Text(
                                 text = ui.recognitionResult,
                                 color = PureWhite,
@@ -275,7 +275,7 @@ fun OcrScreen(
                             Spacer(modifier = Modifier.height(AppSpacing.medium))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.medium)
                             ) {
                                 OutlinedButton(
                                     onClick = {
@@ -451,7 +451,7 @@ fun OcrScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(32.dp),
+                        .padding(AppSpacing.xxLarge),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -461,7 +461,7 @@ fun OcrScreen(
                         style = MaterialTheme.typography.headlineMedium,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppSpacing.large))
                     Text(
                         text = permissionRationaleText,
                         color = PureWhite,

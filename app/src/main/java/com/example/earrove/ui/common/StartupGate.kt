@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
@@ -93,7 +94,7 @@ private fun ConfigMissingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(AppSpacing.xLarge),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -107,7 +108,7 @@ private fun ConfigMissingScreen(
                 text = hint,
                 style = MaterialTheme.typography.bodyLarge,
                 color = PureWhite,
-                modifier = Modifier.padding(top = 12.dp)
+                modifier = Modifier.padding(top = AppSpacing.medium)
             )
 
             Spacer(modifier = Modifier.padding(0.dp))
@@ -116,7 +117,7 @@ private fun ConfigMissingScreen(
                     .fillMaxWidth(),
                 colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = PureWhite.copy(alpha = 0.06f))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(AppSpacing.large)) {
                     missing.forEach { item ->
                         Text(
                             text = "• $item",
@@ -127,7 +128,7 @@ private fun ConfigMissingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.padding(AppSpacing.large))
 
             Text(
                 text = fixMethod,
@@ -135,7 +136,7 @@ private fun ConfigMissingScreen(
                 color = PremiumGold
             )
 
-            Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.padding(AppSpacing.large))
             Button(
                 onClick = onRetry,
                 modifier = Modifier.fillMaxWidth(),
@@ -174,7 +175,7 @@ private fun PermissionRequestScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(AppSpacing.xLarge),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -195,7 +196,7 @@ private fun PermissionRequestScreen(
                     .fillMaxWidth(),
                 colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = PureWhite.copy(alpha = 0.06f))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(AppSpacing.large)) {
                     Text(
                         text = intro,
                         style = MaterialTheme.typography.bodyLarge,
@@ -211,7 +212,7 @@ private fun PermissionRequestScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.padding(AppSpacing.large))
 
             // 触发系统权限弹窗（如果已有权限会直接回调 onGranted）
             RequestPermissionsDialog(
@@ -226,13 +227,13 @@ private fun PermissionRequestScreen(
             )
 
             if (permissionDenied) {
-                Spacer(modifier = Modifier.padding(16.dp))
+                Spacer(modifier = Modifier.padding(AppSpacing.large))
                 Text(
                     text = deniedHint,
                     style = MaterialTheme.typography.bodyMedium,
                     color = PremiumGold
                 )
-                Spacer(modifier = Modifier.padding(16.dp))
+                Spacer(modifier = Modifier.padding(AppSpacing.large))
                 OutlinedButton(
                     onClick = onContinueWithoutPermissions,
                     modifier = Modifier

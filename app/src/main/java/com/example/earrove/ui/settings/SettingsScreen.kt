@@ -181,7 +181,7 @@ fun SettingsScreen(navController: NavController) {
                     text = privacyTitle,
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.small))
                 OutlinedButton(
                     onClick = { showRevokeDialog = true },
                     modifier = Modifier.fillMaxWidth()
@@ -190,12 +190,12 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.small))
             Text(
                 text = homeAddressTitle,
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.small))
             OutlinedTextField(
                 value = uiState.homeAddress,
                 onValueChange = { viewModel.onHomeAddressDraftChange(it) },
@@ -209,10 +209,10 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.small))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.medium)
             ) {
                 OutlinedButton(
                     onClick = {
@@ -321,7 +321,7 @@ private fun ToggleSettingItem(
                 style = MaterialTheme.typography.bodyLarge
             )
             if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xSmall))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,

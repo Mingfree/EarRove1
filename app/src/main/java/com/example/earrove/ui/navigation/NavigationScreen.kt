@@ -381,7 +381,7 @@ fun NavigationScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.large)
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
@@ -401,7 +401,7 @@ fun NavigationScreen(
                     color = PureWhite.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    modifier = Modifier.padding(horizontal = AppSpacing.xLarge)
                 )
 
                 // 检查是否是因为隐私政策问题
@@ -459,7 +459,7 @@ fun NavigationScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.xLarge)
             ) {
                 CircularProgressIndicator(
                     color = PremiumGold,
@@ -560,7 +560,7 @@ fun NavigationScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.large)
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOff,
@@ -1219,7 +1219,7 @@ private fun StandbyScreen(
                     )
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(AppSpacing.medium),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -1227,7 +1227,7 @@ private fun StandbyScreen(
                             contentDescription = currentLocationLabel,
                             tint = PremiumGold
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(AppSpacing.small))
                         Column {
                             Text(
                                 text = currentLocationLabel,
@@ -1264,7 +1264,7 @@ private fun StandbyScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(AppSpacing.large),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Column(
@@ -1339,8 +1339,8 @@ private fun StandbyScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        .padding(vertical = AppSpacing.xSmall),
+                                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.small)
                                 ) {
                                     rowItems.forEach { destination ->
                                         DestinationSuggestionButton(
@@ -1431,7 +1431,7 @@ private fun StandbyScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .padding(AppSpacing.xxLarge),
                 verticalArrangement = Arrangement.Bottom
             ) {
                 Box(
@@ -1461,7 +1461,7 @@ private fun StandbyScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = AppSpacing.large, vertical = AppSpacing.small)
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
@@ -1469,7 +1469,7 @@ private fun StandbyScreen(
                     color = PremiumGold,
                     style = MaterialTheme.typography.titleMedium
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.medium))
                 when {
                     isLoadingCandidates -> {
                         Row(
@@ -1497,7 +1497,7 @@ private fun StandbyScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 8.dp),
+                                    .padding(bottom = AppSpacing.small),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = PremiumGold.copy(alpha = 0.8f),
                                     contentColor = PureBlack
@@ -1508,7 +1508,7 @@ private fun StandbyScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.large))
             }
         }
     }
@@ -1535,7 +1535,7 @@ private fun DestinationSuggestionButton(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = AppSpacing.medium),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -1654,14 +1654,14 @@ private fun ListeningScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xxLarge))
 
                 // 实时识别文字
                 if (partialText.isNotBlank()) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .padding(horizontal = AppSpacing.xLarge),
                         colors = CardDefaults.cardColors(
                             containerColor = PureWhite.copy(alpha = 0.12f)
                         )
@@ -1673,11 +1673,11 @@ private fun ListeningScreen(
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp)
+                                .padding(AppSpacing.medium)
                                 .semantics { liveRegion = LiveRegionMode.Polite }
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(AppSpacing.large))
                 }
 
                 // 提示文字
@@ -1689,10 +1689,10 @@ private fun ListeningScreen(
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xLarge))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.large),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 提交按钮
@@ -1747,10 +1747,10 @@ private fun PlanningRouteScreen(
             ) {
                 CircularProgressIndicator(
                     color = PremiumGold,
-                    modifier = Modifier.size(80.dp)
+                    modifier = Modifier.size(AppSize.fabLarge)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xxLarge))
 
                 Text(
                     text = stringResource(id = R.string.nav_planning_route_template, destination),
@@ -1760,7 +1760,7 @@ private fun PlanningRouteScreen(
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.large))
 
                 Text(
                     text = stringResource(id = R.string.nav_planning_wait),
@@ -1840,7 +1840,7 @@ private fun NavigatingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PureBlack.copy(alpha = 0.85f))
-                    .padding(16.dp),
+                    .padding(AppSpacing.large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 目的地显示
@@ -1852,7 +1852,7 @@ private fun NavigatingScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .padding(bottom = AppSpacing.medium)
                         .semantics {
                             contentDescription = context.getString(
                                 R.string.nav_destination_template,
@@ -1866,13 +1866,13 @@ private fun NavigatingScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = AppSpacing.small),
                         colors = CardDefaults.cardColors(
                             containerColor = PremiumGold.copy(alpha = 0.15f)
                         )
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(AppSpacing.large),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
@@ -1891,10 +1891,10 @@ private fun NavigatingScreen(
                                     imageVector = turnIcon,
                                     contentDescription = step.turnType.toString(),
                                     tint = PremiumGold,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(AppSpacing.xxLarge)
                                 )
 
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(AppSpacing.medium))
 
                                 Text(
                                     text = wrapInstructionByPunctuation(step.instruction),
@@ -1908,7 +1908,7 @@ private fun NavigatingScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 12.dp),
+                                    .padding(top = AppSpacing.medium),
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 StatusChip(
@@ -1930,7 +1930,7 @@ private fun NavigatingScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp),
+                        .padding(top = AppSpacing.medium),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatusItem(
@@ -1969,7 +1969,7 @@ private fun NavigatingScreen(
                             color = PureBlack,
                             fontWeight = FontWeight.Black
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppSpacing.large))
                         Text(
                                     text = stringResource(
                                         id = R.string.nav_obstacle_alert_template,
@@ -2015,7 +2015,7 @@ private fun NavigatingScreen(
                             color = PureBlack,
                             fontWeight = FontWeight.Black
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(AppSpacing.large))
                         viewModel.trafficLightStatus.value?.let { trafficLight ->
                             Text(
                                 text = stringResource(
@@ -2105,7 +2105,7 @@ private fun NavigationControlButton(
             containerColor = containerColor,
             contentColor = PureBlack
         ),
-        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = AppSpacing.xSmall, vertical = AppSpacing.small),
         modifier = modifier
             .height(68.dp)
             .semantics {
@@ -2123,7 +2123,7 @@ private fun NavigationControlButton(
                 contentDescription = null,
                 modifier = Modifier.size(AppSize.iconMedium)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.xSmall))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
@@ -2147,7 +2147,7 @@ private fun StatusChip(
             imageVector = icon,
             contentDescription = label,
             tint = PremiumGold,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(AppSize.iconSmall)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Column(
@@ -2211,7 +2211,7 @@ private fun PausedScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.xLarge)
             ) {
                 Icon(
                     imageVector = Icons.Default.Pause,
@@ -2236,11 +2236,11 @@ private fun PausedScreen(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xxLarge))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.large)
                 ) {
                     Button(
                         onClick = onResume,
@@ -2300,7 +2300,7 @@ private fun ArrivedScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.xLarge)
             ) {
                 // 成功图标
                 Box(
@@ -2330,7 +2330,7 @@ private fun ArrivedScreen(
                     color = PureWhite,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .padding(horizontal = 32.dp)
+                        .padding(horizontal = AppSpacing.xxLarge)
                         .semantics {
                             contentDescription = context.getString(
                                 R.string.nav_destination_template,
@@ -2339,11 +2339,11 @@ private fun ArrivedScreen(
                         }
                 )
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(AppSize.iconXLarge))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.large)
                 ) {
                     Button(
                         onClick = onRestart,
@@ -2402,7 +2402,7 @@ fun NavigationScreenPreview() {
                 text = stringResource(id = R.string.nav_preview_body),
                 style = MaterialTheme.typography.bodyLarge,
                 color = PremiumGold,
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier.padding(top = AppSpacing.large)
             )
         }
     }

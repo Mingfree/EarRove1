@@ -1,11 +1,16 @@
 package com.example.earrove.utils
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import android.view.View
+import android.view.accessibility.AccessibilityManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -61,12 +66,53 @@ class TTSManager(
 
     private var utteranceId = 0
 
+    /** 无障碍管理器，用于检测 TalkBack 等读屏是否开启 */
+    private val accessibilityManager =
+        appContext.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+
+    /** 当前前台 Activity，供 announceForAccessibility 使用 */
+    @Volatile
+    private var currentActivity: Activity? = null
+
     init {
+        registerActivityTracker()
+
         // 1. 尝试初始化百度 TTS
         initBaiduTts(context)
 
         // 2. 同时初始化系统 TTS 作为备用
         initSystemTts(context)
+    }
+
+    /** TalkBack（或其他触摸探索读屏）开启时，改用无障碍播报、静音自身 TTS，避免双音重叠 */
+    private fun isAccessibilityReaderEnabled(): Boolean =
+        accessibilityManager.isEnabled && accessibilityManager.isTouchExplorationEnabled
+
+    private fun registerActivityTracker() {
+        val app = appContext as? Application ?: return
+        app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityResumed(activity: Activity) {
+                currentActivity = activity
+            }
+
+            override fun onActivityDestroyed(activity: Activity) {
+                if (currentActivity === activity) currentActivity = null
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+            override fun onActivityStarted(activity: Activity) {}
+            override fun onActivityPaused(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+        })
+    }
+
+    /** 通过无障碍通道朗读（由 TalkBack 读屏负责发声），应用自身不发声 */
+    private fun announceForAccessibility(text: String) {
+        if (text.isBlank()) return
+        val activity = currentActivity ?: return
+        val contentView = activity.findViewById<View>(android.R.id.content) ?: return
+        contentView.post { contentView.announceForAccessibility(text) }
     }
 
     /**
@@ -200,6 +246,11 @@ class TTSManager(
     }
 
     fun speak(text: String, interrupt: Boolean = true) {
+        if (isAccessibilityReaderEnabled()) {
+            announceForAccessibility(text)
+            return
+        }
+
         if (!isInitialized) {
             Log.w(TAG, "TTS 均未初始化，跳过: $text")
             return
@@ -230,6 +281,11 @@ class TTSManager(
     }
 
     fun speakWithoutInterrupt(text: String) {
+        if (isAccessibilityReaderEnabled()) {
+            announceForAccessibility(text)
+            return
+        }
+
         if (!isInitialized) return
 
         uiScope.launch {
@@ -272,6 +328,11 @@ class TTSManager(
      * 这样并发调用不会互相抢用回调（原实现为单一回调槽）。
      */
     override suspend fun speakAndWait(text: String) {
+        if (isAccessibilityReaderEnabled()) {
+            announceForAccessibility(text)
+            return
+        }
+
         if (!isInitialized) return
         val waiter = CompletableDeferred<Unit>()
         pendingWaits.add(waiter)

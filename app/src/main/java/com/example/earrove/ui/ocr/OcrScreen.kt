@@ -51,6 +51,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -149,6 +150,11 @@ fun OcrScreen(
         ttsManager.speak(guideSpeak)
     }
 
+    // 离开页面时中断语音，避免返回首页后引导语仍在播放
+    DisposableEffect(ttsManager) {
+        onDispose { ttsManager.stop() }
+    }
+
     // 请求相机权限（与引导播报各自独立，不互相等待）
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
@@ -167,7 +173,7 @@ fun OcrScreen(
         if (uri != null && !ui.isRecognizing) {
             ttsManager.speak(statusRecognizing)
             coroutineScope.launch {
-                val base64 = uriToBase64(context, uri)
+                val base64 = bitmapToBase64(uriToBitmap(context, uri))
                 Log.d(TAG, "相册图片 Base64 长度: ${base64.length}")
                 ocrViewModel.runAlbumRecognition(
                     base64 = base64,
@@ -542,10 +548,11 @@ private fun captureAndRecognize(
             override fun onCaptureSuccess(imageProxy: ImageProxy) {
                 coroutineScope.launch {
                     try {
-                        // 将 ImageProxy 转换为 Base64
-                        val base64 = imageProxyToBase64(imageProxy)
+                        // 解码为 Bitmap 并转 Base64 上传
+                        val bitmap = imageProxyToBitmap(imageProxy)
                         imageProxy.close()
 
+                        val base64 = bitmapToBase64(bitmap)
                         Log.d(TAG, "图片已捕获，Base64 长度: ${base64.length}")
 
                         // 调用火山引擎 API
@@ -581,15 +588,13 @@ private fun captureAndRecognize(
 }
 
 /**
- * 将 ImageProxy 转换为 Base64 字符串
- * 压缩为 JPEG 并降低分辨率以减小上传数据量
+ * 将 ImageProxy 解码为 Bitmap（含旋转与降分辨率），供定格展示与 Base64 上传共用。
  */
-private fun imageProxyToBase64(imageProxy: ImageProxy): String {
+private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap {
     val buffer: ByteBuffer = imageProxy.planes[0].buffer
     val bytes = ByteArray(buffer.remaining())
     buffer.get(bytes)
 
-    // 解码为 Bitmap
     var bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
     // 旋转（CameraX 可能有旋转角度）
@@ -600,24 +605,20 @@ private fun imageProxyToBase64(imageProxy: ImageProxy): String {
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-    // 降低分辨率（最大 1024px宽）以加速上传
+    // 降低分辨率（最大 1024px 宽）以加速上传与展示
     val maxWidth = 1024
     if (bitmap.width > maxWidth) {
         val scale = maxWidth.toFloat() / bitmap.width
         val newHeight = (bitmap.height * scale).toInt()
         bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true)
     }
-
-    // 转为 JPEG Base64
-    val outputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-    return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+    return bitmap
 }
 
 /**
- * 将 Uri 图片转换为 Base64 字符串
+ * 将 Uri 图片解码为 Bitmap（含降分辨率），供定格展示与 Base64 上传共用。
  */
-private fun uriToBase64(context: Context, uri: Uri): String {
+private fun uriToBitmap(context: Context, uri: Uri): Bitmap {
     val inputStream = context.contentResolver.openInputStream(uri)
         ?: throw Exception(context.getString(R.string.ocr_read_image_failed))
 
@@ -633,7 +634,11 @@ private fun uriToBase64(context: Context, uri: Uri): String {
         val newHeight = (bitmap.height * scale).toInt()
         bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true)
     }
+    return bitmap
+}
 
+/** 将 Bitmap 压缩为 JPEG Base64 */
+private fun bitmapToBase64(bitmap: Bitmap): String {
     val outputStream = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
     return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)

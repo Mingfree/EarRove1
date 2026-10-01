@@ -49,8 +49,32 @@ object BaiduMapUtils {
     /** 默认 50km，优先覆盖同城常见目的地。 */
     private const val POI_SEARCH_RADIUS = 50000 // 50公里
 
+    /** 最近一次检索/地理编码的错误（枚举名），供界面诊断展示；成功后置空 */
+    @Volatile
+    var lastSearchError: String? = null
+        private set
+
+    private fun recordError(error: Any?) {
+        lastSearchError = error?.toString()
+    }
+
     private fun inferGeoCityPrefix(address: String): String? =
         GEO_CITY_PREFIXES.firstOrNull { address.startsWith(it) }
+
+    /** 地址任意位置包含的已知城市（用于「B省B市」这类非前缀的省市表述） */
+    private fun inferCityContained(address: String): String? =
+        GEO_CITY_PREFIXES.firstOrNull { address.contains(it) }
+
+    /** 综合推断地址所属城市：优先前缀，其次任意位置包含 */
+    private fun inferCity(address: String): String? =
+        inferGeoCityPrefix(address) ?: inferCityContained(address)
+
+    /**
+     * 地址是否显式指定了省/市。含「省」字，或包含已知城市名（如「北京市」）。
+     * 用于语音目的地解析：用户指定了地区时不应再用「就近搜索」覆盖其指定地区。
+     */
+    fun hasExplicitRegion(address: String): Boolean =
+        address.contains("省") || inferCityContained(address) != null
 
     /**
      * 周边检索返回的 [com.baidu.mapapi.search.core.PoiInfo.distance] 在部分机型/SDK 上恒为 0，
@@ -85,6 +109,7 @@ object BaiduMapUtils {
                     trySend(result.location)
                 } else {
                     Log.e(TAG, "地址解析失败: ${result?.error}")
+                    recordError(result?.error)
                     trySend(null)
                 }
             }
@@ -110,7 +135,7 @@ object BaiduMapUtils {
     private suspend fun geocodeWithCityVariants(addr: String): LatLng? {
         if (addr.isBlank()) return null
         val cities = buildList {
-            inferGeoCityPrefix(addr)?.let { add(it) }
+            inferCity(addr)?.let { add(it) }
             add(AppConfig.DEFAULT_CITY)
         }.distinct()
         val variants = buildList {
@@ -195,13 +220,15 @@ object BaiduMapUtils {
                             ?.mapNotNull { it.pt }
                             ?.firstOrNull()
                     } else {
+                        Log.w(TAG, "Sug 联想无结果: keyword=$keyword, error=${result?.error}")
+                        recordError(result?.error)
                         null
                     }
                     finish(pt)
                 }
             })
             val ok = runCatching {
-                val sugCity = inferGeoCityPrefix(keyword) ?: "全国"
+                val sugCity = inferCity(keyword) ?: "全国"
                 val option = SuggestionSearchOption()
                     .keyword(keyword)
                     .city(sugCity)
@@ -234,6 +261,8 @@ object BaiduMapUtils {
                     ) {
                         result.allPoi[0].location
                     } else {
+                        Log.w(TAG, "城市 POI 检索无结果: keyword=$keyword, city=$city, error=${result?.error}")
+                        recordError(result?.error)
                         null
                     }
                     finish(pt)
@@ -272,7 +301,7 @@ object BaiduMapUtils {
             address.contains("深圳") -> return "深圳市"
             address.contains("中央民族大学") -> return "北京市"
         }
-        return null
+        return inferCityContained(address)
     }
 
     /**
@@ -302,6 +331,7 @@ object BaiduMapUtils {
                     trySend(nearest.location)
                 } else {
                     Log.w(TAG, "POI 周边搜索无结果，回退到地理编码: ${result?.error}")
+                    recordError(result?.error)
                     // 回退到全国地理编码
                     fallbackGeocode(keyword) { location ->
                         trySend(location)
@@ -351,6 +381,8 @@ object BaiduMapUtils {
                         ?.take(limit)
                         .orEmpty()
                 } else {
+                    Log.w(TAG, "周边 POI 名称检索失败: keyword=$keyword, error=${result?.error}")
+                    recordError(result?.error)
                     emptyList()
                 }
                 trySend(names)
@@ -416,6 +448,8 @@ object BaiduMapUtils {
                         ?.toList()
                         .orEmpty()
                 } else {
+                    Log.w(TAG, "周边 POI 候选检索失败: keyword=$keyword, error=${result?.error}")
+                    recordError(result?.error)
                     emptyList()
                 }
                 trySend(candidates)
@@ -454,7 +488,8 @@ object BaiduMapUtils {
                     Log.d(TAG, "地理编码备用成功: ${result.location.latitude}, ${result.location.longitude}")
                     callback(result.location)
                 } else {
-                    Log.e(TAG, "地理编码备用也失败: ${result?.error}")
+                    Log.e(TAG, "地理编码备用也失败: address=$address, error=${result?.error}")
+                    recordError(result?.error)
                     callback(null)
                 }
                 geoCoder.destroy()
@@ -462,10 +497,12 @@ object BaiduMapUtils {
 
             override fun onGetReverseGeoCodeResult(result: ReverseGeoCodeResult?) {}
         })
+        // 地址里已含「xx市」时优先用该市检索，避免「全国」对完整门牌地址解析失败
+        val city = inferGeoCityPrefix(address) ?: AppConfig.DEFAULT_CITY
         geoCoder.geocode(
             com.baidu.mapapi.search.geocode.GeoCodeOption()
                 .address(address)
-                .city(AppConfig.DEFAULT_CITY)
+                .city(city)
         )
     }
 }

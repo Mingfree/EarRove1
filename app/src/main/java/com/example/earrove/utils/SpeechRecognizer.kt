@@ -14,6 +14,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -53,6 +56,9 @@ class SpeechRecognizerManager(context: Context) {
         private const val SILENCE_RMS_THRESHOLD = 300.0
         private const val SILENCE_FRAMES_AFTER_VOICE = 20
         private const val NO_VOICE_TIMEOUT_FRAMES = 80
+
+        // 最长录音帧数（10 秒）兜底：嘈杂环境下始终有语音、静音检测无法触发时也要结束
+        private const val MAX_RECORDING_FRAMES = 100
     }
 
     private val appContext: Context = context.applicationContext
@@ -68,8 +74,15 @@ class SpeechRecognizerManager(context: Context) {
     private val isRunning = AtomicBoolean(false)
     private val taskStarted = AtomicBoolean(false)
 
-    /** 累积最终识别文本 */
+    /** 累积最终识别文本（仅追加 sentence_end=true 的稳定句子） */
     private val finalText = StringBuilder()
+
+    /** 最近一次中间结果文本（sentence_end=false），用于实时预览与兜底 */
+    private var lastPartialText = ""
+
+    /** 实时识别文本（已确认的句子片段），供监听页展示与手动提交 */
+    private val _partialText = MutableStateFlow("")
+    val partialText: StateFlow<String> = _partialText.asStateFlow()
 
     @Volatile
     var isListening = false
@@ -105,6 +118,8 @@ class SpeechRecognizerManager(context: Context) {
         taskStarted.set(false)
         isListening = true
         finalText.setLength(0)
+        lastPartialText = ""
+        _partialText.value = ""
         taskId = UUID.randomUUID().toString()
 
         val request = Request.Builder()
@@ -226,7 +241,8 @@ class SpeechRecognizerManager(context: Context) {
 
                 "task-finished" -> {
                     Log.i(TAG, "Task finished")
-                    val result = finalText.toString().trim()
+                    // 若最后一句话未被正式结束（如手动提交过早），用最近中间结果兜底
+                    val result = (finalText.toString() + lastPartialText).trim()
                     onComplete(result)
                 }
 
@@ -245,15 +261,25 @@ class SpeechRecognizerManager(context: Context) {
         val payload = msg.optJSONObject("payload") ?: return
         val output = payload.optJSONObject("output") ?: return
 
-        // "sentence" 是已确认的完整句子结果
-        val sentence = output.optJSONObject("sentence")
-        if (sentence != null) {
-            val sentenceText = sentence.optString("text", "")
-            if (sentenceText.isNotEmpty()) {
-                Log.i(TAG, "Sentence: $sentenceText")
-                finalText.append(sentenceText)
-            }
+        // "sentence" 为识别句子：heartbeat 是心跳包（跳过）；
+        // sentence_end=false 是中间结果（文本随识别累积增长），只做实时预览；
+        // sentence_end=true 是最终稳定句子，追加到最终文本。
+        val sentence = output.optJSONObject("sentence") ?: return
+        if (sentence.optBoolean("heartbeat", false)) return
+
+        val sentenceText = sentence.optString("text", "")
+        if (sentenceText.isEmpty()) return
+
+        val isEnd = sentence.optBoolean("sentence_end", false)
+        if (isEnd) {
+            Log.i(TAG, "Sentence(final): $sentenceText")
+            finalText.append(sentenceText)
+            lastPartialText = ""
+        } else {
+            Log.i(TAG, "Sentence(partial): $sentenceText")
+            lastPartialText = sentenceText
         }
+        _partialText.value = finalText.toString() + if (isEnd) "" else sentenceText
     }
 
     // 音频采集与静音判定
@@ -281,6 +307,7 @@ class SpeechRecognizerManager(context: Context) {
             val buffer = ByteArray(FRAME_BYTES)
             var silenceCount = 0
             var hasVoice = false
+            var frameCount = 0
 
             while (isRunning.get()) {
                 val read = audioRecord?.read(buffer, 0, buffer.size) ?: break
@@ -289,6 +316,7 @@ class SpeechRecognizerManager(context: Context) {
 
                 // 发送 PCM 数据
                 ws.send(buffer.toByteString(0, read))
+                frameCount++
 
                 // 能量静音检测
                 var energy = 0.0
@@ -306,6 +334,13 @@ class SpeechRecognizerManager(context: Context) {
                     silenceCount = 0
                 } else {
                     silenceCount++
+                }
+
+                // 最长录音时长兜底（嘈杂环境下始终有语音也要结束）
+                if (frameCount >= MAX_RECORDING_FRAMES) {
+                    Log.i(TAG, "Max recording duration reached, finishing")
+                    sendFinishTask()
+                    break
                 }
 
                 // 语音后 2s 静音 → 自动结束
@@ -347,6 +382,11 @@ class SpeechRecognizerManager(context: Context) {
 
     fun stopListening() {
         stopListeningInternal()
+    }
+
+    /** 清空实时识别文本（进入监听前/取消时调用，避免残留上次结果） */
+    fun clearPartialText() {
+        _partialText.value = ""
     }
 
     private fun stopListeningInternal() {

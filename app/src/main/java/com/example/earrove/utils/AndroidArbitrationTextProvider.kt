@@ -18,7 +18,11 @@ class AndroidArbitrationTextProvider(
         context.getString(R.string.arb_obstacle_template, context.getString(obstacleType.labelRes()))
 
     override fun turnText(distanceMeters: Int, turnType: TurnDirection): String =
-        context.getString(R.string.arb_turn_template, distanceMeters, context.getString(turnType.labelRes()))
+        context.getString(
+            R.string.arb_turn_template,
+            NavigationTextFormat.formatDistance(distanceMeters),
+            context.getString(turnType.labelRes())
+        )
 
     override fun trafficLightText(status: TrafficLightStatus, countdown: Int): String =
         context.getString(
@@ -34,7 +38,7 @@ class AndroidArbitrationTextProvider(
         context.getString(
             R.string.arb_route_start_template,
             destination,
-            distance,
-            durationMinutes
+            NavigationTextFormat.formatDistance(distance),
+            NavigationTextFormat.formatDurationMinutes(durationMinutes)
         )
 }

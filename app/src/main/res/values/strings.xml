@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EarRove</string>
+    <string name="app_name">声眸</string>
 
     <!-- Common / AppBar -->
     <string name="a11y_navigate_up">返回上一页</string>
@@ -38,7 +38,7 @@
     <string name="settings_revoke_confirm">确认撤回</string>
     <string name="settings_revoke_cancel">取消</string>
     <string name="settings_home_address_title">预设“家”地址</string>
-    <string name="settings_home_address_placeholder">例如：北京市海淀区XX路XX号</string>
+    <string name="settings_home_address_placeholder">例如：北京市海淀区中关村大街27号</string>
     <string name="settings_home_address_save">保存家地址</string>
     <string name="settings_home_address_clear">清除家地址</string>
     <string name="settings_home_address_saved">家地址已保存</string>
@@ -75,7 +75,7 @@
     <!-- OCR -->
     <string name="ocr_screen_title">视觉识别</string>
     <string name="ocr_heading_result">识别结果</string>
-    <string name="ocr_status_initial">对准指示牌，点击拍照按钮识别</string>
+    <string name="ocr_status_initial">对准指示牌，\n点击拍照按钮识别</string>
     <string name="ocr_status_recognizing_album">正在识别相册图片...</string>
     <string name="ocr_status_recognizing">正在识别</string>
     <string name="ocr_status_recognition_done">识别完成，点击重新识别</string>
@@ -143,6 +143,8 @@
     <string name="nav_standby_prompt_title">请点击麦克风说出目的地</string>
     <string name="nav_standby_prompt_a11y">请点击麦克风说出目的地，如需更改目的地请点击结束导航按钮</string>
     <string name="nav_standby_prompt_hint">可描述您的目的地，比如：导航到最近的火车站</string>
+    <string name="nav_show_recommended_destinations">显示推荐目的地</string>
+    <string name="nav_hide_recommended_destinations">隐藏推荐目的地</string>
     <string name="nav_parse_address_fail_speak">地址解析失败，请重试</string>
     <string name="nav_change_destination_speak">请说出新的目的地</string>
     <string name="nav_change_destination_a11y">点击此处更改目的地</string>
@@ -154,8 +156,8 @@
     <!-- 作为「目的地名称」使用（导航界面显示与播报）；与按钮文案分开，改按钮措辞不影响播报 -->
     <string name="nav_home_destination_name">家</string>
     <string name="nav_recommend_supermarket_label">附近超市</string>
-    <string name="nav_recommend_subway_label">附近地铁站</string>
-    <string name="nav_recommend_bus_stop_label">附近公交站</string>
+    <string name="nav_recommend_subway_label">附近\n地铁站</string>
+    <string name="nav_recommend_bus_stop_label">附近\n公交站</string>
     <string name="nav_recommend_school_label">附近学校</string>
     <string name="nav_recommend_hospital_label">附近医院</string>
     <string name="nav_recommend_home_query">家</string>
@@ -174,7 +176,9 @@
     <string name="nav_listening_title">正在监听...</string>
     <string name="nav_listening_a11y">正在监听</string>
     <string name="nav_listening_prompt">请说出目的地...</string>
-    <string name="nav_cancel_voice_input">取消语音输入</string>
+    <string name="nav_submit_voice_input">提交</string>
+    <string name="nav_cancel_voice_input">取消</string>
+    <string name="nav_confirm_destination_template">现在开始导航到%1$s</string>
 
     <string name="nav_planning_title">规划路线中</string>
     <string name="nav_planning_route_template">正在规划前往\n%1$s\n的路线</string>
@@ -231,6 +235,7 @@
     <string name="nav_tts_cannot_find_destination">无法找到目的地，请重试</string>
     <string name="nav_tts_voice_not_recognized">未识别到语音，请重试</string>
     <string name="nav_tts_voice_recognition_failed">语音识别失败，请重试</string>
+    <string name="nav_tts_voice_unreasonable">没有听清目的地，请重新说一遍</string>
     <string name="nav_tts_cancelled_voice_input">已取消语音输入</string>
     <string name="nav_tts_navigation_paused">导航已暂停</string>
     <string name="nav_tts_continue_navigation">继续导航</string>
@@ -247,10 +252,10 @@
 
     <!-- Arbitrator (navigation/a11y TTS templates) -->
     <string name="arb_obstacle_template">前方%1$s，请注意避让</string>
-    <string name="arb_turn_template">前方%1$d米%2$s</string>
+    <string name="arb_turn_template">前方%1$s%2$s</string>
     <string name="arb_traffic_light_template">%1$s，还有%2$d秒</string>
     <string name="arb_destination_template">已到达%1$s</string>
-    <string name="arb_route_start_template">开始导航前往%1$s，全程%2$d米，预计需要%3$d分钟</string>
+    <string name="arb_route_start_template">开始导航前往%1$s，全程%2$s，预计需要%3$s</string>
 
     <!-- Obstacle types (spoken via arb_obstacle_template) -->
     <string name="obstacle_vehicle">车辆</string>
@@ -268,16 +273,16 @@
     <string name="nav_turn_continue_forward">继续前进</string>
 
     <!-- Privacy agreement screen -->
-    <string name="privacy_app_title">EarRove 聆途</string>
+    <string name="privacy_app_title">声眸 EchoEye</string>
     <string name="privacy_welcome_subtitle">欢迎使用视障辅助导航应用</string>
     <string name="privacy_section_title">隐私政策同意</string>
     <string name="privacy_section_intro">为了正常使用应用功能，请阅读并同意以下隐私政策：</string>
-    <string name="privacy_app_checkbox">同意 EarRove 应用隐私政策</string>
+    <string name="privacy_app_checkbox">同意声眸 EchoEye 应用隐私政策</string>
     <string name="privacy_baidu_checkbox">同意百度地图SDK隐私政策</string>
     <string name="privacy_view_detail">查看详情</string>
     <string name="privacy_important_tip">重要提示：\n1. 导航功能需要百度地图SDK支持\n2. 语音识别与文字识别需要联网，语音与图片会上传至第三方识别服务\n3. 位置信息仅用于本机导航计算与周边地点检索</string>
     <string name="privacy_back">← 返回</string>
-    <string name="privacy_detail_title">EarRove 隐私政策</string>
+    <string name="privacy_detail_title">声眸 EchoEye 隐私政策</string>
     <string name="privacy_baidu_detail_title">百度地图SDK隐私政策</string>
     <string name="privacy_baidu_note">注意：\n百度地图SDK是本应用导航功能的核心依赖。\n如果您不同意百度地图的隐私政策，将无法使用导航功能。</string>
     <string name="privacy_agree_and_start">同意并开始使用</string>

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.contentDescription
@@ -75,6 +77,7 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -111,6 +114,7 @@ import com.example.earrove.domain.arbitration.AccessibilityEvent
 import com.example.earrove.utils.Arbitrator
 import com.example.earrove.utils.BaiduMapUtils
 import com.example.earrove.utils.NearbyPoiCandidate
+import com.example.earrove.utils.NavigationTextFormat
 import com.example.earrove.utils.DestinationExtractor
 import com.example.earrove.utils.LocationManager
 import com.example.earrove.utils.PermissionUtils
@@ -144,6 +148,7 @@ import androidx.compose.foundation.verticalScroll
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.CoordType
 import androidx.compose.material.icons.filled.LocationOff
+import com.example.earrove.domain.arbitration.TurnDirection
 
 // 导航状态枚举
 enum class NavigationState {
@@ -632,6 +637,7 @@ fun NavigationScreen(
     // 其他管理器初始化（TTS 由 EarRoveApp 持有，避免离开导航页 dispose 时 release 打断跳转后的播报）
     val vibrationManager = rememberVibrationManager()
     val speechRecognizer = rememberSpeechRecognizer()
+    val recognizedPartial by speechRecognizer.partialText.collectAsState()
     val arbitrator = rememberArbitrator(context, ttsManager, vibrationManager)
 
     // 初始化导航服务
@@ -647,6 +653,15 @@ fun NavigationScreen(
         delay(500) // 避免与系统语音冲突
         if (viewModel.navigationState.value == NavigationState.STANDBY) {
             ttsManager.speak(context.getString(R.string.nav_tts_prompt_center_mic))
+        }
+    }
+
+    // 离开导航页时中断语音并取消录音，避免返回首页后仍在播放或一直「读取中」
+    DisposableEffect(ttsManager) {
+        onDispose {
+            ttsManager.stop()
+            listeningJob?.cancel()
+            speechRecognizer.cancel()
         }
     }
 
@@ -866,6 +881,7 @@ fun NavigationScreen(
                     // 取消旧的录音和路线规划
                     listeningJob?.cancel()
                     speechRecognizer.cancel()
+                    speechRecognizer.clearPartialText()
                     ttsManager.stop()
 
                     // UI 切换到监听动画
@@ -881,17 +897,30 @@ fun NavigationScreen(
                                 if (result.isNotBlank()) {
                                     val placeName = destinationExtractor.extract(result)
                                     viewModel.destinationText.value = placeName
+                                    // 输入不合理（过短/无汉字/乱码）时提示重新讲，不做无谓的地理编码
+                                    if (!isReasonableDestination(placeName)) {
+                                        ttsManager.speak(context.getString(R.string.nav_tts_voice_unreasonable))
+                                        viewModel.navigationState.value = NavigationState.STANDBY
+                                        return@collectLatest
+                                    }
                                     // 优先使用 POI 周边搜索（就近匹配），无当前位置时回退到全国地理编码
                                     val currentLoc = viewModel.currentLocation.value
-                                    val location = if (currentLoc != null) {
-                                        BaiduMapUtils.searchNearby(
+                                    var location: LatLng? = null
+                                    if (currentLoc != null && !BaiduMapUtils.hasExplicitRegion(placeName)) {
+                                        location = BaiduMapUtils.searchNearby(
                                             placeName,
                                             LatLng(currentLoc.latitude, currentLoc.longitude)
                                         ).first()
-                                    } else {
-                                        BaiduMapUtils.resolveAddressOrPoiToLatLng(placeName)
+                                    }
+                                    // 未就近命中（或用户指定了省市）时，回退到地理编码/Sug/城市 POI 兜底
+                                    if (location == null) {
+                                        location = BaiduMapUtils.resolveAddressOrPoiToLatLng(placeName)
                                     }
                                     if (location != null) {
+                                        // 解析出目的地后先播报确认，再开始导航
+                                        ttsManager.speakAndWait(
+                                            context.getString(R.string.nav_confirm_destination_template, placeName)
+                                        )
                                         planAndStartNavigation(placeName, location)
                                     } else {
                                         ttsManager.speak(context.getString(R.string.nav_tts_cannot_find_destination))
@@ -920,12 +949,18 @@ fun NavigationScreen(
             ListeningScreen(
                 viewModel = viewModel,
                 navController = navController,
+                partialText = recognizedPartial,
                 onCancel = {
                     // 取消父级录音协程，释放音频资源后再播报
                     listeningJob?.cancel()
                     speechRecognizer.cancel()
+                    speechRecognizer.clearPartialText()
                     viewModel.navigationState.value = NavigationState.STANDBY
                     ttsManager.speak(context.getString(R.string.nav_tts_cancelled_voice_input))
+                },
+                onSubmit = {
+                    // 手动提交：发送 finish-task，让服务端尽快返回已识别文本并走目的地解析
+                    speechRecognizer.stopListening()
                 }
             )
         }
@@ -1343,13 +1378,15 @@ private fun StandbyScreen(
                                                     ttsManager.speak(locatingRetrySpeak)
                                                     return@DestinationSuggestionButton
                                                 }
+                                                // 按钮文案含 \n 用于分行，但列表标题与语音播报应使用单行文案
+                                                val destinationLabel = destination.label.replace("\n", "")
                                                 ttsManager.speak(
                                                     context.getString(
                                                         R.string.nav_plan_to_destination_template,
-                                                        destination.label
+                                                        destinationLabel
                                                     )
                                                 )
-                                                selectedCategoryLabel = destination.label
+                                                selectedCategoryLabel = destinationLabel
                                                 showCandidateSheet = true
                                                 isLoadingCandidates = true
                                                 candidateList = emptyList()
@@ -1486,6 +1523,7 @@ private fun DestinationSuggestionButton(
 ) {
     Surface(
         modifier = modifier
+            .height(64.dp) // 统一按钮高度，容纳两行文案
             .clickable { onClick() },
         shape = MaterialTheme.shapes.medium,
         color = PremiumGold.copy(alpha = 0.1f),
@@ -1494,31 +1532,84 @@ private fun DestinationSuggestionButton(
             PremiumGold.copy(alpha = 0.3f)
         )
     ) {
-        Text(
-            text = destination,
-            style = MaterialTheme.typography.bodyMedium,
-            color = PureWhite,
-            textAlign = TextAlign.Center,
+        Box(
             modifier = Modifier
-                .padding(12.dp)
-                .semantics { this.contentDescription = contentDescription }
-        )
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = destination,
+                style = MaterialTheme.typography.bodyMedium,
+                color = PureWhite,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.semantics { this.contentDescription = contentDescription }
+            )
+        }
     }
 }
 
-private fun formatDistance(distanceMeters: Int): String {
-    return if (distanceMeters >= 1000) {
-        String.format("%.1f公里", distanceMeters / 1000f)
-    } else {
-        "${distanceMeters}米"
+private fun formatDistance(distanceMeters: Int): String =
+    NavigationTextFormat.formatDistance(distanceMeters)
+
+private fun formatDurationSeconds(seconds: Int): String =
+    NavigationTextFormat.formatDurationSeconds(seconds)
+
+private fun formatDurationMinutes(minutes: Int): String =
+    NavigationTextFormat.formatDurationMinutes(minutes)
+
+/**
+ * 语音输入目的地合理性校验（比家地址宽松）：长度≥2、含汉字、无替换字符即可，
+ * 不做家地址的拉丁乱码等严格判断。
+ */
+private fun isReasonableDestination(placeName: String): Boolean {
+    val normalized = placeName.trim().filter { !it.isISOControl() }
+    if (normalized.length < 2) return false
+    if ('�' in normalized) return false
+    return normalized.any { it.code in 0x4E00..0x9FFF }
+}
+
+/**
+ * 长指令按标点换行：仅当文本超过约一行（>12 字）时处理；贪心拼行，
+ * 避免每个标点都断行。
+ */
+private fun wrapInstructionByPunctuation(instruction: String): String {
+    if (instruction.length <= 12) return instruction
+
+    val punctuation = charArrayOf('，', '。', '；', '、', '！', '？', '：', ',', '.', ';', ':')
+    val segments = mutableListOf<String>()
+    val sb = StringBuilder()
+    for (ch in instruction) {
+        sb.append(ch)
+        if (ch in punctuation) {
+            segments.add(sb.toString())
+            sb.setLength(0)
+        }
     }
+    if (sb.isNotEmpty()) segments.add(sb.toString())
+
+    val target = 12
+    val result = StringBuilder()
+    var line = ""
+    for (seg in segments) {
+        if (line.isNotEmpty() && line.length + seg.length > target) {
+            result.append(line.trim()).append('\n')
+            line = seg
+        } else {
+            line += seg
+        }
+    }
+    if (line.isNotEmpty()) result.append(line.trim())
+    return result.toString()
 }
 
 @Composable
 private fun ListeningScreen(
     viewModel: NavigationViewModel,
     navController: NavController,
-    onCancel: () -> Unit
+    partialText: String,
+    onCancel: () -> Unit,
+    onSubmit: () -> Unit
 ) {
     val listeningPulse by animateFloatAsState(
         targetValue = if ((System.currentTimeMillis() / 500) % 2 == 0L) 1.1f else 0.9f,
@@ -1563,28 +1654,68 @@ private fun ListeningScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 实时识别文字
+                if (partialText.isNotBlank()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = PureWhite.copy(alpha = 0.12f)
+                        )
+                    ) {
+                        Text(
+                            text = partialText,
+                            color = PremiumGold,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                                .semantics { liveRegion = LiveRegionMode.Polite }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
                 // 提示文字
                 Text(
                     text = stringResource(id = R.string.nav_listening_prompt),
                     style = MaterialTheme.typography.headlineMedium,
                     color = PureWhite,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 取消按钮
-                Button(
-                    onClick = onCancel,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = WarningOrange.copy(alpha = 0.8f),
-                        contentColor = PureBlack
-                    )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = stringResource(id = R.string.nav_cancel_voice_input))
+                    // 提交按钮
+                    Button(
+                        onClick = onSubmit,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PremiumGold,
+                            contentColor = PureBlack
+                        )
+                    ) {
+                        Text(text = stringResource(id = R.string.nav_submit_voice_input))
+                    }
+
+                    // 取消按钮
+                    Button(
+                        onClick = onCancel,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = WarningOrange.copy(alpha = 0.8f),
+                            contentColor = PureBlack
+                        )
+                    ) {
+                        Text(text = stringResource(id = R.string.nav_cancel_voice_input))
+                    }
                 }
             }
         }
@@ -1751,14 +1882,14 @@ private fun NavigatingScreen(
                             ) {
                                 // 转向图标
                                 val turnIcon = when (step.turnType) {
-                                    "LEFT" -> Icons.Default.RotateLeft
-                                    "RIGHT" -> Icons.Default.RotateRight
-                                    else -> Icons.Default.Navigation
+                                    TurnDirection.LEFT  -> Icons.Default.RotateLeft
+                                    TurnDirection.RIGHT -> Icons.Default.RotateRight
+                                    else                -> Icons.Default.Navigation
                                 }
 
                                 Icon(
                                     imageVector = turnIcon,
-                                    contentDescription = step.turnType,
+                                    contentDescription = step.turnType.toString(),
                                     tint = PremiumGold,
                                     modifier = Modifier.size(32.dp)
                                 )
@@ -1766,7 +1897,7 @@ private fun NavigatingScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
 
                                 Text(
-                                    text = step.instruction,
+                                    text = wrapInstructionByPunctuation(step.instruction),
                                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 22.sp),
                                     color = PureWhite,
                                     textAlign = TextAlign.Center,
@@ -1782,12 +1913,12 @@ private fun NavigatingScreen(
                             ) {
                                 StatusChip(
                                     label = stringResource(id = R.string.nav_label_distance),
-                                    value = stringResource(id = R.string.nav_value_meters, step.distance),
+                                    value = formatDistance(step.distance),
                                     icon = Icons.Default.Navigation
                                 )
                                 StatusChip(
                                     label = stringResource(id = R.string.nav_label_time),
-                                    value = stringResource(id = R.string.nav_value_seconds, step.duration),
+                                    value = formatDurationSeconds(step.duration),
                                     icon = Icons.Default.VolumeUp
                                 )
                             }
@@ -1804,15 +1935,15 @@ private fun NavigatingScreen(
                 ) {
                     StatusItem(
                         label = stringResource(id = R.string.nav_label_total_distance),
-                        value = stringResource(id = R.string.nav_value_meters, viewModel.totalDistance.value)
+                        value = formatDistance(viewModel.totalDistance.value)
                     )
                     StatusItem(
                         label = stringResource(id = R.string.nav_label_remaining),
-                        value = stringResource(id = R.string.nav_value_meters, viewModel.remainingDistance.value)
+                        value = formatDistance(viewModel.remainingDistance.value)
                     )
                     StatusItem(
                         label = stringResource(id = R.string.nav_label_remaining_time),
-                        value = stringResource(id = R.string.nav_value_minutes, viewModel.remainingTime.value)
+                        value = formatDurationMinutes(viewModel.remainingTime.value)
                     )
                 }
             }
@@ -1919,97 +2050,86 @@ private fun NavigationControlBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(PureBlack.copy(alpha = 0.9f))
-                    .padding(AppSpacing.large)
-                    .semantics { isTraversalGroup = true },
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(AppSpacing.large)
+            .semantics { isTraversalGroup = true },
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.medium)
     ) {
         // 下一步按钮
-        Button(
+        NavigationControlButton(
             onClick = onNextStep,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = PremiumGold.copy(alpha = 0.8f),
-                contentColor = PureBlack
-            ),
+            icon = Icons.Default.PlayArrow,
+            label = stringResource(id = R.string.nav_next_step),
+            a11yDesc = nextStepA11y,
+            containerColor = PremiumGold.copy(alpha = 0.8f),
+            traversalIndex = 0f,
             modifier = Modifier.weight(1f)
-                .semantics {
-                    traversalIndex = 0f
-                    contentDescription = nextStepA11y
-                }
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = stringResource(id = R.string.nav_next_step)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = stringResource(id = R.string.nav_next_step))
-            }
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
+        )
 
         // 暂停/继续按钮
-        Button(
+        NavigationControlButton(
             onClick = onPause,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = PremiumGold.copy(alpha = 0.8f),
-                contentColor = PureBlack
-            ),
+            icon = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+            label = stringResource(id = if (isPaused) R.string.nav_continue else R.string.nav_pause),
+            a11yDesc = if (isPaused) resumeStateA11y else pauseStateA11y,
+            containerColor = PremiumGold.copy(alpha = 0.8f),
+            traversalIndex = 1f,
             modifier = Modifier.weight(1f)
-                .semantics {
-                    traversalIndex = 1f
-                    contentDescription = if (isPaused) resumeStateA11y else pauseStateA11y
-                }
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                    contentDescription = if (isPaused) {
-                        stringResource(id = R.string.nav_continue)
-                    } else {
-                        stringResource(id = R.string.nav_pause)
-                    }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (isPaused) {
-                        stringResource(id = R.string.nav_continue)
-                    } else {
-                        stringResource(id = R.string.nav_pause)
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
+        )
 
         // 结束导航按钮
-        Button(
+        NavigationControlButton(
             onClick = onStop,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = WarningOrange.copy(alpha = 0.8f),
-                contentColor = PureBlack
-            ),
+            icon = Icons.Default.Stop,
+            label = stringResource(id = R.string.nav_end_navigation),
+            a11yDesc = endA11y,
+            containerColor = WarningOrange.copy(alpha = 0.8f),
+            traversalIndex = 2f,
             modifier = Modifier.weight(1f)
-                .semantics {
-                    traversalIndex = 2f
-                    contentDescription = endA11y
-                }
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Stop,
-                    contentDescription = stringResource(id = R.string.nav_end_navigation)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = stringResource(id = R.string.nav_end_navigation))
+        )
+    }
+}
+
+@Composable
+private fun NavigationControlButton(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    label: String,
+    a11yDesc: String,
+    containerColor: Color,
+    traversalIndex: Float,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = PureBlack
+        ),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+        modifier = modifier
+            .height(68.dp)
+            .semantics {
+                this.traversalIndex = traversalIndex
+                contentDescription = a11yDesc
             }
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(AppSize.iconMedium)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

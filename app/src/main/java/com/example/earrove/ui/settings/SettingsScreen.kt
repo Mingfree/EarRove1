@@ -157,63 +157,38 @@ fun SettingsScreen(navController: NavController) {
                 }
             )
 
-            SettingItem(
+            ToggleSettingItem(
                 title = hapticTitle,
-                content = {
-                    Switch(
-                        checked = uiState.hapticEnabled,
-                        onCheckedChange = { viewModel.onHapticEnabledChange(it) },
-                        modifier = Modifier.semantics {
-                            contentDescription = a11yHapticToggleDesc
-                        }
-                    )
-                }
+                checked = uiState.hapticEnabled,
+                onCheckedChange = { viewModel.onHapticEnabledChange(it) },
+                a11yDesc = a11yHapticToggleDesc
             )
 
-            Row(
+            ToggleSettingItem(
+                title = simulatedNavAlertsTitle,
+                subtitle = simulatedNavAlertsSubtitle,
+                checked = uiState.simulatedNavAlertsEnabled,
+                onCheckedChange = { viewModel.onSimulatedNavAlertsChange(it) },
+                a11yDesc = a11ySimulatedNavAlertsDesc
+            )
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = AppSpacing.large),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(vertical = AppSpacing.large)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = simulatedNavAlertsTitle,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = simulatedNavAlertsSubtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.semantics { hideFromAccessibility() }
-                    )
-                }
-                Box(modifier = Modifier.weight(1f)) {
-                    Switch(
-                        checked = uiState.simulatedNavAlertsEnabled,
-                        onCheckedChange = { viewModel.onSimulatedNavAlertsChange(it) },
-                        modifier = Modifier.semantics {
-                            contentDescription = a11ySimulatedNavAlertsDesc
-                        }
-                    )
+                Text(
+                    text = privacyTitle,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { showRevokeDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = revokeButtonText)
                 }
             }
-
-            SettingItem(
-                title = privacyTitle,
-                content = {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { showRevokeDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = revokeButtonText)
-                        }
-                    }
-                }
-            )
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -322,6 +297,46 @@ private fun SettingItem(title: String, content: @Composable () -> Unit) {
         Box(modifier = Modifier.weight(1f)) {
             content()
         }
+    }
+}
+
+@Composable
+private fun ToggleSettingItem(
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    a11yDesc: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = AppSpacing.large),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { hideFromAccessibility() }
+                )
+            }
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics {
+                contentDescription = a11yDesc
+            }
+        )
     }
 }
 

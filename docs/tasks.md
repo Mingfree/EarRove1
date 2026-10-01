@@ -254,6 +254,8 @@
 
 ### P4-T2 新增 UI 冒烟测试（主页跳转 + 设置保存）
 - **关注点**：关键路径可用性
+- **状态**：✅ 已完成（代码落地；`connectedAndroidTest` 需真机/模拟器执行）
+- **实现说明**：`SmokeNavigationAndSettingsTest` 由 1 个 `@Test` 扩展为 3 个——`home_to_settings_save_home_address_persists`（既有，顺带把硬编码「保存家地址」改为 `R.string.settings_home_address_save`）、`home_to_navigation_screen_jumps`、`home_to_ocr_screen_jumps`。门禁处理抽为 `dismissStartupGates()` 复用；`grantRuntimePermissionsForTest()` 由「从未调用」改为 `@Before` 预授权（Activity 启动后执行，避免进入导航/OCR 时触发系统权限弹窗）。
 - **开始**：
   - 在 `androidTest` 增加 Compose UI test
 - **结束（DoD）**：

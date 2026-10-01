@@ -197,6 +197,8 @@
 
 ### P3-T1 抽离 `settings` 与 `privacy` 为独立 data/domain 层
 - **关注点**：模块边界
+- **状态**：✅ 已完成
+- **实现说明**：`PrivacyRepositoryImpl` 此前是纯转发，`PrivacyUtils` 混了 SharedPreferences 存取 / 百度 SDK 生命周期 / 政策文本三件事。现将 prefs 文件名与 4 个 key 的读写下沉到 `PrivacyRepositoryImpl`（`by lazy` 建 prefs），`PrivacyUtils` 退化为纯文本 + SDK 生命周期工具（新增回调式 `initializeBaiduSdk` 原语）。顺带：`clearAllPrivacyAgreements` 现一并清除 `KEY_FIRST_LAUNCH`；移除 `PrivacyUtils` 中零引用的 `CheckPrivacyAgreements` / `CheckBaiduSDKInitialization` / `PrivacyAgreementStatus`。**存储契约保持不变**（文件名 `earrove_privacy_preferences` 与 key 名未改，androidTest 预置依赖），改动限定在「读写位置」而非「存储契约」。
 - **开始**：
   - 新建 `data/settings`、`data/privacy`、`domain/usecase` 包
 - **结束（DoD）**：

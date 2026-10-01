@@ -1,176 +1,20 @@
 package com.example.earrove.utils
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import com.baidu.mapapi.CoordType
 import com.baidu.mapapi.SDKInitializer
-import androidx.compose.runtime.LaunchedEffect
 
 /**
- * 隐私政策工具类
- * 负责管理百度地图SDK和其他第三方服务的隐私政策同意状态
+ * 隐私政策文本与百度地图 SDK 生命周期工具类。
+ *
+ * 隐私同意状态的持久化（SharedPreferences 文件与 key）已下沉到
+ * `data/privacy/PrivacyRepositoryImpl`，本类只保留与存储无关的职责：
+ * 政策文本、SDK 初始化与状态检查。
  */
 object PrivacyUtils {
-
-    // SharedPreferences 键名
-    private const val PREFS_NAME = "earrove_privacy_preferences"
-    private const val KEY_BAIDU_MAP_PRIVACY_AGREED = "baidu_map_privacy_agreed"
-    private const val KEY_APP_PRIVACY_AGREED = "app_privacy_agreed"
-    private const val KEY_FIRST_LAUNCH = "first_launch"
-    private const val KEY_BAIDU_SDK_INITIALIZED = "baidu_sdk_initialized"
-
-    /**
-     * 检查是否为首次启动应用
-     */
-    fun isFirstLaunch(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_FIRST_LAUNCH, true)
-    }
-
-    /**
-     * 标记应用已不是首次启动
-     */
-    fun markAsNotFirstLaunch(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_FIRST_LAUNCH, false).apply()
-    }
-
-    /**
-     * 检查用户是否已同意应用隐私政策
-     */
-    fun hasUserAgreedToAppPrivacy(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_APP_PRIVACY_AGREED, false)
-    }
-
-    /**
-     * 保存应用隐私政策同意状态
-     */
-    fun saveAppPrivacyAgreement(context: Context, agreed: Boolean) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_APP_PRIVACY_AGREED, agreed).apply()
-        Log.d("PrivacyUtils", "应用隐私政策同意状态已保存: $agreed")
-    }
-
-    /**
-     * 检查用户是否已同意百度地图隐私政策
-     */
-    fun hasUserAgreedToBaiduMapPrivacy(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_BAIDU_MAP_PRIVACY_AGREED, false)
-    }
-
-    /**
-     * 检查百度地图SDK是否已标记为已初始化
-     */
-    fun isBaiduSDKMarkedAsInitialized(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_BAIDU_SDK_INITIALIZED, false)
-    }
-
-    /**
-     * 标记百度地图SDK为已初始化
-     */
-    fun markBaiduSDKAsInitialized(context: Context, initialized: Boolean) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_BAIDU_SDK_INITIALIZED, initialized).apply()
-        Log.d("PrivacyUtils", "百度地图SDK初始化状态已保存: $initialized")
-    }
-
-    /**
-     * 保存百度地图隐私政策同意状态并初始化SDK
-     * 重要：必须使用 Application Context
-     * 关键修复：添加延迟确保隐私政策设置生效
-     */
-    fun saveBaiduMapPrivacyAgreement(context: Context, agreed: Boolean) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_BAIDU_MAP_PRIVACY_AGREED, agreed).apply()
-
-        if (agreed) {
-            try {
-                val appContext = context.applicationContext
-
-                Log.d("PrivacyUtils", "开始设置百度地图隐私政策同意")
-
-                Handler(Looper.getMainLooper()).post {
-                    try {
-                        Log.d("PrivacyUtils", "调用 SDKInitializer.setAgreePrivacy")
-                        SDKInitializer.setAgreePrivacy(appContext, true)
-                        Log.d("PrivacyUtils", "百度地图隐私政策已设置同意")
-
-                        // 延迟初始化SDK（确保隐私政策设置生效）
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            try {
-                                if (!SDKInitializer.isInitialized()) {
-                                    Log.d("PrivacyUtils", "开始初始化百度地图SDK...")
-                                    SDKInitializer.initialize(appContext)
-                                    SDKInitializer.setCoordType(CoordType.BD09LL)
-
-                                    markBaiduSDKAsInitialized(appContext, true)
-                                    Log.d("PrivacyUtils", "百度地图SDK初始化成功")
-                                } else {
-                                    Log.d("PrivacyUtils", "百度地图SDK已经初始化")
-                                    markBaiduSDKAsInitialized(appContext, true)
-                                }
-                            } catch (e: Exception) {
-                                Log.e("PrivacyUtils", "百度地图SDK初始化失败: ${e.message}", e)
-                                markBaiduSDKAsInitialized(appContext, false)
-                            }
-                        }, 500) // 延迟500ms确保隐私政策设置生效
-
-                    } catch (e: Exception) {
-                        Log.e("PrivacyUtils", "设置百度地图隐私政策失败: ${e.message}", e)
-                        markBaiduSDKAsInitialized(appContext, false)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("PrivacyUtils", "设置百度地图隐私政策失败: ${e.message}", e)
-                markBaiduSDKAsInitialized(context.applicationContext, false)
-            }
-        } else {
-            Log.d("PrivacyUtils", "用户未同意百度地图隐私政策")
-            markBaiduSDKAsInitialized(context.applicationContext, false)
-        }
-    }
-
-    /**
-     * 一次性保存所有隐私政策同意状态
-     */
-    fun saveAllPrivacyAgreements(context: Context, appAgreed: Boolean, baiduMapAgreed: Boolean) {
-        saveAppPrivacyAgreement(context, appAgreed)
-        saveBaiduMapPrivacyAgreement(context, baiduMapAgreed)
-
-        if (appAgreed && baiduMapAgreed) {
-            Log.d("PrivacyUtils", "用户已同意所有隐私政策")
-        }
-    }
-
-    /**
-     * 检查所有必需的隐私政策是否都已同意
-     */
-    fun areAllPrivacyAgreementsAccepted(context: Context): Boolean {
-        return hasUserAgreedToAppPrivacy(context) &&
-                hasUserAgreedToBaiduMapPrivacy(context) &&
-                isBaiduSDKMarkedAsInitialized(context)
-    }
-
-    /**
-     * 清除所有隐私政策同意状态（用于测试或退出登录）
-     */
-    fun clearAllPrivacyAgreements(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .remove(KEY_APP_PRIVACY_AGREED)
-            .remove(KEY_BAIDU_MAP_PRIVACY_AGREED)
-            .remove(KEY_BAIDU_SDK_INITIALIZED)
-            .apply()
-        Log.d("PrivacyUtils", "所有隐私政策同意状态已清除")
-    }
 
     /**
      * 获取隐私政策的详细描述
@@ -239,119 +83,45 @@ object PrivacyUtils {
     }
 
     /**
-     * 尝试重新初始化SDK（当检测到未初始化时调用）
+     * 设置百度地图隐私政策并初始化 SDK（在主线程延迟执行，确保隐私设置生效）。
+     * 仅负责 SDK 生命周期，不直接读写偏好设置；初始化结果经回调返回，
+     * 由调用方（repository）决定如何持久化「已初始化」标记。
      */
-    fun retryBaiduSDKInitialization(context: Context, onSuccess: (() -> Unit)? = null, onFailure: ((String) -> Unit)? = null) {
-        if (!hasUserAgreedToBaiduMapPrivacy(context)) {
-            onFailure?.invoke("用户未同意百度地图隐私政策")
-            return
-        }
+    fun initializeBaiduSdk(
+        context: Context,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val appContext = context.applicationContext
 
         Handler(Looper.getMainLooper()).post {
             try {
-                val appContext = context.applicationContext
-
-                Log.d("PrivacyUtils", "开始重新初始化SDK，设置隐私政策")
+                Log.d("PrivacyUtils", "开始设置百度地图隐私政策同意")
                 SDKInitializer.setAgreePrivacy(appContext, true)
+                Log.d("PrivacyUtils", "百度地图隐私政策已设置同意")
 
+                // 延迟初始化SDK（确保隐私政策设置生效）
                 Handler(Looper.getMainLooper()).postDelayed({
                     try {
                         if (!SDKInitializer.isInitialized()) {
-                            Log.d("PrivacyUtils", "SDK未初始化，开始初始化")
+                            Log.d("PrivacyUtils", "开始初始化百度地图SDK...")
                             SDKInitializer.initialize(appContext)
                             SDKInitializer.setCoordType(CoordType.BD09LL)
-                            markBaiduSDKAsInitialized(appContext, true)
-                            Log.d("PrivacyUtils", "百度地图SDK重新初始化成功")
-                            onSuccess?.invoke()
+                            Log.d("PrivacyUtils", "百度地图SDK初始化成功")
                         } else {
-                            markBaiduSDKAsInitialized(appContext, true)
                             Log.d("PrivacyUtils", "百度地图SDK已经初始化")
-                            onSuccess?.invoke()
                         }
+                        onSuccess()
                     } catch (e: Exception) {
-                        Log.e("PrivacyUtils", "百度地图SDK重新初始化失败: ${e.message}")
-                        markBaiduSDKAsInitialized(appContext, false)
-                        onFailure?.invoke(e.message ?: "未知错误")
+                        Log.e("PrivacyUtils", "百度地图SDK初始化失败: ${e.message}", e)
+                        onFailure(e.message ?: "未知错误")
                     }
-                }, 300)
+                }, 500) // 延迟500ms确保隐私政策设置生效
+
             } catch (e: Exception) {
-                Log.e("PrivacyUtils", "重新设置隐私政策失败: ${e.message}")
-                onFailure?.invoke(e.message ?: "未知错误")
+                Log.e("PrivacyUtils", "设置百度地图隐私政策失败: ${e.message}", e)
+                onFailure(e.message ?: "未知错误")
             }
         }
     }
-
-    /**
-     * Composable函数：检查并请求隐私政策同意
-     * @param onAllAgreed 当所有隐私政策都同意时的回调
-     * @param onShowDialog 需要显示隐私政策对话框时的回调
-     */
-    @Composable
-    fun CheckPrivacyAgreements(
-        onAllAgreed: () -> Unit,
-        onShowDialog: () -> Unit
-    ) {
-        val context = LocalContext.current
-
-        LaunchedEffect(Unit) {
-            if (areAllPrivacyAgreementsAccepted(context)) {
-                // 所有隐私政策都已同意
-                onAllAgreed()
-            } else {
-                // 需要显示隐私政策对话框
-                onShowDialog()
-            }
-        }
-    }
-
-    /**
-     * Composable函数：检查百度地图SDK初始化状态
-     * @param onInitialized SDK已初始化的回调
-     * @param onNotInitialized SDK未初始化的回调
-     */
-    @Composable
-    fun CheckBaiduSDKInitialization(
-        onInitialized: () -> Unit,
-        onNotInitialized: () -> Unit
-    ) {
-        val context = LocalContext.current
-
-        LaunchedEffect(Unit) {
-            // 检查存储的初始化状态
-            val storedInitialized = isBaiduSDKMarkedAsInitialized(context)
-
-            if (storedInitialized) {
-                // 如果标记为已初始化，再检查实际状态
-                val actualInitialized = isBaiduSDKSafeInitialized()
-                if (actualInitialized) {
-                    onInitialized()
-                } else {
-                    // 存储状态与实际状态不一致，尝试重新初始化
-                    retryBaiduSDKInitialization(context,
-                        onSuccess = { onInitialized() },
-                        onFailure = { error ->
-                            Log.e("PrivacyUtils", "重新初始化失败: $error")
-                            onNotInitialized()
-                        }
-                    )
-                }
-            } else {
-                onNotInitialized()
-            }
-        }
-    }
-}
-
-/**
- * 隐私政策同意状态数据类
- */
-data class PrivacyAgreementStatus(
-    val appPrivacyAgreed: Boolean = false,
-    val baiduMapPrivacyAgreed: Boolean = false,
-    val baiduSDKInitialized: Boolean = false,
-    val firstLaunch: Boolean = true,
-    val lastAgreementTime: Long = 0
-) {
-    val allAgreed: Boolean
-        get() = appPrivacyAgreed && baiduMapPrivacyAgreed && baiduSDKInitialized
 }

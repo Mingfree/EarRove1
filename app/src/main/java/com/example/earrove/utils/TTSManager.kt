@@ -12,7 +12,6 @@ import android.util.Log
 import android.view.View
 import android.view.accessibility.AccessibilityManager
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CompletableDeferred
@@ -374,14 +373,5 @@ fun rememberTTSManager(): TTSManager {
     val app = context.applicationContext as? MyApplication
     return remember(context) {
         TTSManager(context, app?.container?.settingsRepository ?: SettingsRepositoryImpl(context))
-    }
-}
-
-@Composable
-fun TTSManagerEffect(ttsManager: TTSManager) {
-    DisposableEffect(Unit) {
-        onDispose {
-            ttsManager.release()
-        }
     }
 }

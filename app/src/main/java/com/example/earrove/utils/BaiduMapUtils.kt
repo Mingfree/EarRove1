@@ -362,55 +362,6 @@ object BaiduMapUtils {
     }
 
     /**
-     * 获取当前位置附近的推荐目的地名称（用于导航页推荐列表）。
-     */
-    fun searchNearbyPoiNames(
-        center: LatLng,
-        keyword: String = "生活服务",
-        radius: Int = 3000,
-        limit: Int = 8
-    ): Flow<List<String>> = callbackFlow {
-        val poiSearch = PoiSearch.newInstance()
-        val listener = object : OnGetPoiSearchResultListener {
-            override fun onGetPoiResult(result: PoiResult?) {
-                val names = if (result?.error == SearchResult.ERRORNO.NO_ERROR) {
-                    result.allPoi
-                        ?.mapNotNull { it.name?.trim() }
-                        ?.filter { it.isNotBlank() }
-                        ?.distinct()
-                        ?.take(limit)
-                        .orEmpty()
-                } else {
-                    Log.w(TAG, "周边 POI 名称检索失败: keyword=$keyword, error=${result?.error}")
-                    recordError(result?.error)
-                    emptyList()
-                }
-                trySend(names)
-                poiSearch.destroy()
-            }
-
-            override fun onGetPoiDetailResult(result: PoiDetailResult?) {}
-            override fun onGetPoiDetailResult(result: PoiDetailSearchResult?) {}
-            override fun onGetPoiIndoorResult(result: PoiIndoorResult?) {}
-        }
-
-        poiSearch.setOnGetPoiSearchResultListener(listener)
-        poiSearch.searchNearby(
-            PoiNearbySearchOption()
-                .keyword(keyword)
-                .location(center)
-                .radius(radius)
-                .sortType(PoiSortType.distance_from_near_to_far)
-                .pageNum(0)
-                .pageCapacity(limit)
-        )
-
-        awaitClose {
-            poiSearch.destroy()
-        }
-    }
-
-    /**
      * 获取附近候选 POI 列表（名称 + 坐标 + 距离），按距离从近到远排序。
      */
     fun searchNearbyPoiCandidates(

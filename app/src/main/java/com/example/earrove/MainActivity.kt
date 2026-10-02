@@ -594,23 +594,3 @@ fun EarRoveApp() {
         }
     }
 }
-
-/**
- * 添加缺失的导入（如果IDE没有自动导入）
- * 注意：以下导入可能需要手动添加，取决于你的IDE
- * TODO: 后续确认团队不再需要后可删除。
- */
-// import androidx.compose.foundation.background
-// import androidx.compose.foundation.clickable
-// import androidx.compose.foundation.layout.*
-// import androidx.compose.foundation.rememberScrollState
-// import androidx.compose.foundation.verticalScroll
-// import androidx.compose.material3.*
-// import androidx.compose.runtime.*
-// import androidx.compose.ui.Alignment
-// import androidx.compose.ui.Modifier
-// import androidx.compose.ui.platform.LocalContext
-// import androidx.compose.ui.text.style.TextAlign
-// import androidx.compose.ui.unit.dp
-// import com.example.earrove.ui.theme.*
-//import com.example.earrove.utils.PrivacyUtils

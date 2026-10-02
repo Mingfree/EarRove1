@@ -15,6 +15,7 @@
 .cxx
 .kotlin/
 local.properties
+/docs/保研材料
 
 # Python
 __pycache__/

@@ -10,26 +10,28 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Navigation
@@ -56,7 +58,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,16 +70,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,76 +89,68 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.baidu.location.BDLocation
+import com.baidu.mapapi.CoordType
+import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.map.BaiduMap
 import com.baidu.mapapi.map.MapStatusUpdateFactory
 import com.baidu.mapapi.map.MapView
 import com.baidu.mapapi.map.MyLocationConfiguration
 import com.baidu.mapapi.map.MyLocationData
 import com.baidu.mapapi.model.LatLng
+import com.example.earrove.R
+import com.example.earrove.data.privacy.PrivacyRepository
+import com.example.earrove.data.privacy.PrivacyRepositoryImpl
+import com.example.earrove.data.settings.SettingsRepository
+import com.example.earrove.data.settings.SettingsRepositoryImpl
+import com.example.earrove.domain.arbitration.AccessibilityEvent
+import com.example.earrove.domain.arbitration.ObstacleType
+import com.example.earrove.domain.arbitration.TrafficLightStatus
+import com.example.earrove.domain.arbitration.TurnDirection
 import com.example.earrove.navigation.NavigationService
 import com.example.earrove.navigation.NavigationStep
 import com.example.earrove.navigation.ObstacleDetectionService
-import com.example.earrove.navigation.TrafficLightService
 import com.example.earrove.navigation.TrafficLight
-import com.example.earrove.domain.arbitration.ObstacleType
-import com.example.earrove.domain.arbitration.TrafficLightStatus
+import com.example.earrove.navigation.TrafficLightService
 import com.example.earrove.ui.common.EarRoveTopAppBar
+import com.example.earrove.ui.theme.AppSize
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
 import com.example.earrove.ui.theme.WarningOrange
-import com.example.earrove.ui.theme.AppSize
-import com.example.earrove.ui.theme.AppSpacing
-import com.example.earrove.R
-import com.example.earrove.domain.arbitration.AccessibilityEvent
 import com.example.earrove.utils.Arbitrator
 import com.example.earrove.utils.BaiduMapUtils
-import com.example.earrove.utils.NearbyPoiCandidate
-import com.example.earrove.utils.NavigationTextFormat
 import com.example.earrove.utils.DestinationExtractor
 import com.example.earrove.utils.LocationManager
-import com.example.earrove.utils.PermissionUtils
+import com.example.earrove.utils.NavigationTextFormat
+import com.example.earrove.utils.NearbyPoiCandidate
 import com.example.earrove.utils.RequestPermissionsDialog
-import com.example.earrove.data.privacy.PrivacyRepository
-import com.example.earrove.data.privacy.PrivacyRepositoryImpl
-import com.example.earrove.data.settings.SettingsRepository
-import com.example.earrove.data.settings.SettingsRepositoryImpl
-import com.example.earrove.utils.SpeechRecognizerManager
 import com.example.earrove.utils.TTSManager
-import com.example.earrove.utils.VibrationManager
+import com.example.earrove.utils.labelRes
 import com.example.earrove.utils.rememberArbitrator
 import com.example.earrove.utils.rememberSpeechRecognizer
 import com.example.earrove.utils.rememberVibrationManager
-import com.example.earrove.utils.labelRes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import com.baidu.mapapi.SDKInitializer
-import com.baidu.mapapi.CoordType
-import androidx.compose.material.icons.filled.LocationOff
-import com.example.earrove.domain.arbitration.TurnDirection
+import kotlinx.coroutines.withTimeoutOrNull
 
 // 导航状态枚举
 enum class NavigationState {
-    STANDBY,          // 待机状态，等待语音输入
-    LISTENING,        // 正在监听语音
-    PLANNING_ROUTE,   // 规划路线中
-    NAVIGATING,       // 导航进行中
-    PAUSED,           // 导航暂停
-    ARRIVED           // 已到达目的地
+    STANDBY, // 待机状态，等待语音输入
+    LISTENING, // 正在监听语音
+    PLANNING_ROUTE, // 规划路线中
+    NAVIGATING, // 导航进行中
+    PAUSED, // 导航暂停
+    ARRIVED // 已到达目的地
 }
 
 // 导航屏幕的ViewModel
@@ -192,11 +185,7 @@ private enum class RecommendCategory {
     HOSPITAL
 }
 
-private data class DestinationSuggestion(
-    val category: RecommendCategory,
-    val label: String,
-    val query: String
-)
+private data class DestinationSuggestion(val category: RecommendCategory, val label: String, val query: String)
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -251,7 +240,12 @@ fun NavigationScreen(
                     Button(
                         onClick = {
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", (context as? Activity)?.packageName ?: context.packageName, null)
+                                data =
+                                    Uri.fromParts(
+                                        "package",
+                                        (context as? Activity)?.packageName ?: context.packageName,
+                                        null
+                                    )
                             }
                             context.startActivity(intent)
                         },
@@ -331,7 +325,6 @@ fun NavigationScreen(
 
                     Log.d("NavigationScreen", "百度地图SDK重新初始化成功")
                     isPrivacyPolicyAgreed = true
-
                 } catch (e: Exception) {
                     sdkInitializationError = context.getString(
                         R.string.nav_sdk_init_failed,
@@ -363,7 +356,6 @@ fun NavigationScreen(
             } else {
                 sdkInitializationError = context.getString(R.string.nav_location_unavailable)
             }
-
         } catch (e: Exception) {
             sdkInitializationError = context.getString(
                 R.string.nav_service_init_failed,
@@ -526,7 +518,11 @@ fun NavigationScreen(
             try {
                 val appContext = context.applicationContext
                 val locationClientClass = Class.forName("com.baidu.location.LocationClient")
-                val setAgreePrivacyMethod = locationClientClass.getMethod("setAgreePrivacy", android.content.Context::class.java, Boolean::class.java)
+                val setAgreePrivacyMethod = locationClientClass.getMethod(
+                    "setAgreePrivacy",
+                    android.content.Context::class.java,
+                    Boolean::class.java
+                )
                 setAgreePrivacyMethod.invoke(null, appContext, true)
                 Log.d("NavigationScreen", "LocationClient静态隐私政策已设置")
             } catch (e: Exception) {
@@ -685,7 +681,8 @@ fun NavigationScreen(
 
                         // 如果是首次定位、待机状态或导航中，移动到当前位置
                         if (viewModel.navigationState.value == NavigationState.NAVIGATING ||
-                            viewModel.navigationState.value == NavigationState.STANDBY) {
+                            viewModel.navigationState.value == NavigationState.STANDBY
+                        ) {
                             val latLng = LatLng(location.latitude, location.longitude)
                             val update = MapStatusUpdateFactory.newLatLng(latLng)
                             baiduMap.animateMapStatus(update)
@@ -1358,7 +1355,9 @@ private fun StandbyScreen(
                                                     scope.launch {
                                                         try {
                                                             val location = withContext(Dispatchers.IO) {
-                                                                baiduMapUtils.resolveAddressOrPoiToLatLng(latestHomeAddress)
+                                                                baiduMapUtils.resolveAddressOrPoiToLatLng(
+                                                                    latestHomeAddress
+                                                                )
                                                             }
                                                             if (location != null) {
                                                                 onStartNavigation(homeDestinationName, location)
@@ -1396,7 +1395,10 @@ private fun StandbyScreen(
                                                         val candidates = withContext(Dispatchers.IO) {
                                                             baiduMapUtils.searchNearbyPoiCandidates(
                                                                 keyword = destination.query,
-                                                                center = LatLng(currentLoc.latitude, currentLoc.longitude),
+                                                                center = LatLng(
+                                                                    currentLoc.latitude,
+                                                                    currentLoc.longitude
+                                                                ),
                                                                 limit = 5
                                                             ).first()
                                                         }
@@ -1549,14 +1551,11 @@ private fun DestinationSuggestionButton(
     }
 }
 
-private fun formatDistance(distanceMeters: Int): String =
-    NavigationTextFormat.formatDistance(distanceMeters)
+private fun formatDistance(distanceMeters: Int): String = NavigationTextFormat.formatDistance(distanceMeters)
 
-private fun formatDurationSeconds(seconds: Int): String =
-    NavigationTextFormat.formatDurationSeconds(seconds)
+private fun formatDurationSeconds(seconds: Int): String = NavigationTextFormat.formatDurationSeconds(seconds)
 
-private fun formatDurationMinutes(minutes: Int): String =
-    NavigationTextFormat.formatDurationMinutes(minutes)
+private fun formatDurationMinutes(minutes: Int): String = NavigationTextFormat.formatDurationMinutes(minutes)
 
 /**
  * 语音输入目的地合理性校验（比家地址宽松）：长度≥2、含汉字、无替换字符即可，
@@ -1723,10 +1722,7 @@ private fun ListeningScreen(
 }
 
 @Composable
-private fun PlanningRouteScreen(
-    destination: String,
-    navController: NavController
-) {
+private fun PlanningRouteScreen(destination: String, navController: NavController) {
     Scaffold(
         topBar = {
             EarRoveTopAppBar(
@@ -1882,9 +1878,9 @@ private fun NavigatingScreen(
                             ) {
                                 // 转向图标
                                 val turnIcon = when (step.turnType) {
-                                    TurnDirection.LEFT  -> Icons.Default.RotateLeft
+                                    TurnDirection.LEFT -> Icons.Default.RotateLeft
                                     TurnDirection.RIGHT -> Icons.Default.RotateRight
-                                    else                -> Icons.Default.Navigation
+                                    else -> Icons.Default.Navigation
                                 }
 
                                 Icon(
@@ -1964,18 +1960,18 @@ private fun NavigatingScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                                    text = stringResource(id = R.string.nav_obstacle_alert_title),
+                            text = stringResource(id = R.string.nav_obstacle_alert_title),
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                             color = PureBlack,
                             fontWeight = FontWeight.Black
                         )
                         Spacer(modifier = Modifier.height(AppSpacing.large))
                         Text(
-                                    text = stringResource(
-                                        id = R.string.nav_obstacle_alert_template,
-                                        viewModel.obstacleDistance.value,
-                                        stringResource(id = viewModel.obstacleType.value.labelRes())
-                                    ),
+                            text = stringResource(
+                                id = R.string.nav_obstacle_alert_template,
+                                viewModel.obstacleDistance.value,
+                                stringResource(id = viewModel.obstacleType.value.labelRes())
+                            ),
                             style = MaterialTheme.typography.headlineMedium,
                             color = PureBlack,
                             textAlign = TextAlign.Center
@@ -2008,8 +2004,10 @@ private fun NavigatingScreen(
                     ) {
                         Text(
                             text = stringResource(
-                                id = (viewModel.trafficLightStatus.value?.status
-                                    ?: TrafficLightStatus.NONE).labelRes()
+                                id = (
+                                    viewModel.trafficLightStatus.value?.status
+                                        ?: TrafficLightStatus.NONE
+                                    ).labelRes()
                             ),
                             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 36.sp),
                             color = PureBlack,
@@ -2135,11 +2133,7 @@ private fun NavigationControlButton(
 }
 
 @Composable
-private fun StatusChip(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
-) {
+private fun StatusChip(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -2188,12 +2182,7 @@ private fun StatusItem(label: String, value: String) {
 }
 
 @Composable
-private fun PausedScreen(
-    destination: String,
-    navController: NavController,
-    onResume: () -> Unit,
-    onStop: () -> Unit
-) {
+private fun PausedScreen(destination: String, navController: NavController, onResume: () -> Unit, onStop: () -> Unit) {
     Scaffold(
         topBar = {
             EarRoveTopAppBar(

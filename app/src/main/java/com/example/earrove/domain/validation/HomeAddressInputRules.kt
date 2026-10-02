@@ -12,14 +12,12 @@ object HomeAddressInputRules {
     /** 连续拉丁字母（如 sha、abc），用于识别「sha忒啦」类乱码 */
     private val latinLetterRun = Regex("[a-zA-Z]+")
 
-    fun normalize(raw: String): String {
-        return raw
-            .replace('\t', ' ')
-            .trim()
-            .filter { ch -> !ch.isISOControl() }
-            .replace(Regex("\\s+"), " ")
-            .trim()
-    }
+    fun normalize(raw: String): String = raw
+        .replace('\t', ' ')
+        .trim()
+        .filter { ch -> !ch.isISOControl() }
+        .replace(Regex("\\s+"), " ")
+        .trim()
 
     fun isFormatValid(normalized: String): Boolean {
         if (normalized.length < MIN_LENGTH || normalized.length > MAX_LENGTH) return false

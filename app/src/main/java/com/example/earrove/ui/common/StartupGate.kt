@@ -19,16 +19,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import com.example.earrove.R
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
-import com.example.earrove.R
 import com.example.earrove.utils.ConfigValidator
 import com.example.earrove.utils.PermissionUtils
 import com.example.earrove.utils.RequestPermissionsDialog
@@ -39,9 +39,7 @@ private fun isRunningInstrumentationTest(): Boolean = runCatching {
 }.getOrDefault(false)
 
 @Composable
-fun StartupConfigAndPermissionGate(
-    onReady: @Composable () -> Unit
-) {
+fun StartupConfigAndPermissionGate(onReady: @Composable () -> Unit) {
     var recheckToken by remember { mutableStateOf(0) }
     val context = LocalContext.current
     val configCheck = remember(recheckToken) { ConfigValidator.checkEssentialConfig(context) }
@@ -79,10 +77,7 @@ fun StartupConfigAndPermissionGate(
 }
 
 @Composable
-private fun ConfigMissingScreen(
-    missing: List<String>,
-    onRetry: () -> Unit
-) {
+private fun ConfigMissingScreen(missing: List<String>, onRetry: () -> Unit) {
     val title = stringResource(id = R.string.startup_config_missing_title)
     val hint = stringResource(id = R.string.startup_config_missing_hint)
     val cta = stringResource(id = R.string.startup_config_missing_cta)
@@ -115,7 +110,9 @@ private fun ConfigMissingScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth(),
-                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = PureWhite.copy(alpha = 0.06f))
+                colors = androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = PureWhite.copy(alpha = 0.06f)
+                )
             ) {
                 Column(modifier = Modifier.padding(AppSpacing.large)) {
                     missing.forEach { item ->
@@ -152,10 +149,7 @@ private fun ConfigMissingScreen(
 }
 
 @Composable
-private fun PermissionRequestScreen(
-    onGranted: () -> Unit,
-    onContinueWithoutPermissions: () -> Unit
-) {
+private fun PermissionRequestScreen(onGranted: () -> Unit, onContinueWithoutPermissions: () -> Unit) {
     val context = LocalContext.current
     var permissionDenied by remember { mutableStateOf(false) }
 
@@ -194,7 +188,9 @@ private fun PermissionRequestScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth(),
-                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = PureWhite.copy(alpha = 0.06f))
+                colors = androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = PureWhite.copy(alpha = 0.06f)
+                )
             ) {
                 Column(modifier = Modifier.padding(AppSpacing.large)) {
                     Text(
@@ -246,4 +242,3 @@ private fun PermissionRequestScreen(
         }
     }
 }
-

@@ -23,8 +23,7 @@ class OcrViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(OcrUiState())
     val uiState: StateFlow<OcrUiState> = _uiState.asStateFlow()
 
-    suspend fun recognizeImage(base64: String): Result<String> =
-        arkService.recognizeImage(base64)
+    suspend fun recognizeImage(base64: String): Result<String> = arkService.recognizeImage(base64)
 
     fun updateState(transform: (OcrUiState) -> OcrUiState) {
         _uiState.update(transform)

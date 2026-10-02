@@ -8,4 +8,3 @@ interface ArbitrationHaptics {
     fun vibrateForTurn(turnType: TurnDirection)
     fun vibrateForTrafficLight()
 }
-

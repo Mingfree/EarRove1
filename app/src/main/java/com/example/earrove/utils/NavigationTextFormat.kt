@@ -6,12 +6,10 @@ package com.example.earrove.utils
 object NavigationTextFormat {
 
     /** 距离简写：>=1000 米显示为公里（保留一位小数），否则显示米 */
-    fun formatDistance(distanceMeters: Int): String {
-        return if (distanceMeters >= 1000) {
-            String.format("%.1f公里", distanceMeters / 1000f)
-        } else {
-            "${distanceMeters}米"
-        }
+    fun formatDistance(distanceMeters: Int): String = if (distanceMeters >= 1000) {
+        String.format("%.1f公里", distanceMeters / 1000f)
+    } else {
+        "${distanceMeters}米"
     }
 
     /** 秒级时长：不足 1 分钟显示秒，否则转分钟 */

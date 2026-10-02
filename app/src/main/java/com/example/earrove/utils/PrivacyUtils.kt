@@ -19,8 +19,7 @@ object PrivacyUtils {
     /**
      * 获取隐私政策的详细描述
      */
-    fun getPrivacyPolicyText(): String {
-        return """
+    fun getPrivacyPolicyText(): String = """
         隐私政策声明
 
         1. 信息收集与使用
@@ -51,14 +50,12 @@ object PrivacyUtils {
         - 如有隐私相关问题，请联系：18346448989@163.com
 
         更新日期：2026年9月
-        """.trimIndent()
-    }
+    """.trimIndent()
 
     /**
      * 获取百度地图隐私政策摘要
      */
-    fun getBaiduMapPrivacySummary(): String {
-        return """
+    fun getBaiduMapPrivacySummary(): String = """
         百度地图SDK隐私政策摘要：
 
         1. 百度地图SDK会收集设备信息、位置信息用于地图服务
@@ -67,19 +64,16 @@ object PrivacyUtils {
         4. 详细政策请参考百度地图官方隐私政策
 
         注：本应用已配置百度地图SDK仅使用必要的最小权限。
-        """.trimIndent()
-    }
+    """.trimIndent()
 
     /**
      * 安全地检查SDK是否已初始化
      */
-    fun isBaiduSDKSafeInitialized(): Boolean {
-        return try {
-            SDKInitializer.isInitialized()
-        } catch (e: Exception) {
-            Log.e("PrivacyUtils", "检查SDK初始化状态失败: ${e.message}")
-            false
-        }
+    fun isBaiduSDKSafeInitialized(): Boolean = try {
+        SDKInitializer.isInitialized()
+    } catch (e: Exception) {
+        Log.e("PrivacyUtils", "检查SDK初始化状态失败: ${e.message}")
+        false
     }
 
     /**
@@ -87,11 +81,7 @@ object PrivacyUtils {
      * 仅负责 SDK 生命周期，不直接读写偏好设置；初始化结果经回调返回，
      * 由调用方（repository）决定如何持久化「已初始化」标记。
      */
-    fun initializeBaiduSdk(
-        context: Context,
-        onSuccess: () -> Unit,
-        onFailure: (String) -> Unit
-    ) {
+    fun initializeBaiduSdk(context: Context, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         val appContext = context.applicationContext
 
         Handler(Looper.getMainLooper()).post {
@@ -117,7 +107,6 @@ object PrivacyUtils {
                         onFailure(e.message ?: "未知错误")
                     }
                 }, 500) // 延迟500ms确保隐私政策设置生效
-
             } catch (e: Exception) {
                 Log.e("PrivacyUtils", "设置百度地图隐私政策失败: ${e.message}", e)
                 onFailure(e.message ?: "未知错误")

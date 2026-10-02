@@ -24,12 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.earrove.R
@@ -103,7 +102,13 @@ private fun HomeCard(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (backgroundColor == DeepGray) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
+                tint = if (backgroundColor ==
+                    DeepGray
+                ) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
                 modifier = Modifier.size(AppSize.fabLarge)
             )
             Spacer(modifier = Modifier.height(AppSpacing.xLarge))
@@ -111,7 +116,13 @@ private fun HomeCard(
                 text = title,
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = if (backgroundColor == DeepGray) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary
+                    color = if (backgroundColor ==
+                        DeepGray
+                    ) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
                 )
             )
             Spacer(modifier = Modifier.height(AppSpacing.small))
@@ -126,11 +137,7 @@ private fun HomeCard(
 }
 
 @Composable
-private fun BottomActionBar(
-    navController: NavController,
-    settingsText: String,
-    helpText: String
-) {
+private fun BottomActionBar(navController: NavController, settingsText: String, helpText: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

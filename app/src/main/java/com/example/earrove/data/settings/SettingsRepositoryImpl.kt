@@ -2,31 +2,26 @@ package com.example.earrove.data.settings
 
 import android.content.Context
 
-class SettingsRepositoryImpl(
-    context: Context
-) : SettingsRepository {
+class SettingsRepositoryImpl(context: Context) : SettingsRepository {
 
     private val appContext = context.applicationContext
 
     private val prefs
         get() = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    override fun getTtsSpeechRate(): Float =
-        prefs.getFloat(KEY_TTS_SPEECH_RATE, 1.0f)
+    override fun getTtsSpeechRate(): Float = prefs.getFloat(KEY_TTS_SPEECH_RATE, 1.0f)
 
     override fun setTtsSpeechRate(value: Float) {
         prefs.edit().putFloat(KEY_TTS_SPEECH_RATE, value).apply()
     }
 
-    override fun isHapticEnabled(): Boolean =
-        prefs.getBoolean(KEY_HAPTIC_ENABLED, true)
+    override fun isHapticEnabled(): Boolean = prefs.getBoolean(KEY_HAPTIC_ENABLED, true)
 
     override fun setHapticEnabled(value: Boolean) {
         prefs.edit().putBoolean(KEY_HAPTIC_ENABLED, value).apply()
     }
 
-    override fun isSimulatedNavAlertsEnabled(): Boolean =
-        prefs.getBoolean(KEY_SIMULATED_NAV_ALERTS, false)
+    override fun isSimulatedNavAlertsEnabled(): Boolean = prefs.getBoolean(KEY_SIMULATED_NAV_ALERTS, false)
 
     override fun setSimulatedNavAlertsEnabled(value: Boolean) {
         prefs.edit().putBoolean(KEY_SIMULATED_NAV_ALERTS, value).apply()

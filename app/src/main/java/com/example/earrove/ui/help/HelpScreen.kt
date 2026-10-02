@@ -84,11 +84,7 @@ fun HelpScreen(navController: NavController) {
 }
 
 @Composable
-private fun HelpCard(
-    icon: ImageVector,
-    title: String,
-    content: String
-) {
+private fun HelpCard(icon: ImageVector, title: String, content: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DeepGray),

@@ -13,28 +13,21 @@ import com.example.earrove.R
  */
 object ConfigValidator {
 
-    data class CheckResult(
-        val missing: List<String>,
-        val isOk: Boolean
-    )
+    data class CheckResult(val missing: List<String>, val isOk: Boolean)
 
     private fun isDashScopeMissing(): Boolean {
         val v = BuildConfig.DASHSCOPE_API_KEY
         return v.isBlank() || v.startsWith("sk-YOUR")
     }
 
-    private fun isYourMissing(v: String): Boolean {
-        return v.isBlank() || v.startsWith("YOUR-")
-    }
+    private fun isYourMissing(v: String): Boolean = v.isBlank() || v.startsWith("YOUR-")
 
-    private fun isRunningInstrumentationTest(): Boolean {
-        return runCatching {
-            val clazz = Class.forName("androidx.test.platform.app.InstrumentationRegistry")
-            val method = clazz.getMethod("getInstrumentation")
-            method.invoke(null)
-            true
-        }.getOrDefault(false)
-    }
+    private fun isRunningInstrumentationTest(): Boolean = runCatching {
+        val clazz = Class.forName("androidx.test.platform.app.InstrumentationRegistry")
+        val method = clazz.getMethod("getInstrumentation")
+        method.invoke(null)
+        true
+    }.getOrDefault(false)
 
     fun checkEssentialConfig(context: Context): CheckResult {
         // androidTest 环境下不应被本地占位符配置拦截（避免 UI 冒烟测试无法运行）
@@ -70,4 +63,3 @@ object ConfigValidator {
         )
     }
 }
-

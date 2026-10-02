@@ -1,9 +1,9 @@
 package com.example.earrove.ui.ocr
 
 import android.Manifest
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.ClipData
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -46,8 +46,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,50 +56,47 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.R
+import com.example.earrove.ui.common.EarRoveTopAppBar
+import com.example.earrove.ui.theme.AppSize
+import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
-import com.example.earrove.ui.theme.AppSize
-import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.utils.TTSManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import kotlinx.coroutines.launch
 
 private const val TAG = "EarRove_OcrScreen"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun OcrScreen(
-    navController: NavController,
-    ttsManager: TTSManager
-) {
+fun OcrScreen(navController: NavController, ttsManager: TTSManager) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val ocrViewModel: OcrViewModel = viewModel()
@@ -224,7 +221,7 @@ fun OcrScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                            .padding(AppSpacing.large)
+                        .padding(AppSpacing.large)
                         .align(Alignment.TopCenter),
                     colors = CardDefaults.cardColors(
                         containerColor = PureBlack.copy(alpha = 0.7f)
@@ -518,7 +515,6 @@ private fun CameraPreview(
 
                     onCameraReady(cam)
                     Log.d(TAG, "CameraX 绑定成功")
-
                 } catch (e: Exception) {
                     Log.e(TAG, "CameraX 绑定失败: ${e.message}", e)
                 }
@@ -565,11 +561,10 @@ private fun captureAndRecognize(
                         }.onFailure { error ->
                             onError(error.message ?: context.getString(R.string.ocr_unknown_error))
                         }
-
                     } catch (e: Exception) {
                         imageProxy.close()
-                    Log.e(TAG, "处理图片异常: ${e.message}", e)
-                    onError(e.message ?: context.getString(R.string.ocr_process_image_failed))
+                        Log.e(TAG, "处理图片异常: ${e.message}", e)
+                        onError(e.message ?: context.getString(R.string.ocr_process_image_failed))
                     }
                 }
             }

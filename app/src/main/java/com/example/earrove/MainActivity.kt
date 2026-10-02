@@ -5,34 +5,60 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.earrove.data.privacy.PrivacyRepositoryImpl
+import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
+import com.example.earrove.ui.common.StartupConfigAndPermissionGate
 import com.example.earrove.ui.help.HelpScreen
 import com.example.earrove.ui.home.HomeScreen
 import com.example.earrove.ui.navigation.NavigationScreen
 import com.example.earrove.ui.ocr.OcrScreen
 import com.example.earrove.ui.settings.SettingsScreen
-import com.example.earrove.ui.common.StartupConfigAndPermissionGate
 import com.example.earrove.ui.theme.EarRoveTheme
 import com.example.earrove.ui.theme.PremiumGold
 import com.example.earrove.ui.theme.PureBlack
 import com.example.earrove.ui.theme.PureWhite
-import com.example.earrove.data.privacy.PrivacyRepositoryImpl
-import com.example.earrove.domain.usecase.privacy.PrivacyConsentInteractor
-import androidx.compose.foundation.background
 import com.example.earrove.utils.rememberTTSManager
 import kotlinx.coroutines.delay
 
@@ -45,7 +71,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             EarRoveTheme {
                 // 先把隐私关卡走完，再决定是进主应用还是停在协议页
-                PrivacyCheckWrapper()   // 使用隐私检查包装器
+                PrivacyCheckWrapper() // 使用隐私检查包装器
             }
         }
     }
@@ -354,10 +380,7 @@ private fun PrivacyPolicySummary(
  * 详细隐私政策内容
  */
 @Composable
-private fun DetailedPrivacyPolicy(
-    policyText: String,
-    onBack: () -> Unit
-) {
+private fun DetailedPrivacyPolicy(policyText: String, onBack: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -391,10 +414,7 @@ private fun DetailedPrivacyPolicy(
  * 百度地图隐私政策内容
  */
 @Composable
-private fun BaiduMapPrivacyPolicy(
-    summaryText: String,
-    onBack: () -> Unit
-) {
+private fun BaiduMapPrivacyPolicy(summaryText: String, onBack: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -444,11 +464,7 @@ private fun BaiduMapPrivacyPolicy(
  * 操作按钮区域
  */
 @Composable
-private fun ActionButtons(
-    allChecked: Boolean,
-    onAgree: () -> Unit,
-    onDisagree: () -> Unit
-) {
+private fun ActionButtons(allChecked: Boolean, onAgree: () -> Unit, onDisagree: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -537,7 +553,7 @@ fun EarRoveApp() {
                     return@LaunchedEffect
                 }
             }
-            
+
             // 降级策略：如果10次检查后仍然未初始化，强制进入应用
             // FIXME: 后续可先统计超时比例，再决定是否继续放行
             Log.w("MainActivity", "百度地图SDK初始化超时，强制进入应用")

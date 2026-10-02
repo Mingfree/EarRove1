@@ -1,18 +1,20 @@
 package com.example.earrove.navigation
 
 import com.example.earrove.domain.arbitration.TrafficLightStatus
+import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlin.random.Random
 
 data class TrafficLight(
     val status: TrafficLightStatus,
-    val countdown: Int, // 秒
-    val distance: Int // 米
+    // 秒
+    val countdown: Int,
+    // 米
+    val distance: Int
 )
 
 class TrafficLightService {

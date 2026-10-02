@@ -12,9 +12,7 @@ import com.example.earrove.utils.PrivacyUtils
  * `SmokeNavigationAndSettingsTest` 依赖固定的文件名与 key 名预置同意状态，
  * 因此本次只下沉「读写位置」，不改「存储契约」。
  */
-class PrivacyRepositoryImpl(
-    context: Context
-) : PrivacyRepository {
+class PrivacyRepositoryImpl(context: Context) : PrivacyRepository {
 
     private val appContext = context.applicationContext
 
@@ -22,23 +20,20 @@ class PrivacyRepositoryImpl(
         appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    override fun isFirstLaunch(): Boolean =
-        prefs.getBoolean(KEY_FIRST_LAUNCH, true)
+    override fun isFirstLaunch(): Boolean = prefs.getBoolean(KEY_FIRST_LAUNCH, true)
 
     override fun markAsNotFirstLaunch() {
         prefs.edit().putBoolean(KEY_FIRST_LAUNCH, false).apply()
     }
 
-    override fun hasUserAgreedToAppPrivacy(): Boolean =
-        prefs.getBoolean(KEY_APP_PRIVACY_AGREED, false)
+    override fun hasUserAgreedToAppPrivacy(): Boolean = prefs.getBoolean(KEY_APP_PRIVACY_AGREED, false)
 
     override fun saveAppPrivacyAgreement(agreed: Boolean) {
         prefs.edit().putBoolean(KEY_APP_PRIVACY_AGREED, agreed).apply()
         Log.d(TAG, "应用隐私政策同意状态已保存: $agreed")
     }
 
-    override fun hasUserAgreedToBaiduMapPrivacy(): Boolean =
-        prefs.getBoolean(KEY_BAIDU_MAP_PRIVACY_AGREED, false)
+    override fun hasUserAgreedToBaiduMapPrivacy(): Boolean = prefs.getBoolean(KEY_BAIDU_MAP_PRIVACY_AGREED, false)
 
     override fun saveBaiduMapPrivacyAgreement(agreed: Boolean) {
         prefs.edit().putBoolean(KEY_BAIDU_MAP_PRIVACY_AGREED, agreed).apply()
@@ -61,8 +56,7 @@ class PrivacyRepositoryImpl(
         }
     }
 
-    override fun isBaiduSDKMarkedAsInitialized(): Boolean =
-        prefs.getBoolean(KEY_BAIDU_SDK_INITIALIZED, false)
+    override fun isBaiduSDKMarkedAsInitialized(): Boolean = prefs.getBoolean(KEY_BAIDU_SDK_INITIALIZED, false)
 
     override fun markBaiduSDKAsInitialized(initialized: Boolean) {
         prefs.edit().putBoolean(KEY_BAIDU_SDK_INITIALIZED, initialized).apply()
@@ -78,10 +72,9 @@ class PrivacyRepositoryImpl(
         }
     }
 
-    override fun areAllPrivacyAgreementsAccepted(): Boolean =
-        hasUserAgreedToAppPrivacy() &&
-            hasUserAgreedToBaiduMapPrivacy() &&
-            isBaiduSDKMarkedAsInitialized()
+    override fun areAllPrivacyAgreementsAccepted(): Boolean = hasUserAgreedToAppPrivacy() &&
+        hasUserAgreedToBaiduMapPrivacy() &&
+        isBaiduSDKMarkedAsInitialized()
 
     override fun clearAllPrivacyAgreements() {
         prefs.edit()
@@ -93,13 +86,9 @@ class PrivacyRepositoryImpl(
         Log.d(TAG, "所有隐私政策同意状态已清除")
     }
 
-    override fun isBaiduSDKSafeInitialized(): Boolean =
-        PrivacyUtils.isBaiduSDKSafeInitialized()
+    override fun isBaiduSDKSafeInitialized(): Boolean = PrivacyUtils.isBaiduSDKSafeInitialized()
 
-    override fun retryBaiduSDKInitialization(
-        onSuccess: (() -> Unit)?,
-        onFailure: ((String) -> Unit)?
-    ) {
+    override fun retryBaiduSDKInitialization(onSuccess: (() -> Unit)?, onFailure: ((String) -> Unit)?) {
         if (!hasUserAgreedToBaiduMapPrivacy()) {
             onFailure?.invoke("用户未同意百度地图隐私政策")
             return
@@ -118,11 +107,9 @@ class PrivacyRepositoryImpl(
         )
     }
 
-    override fun getPrivacyPolicyText(): String =
-        PrivacyUtils.getPrivacyPolicyText()
+    override fun getPrivacyPolicyText(): String = PrivacyUtils.getPrivacyPolicyText()
 
-    override fun getBaiduMapPrivacySummary(): String =
-        PrivacyUtils.getBaiduMapPrivacySummary()
+    override fun getBaiduMapPrivacySummary(): String = PrivacyUtils.getBaiduMapPrivacySummary()
 
     private companion object {
         const val TAG = "PrivacyRepository"

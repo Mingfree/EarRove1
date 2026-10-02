@@ -1,6 +1,8 @@
 package com.example.earrove.utils
 
 import android.util.Log
+import java.io.IOException
+import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -13,17 +15,13 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
-import kotlin.coroutines.resume
 
 /**
  * 目的地提取器
  * 使用 DashScope 通义千问大模型，从用户自然语言中提取目的地名称，
  * 返回适合传给百度地图地理编码的干净地名。
  */
-class DestinationExtractor(
-    private val client: OkHttpClient = OkHttpClient()
-) {
+class DestinationExtractor(private val client: OkHttpClient = OkHttpClient()) {
     companion object {
         private val TAG = AppConfig.getLogTag("DestinationExtractor")
 
@@ -66,33 +64,32 @@ class DestinationExtractor(
         }
     }
 
-    private suspend fun callApi(userText: String): String =
-        suspendCancellableCoroutine { cont ->
-            val body = buildRequestBody(userText)
-            val request = Request.Builder()
-                .url(API_URL)
-                .header("Authorization", "Bearer ${AppConfig.DASHSCOPE_API_KEY}")
-                .header("Content-Type", "application/json")
-                .post(body.toString().toRequestBody(JSON_TYPE))
-                .build()
+    private suspend fun callApi(userText: String): String = suspendCancellableCoroutine { cont ->
+        val body = buildRequestBody(userText)
+        val request = Request.Builder()
+            .url(API_URL)
+            .header("Authorization", "Bearer ${AppConfig.DASHSCOPE_API_KEY}")
+            .header("Content-Type", "application/json")
+            .post(body.toString().toRequestBody(JSON_TYPE))
+            .build()
 
-            val call = client.newCall(request)
-            cont.invokeOnCancellation { call.cancel() }
+        val call = client.newCall(request)
+        cont.invokeOnCancellation { call.cancel() }
 
-            call.enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    if (cont.isActive) cont.resume("")
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                if (cont.isActive) cont.resume("")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val result = response.use {
+                    if (!it.isSuccessful || it.body == null) return@use ""
+                    parseResponse(it.body!!.string())
                 }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val result = response.use {
-                        if (!it.isSuccessful || it.body == null) return@use ""
-                        parseResponse(it.body!!.string())
-                    }
-                    if (cont.isActive) cont.resume(result)
-                }
-            })
-        }
+                if (cont.isActive) cont.resume(result)
+            }
+        })
+    }
 
     private fun buildRequestBody(userText: String): JSONObject {
         val systemMsg = JSONObject().apply {

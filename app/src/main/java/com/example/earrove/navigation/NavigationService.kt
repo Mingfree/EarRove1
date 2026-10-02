@@ -12,8 +12,6 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory
 import com.baidu.mapapi.map.MapView
 import com.baidu.mapapi.map.MarkerOptions
 import com.baidu.mapapi.map.MyLocationConfiguration
-import com.baidu.mapapi.map.MyLocationData
-import com.baidu.mapapi.map.OverlayOptions
 import com.baidu.mapapi.map.PolylineOptions
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.search.core.SearchResult
@@ -70,7 +68,10 @@ class NavigationService(context: Context) {
     init {
         routePlanSearch.setOnGetRoutePlanResultListener(object : OnGetRoutePlanResultListener {
             override fun onGetWalkingRouteResult(result: WalkingRouteResult?) {
-                if (result?.error == SearchResult.ERRORNO.NO_ERROR && result.routeLines != null && result.routeLines.isNotEmpty()) {
+                if (result?.error == SearchResult.ERRORNO.NO_ERROR &&
+                    result.routeLines != null &&
+                    result.routeLines.isNotEmpty()
+                ) {
                     // 修改1: routePlans -> routeLines
                     val route = result.routeLines[0] as WalkingRouteLine
 
@@ -251,14 +252,12 @@ class NavigationService(context: Context) {
         return bitmap
     }
 
-    private fun parseTurnType(instruction: String): TurnDirection {
-        return when {
-            instruction.contains("左转") -> TurnDirection.LEFT
-            instruction.contains("右转") -> TurnDirection.RIGHT
-            instruction.contains("直行") || instruction.contains("前进") -> TurnDirection.STRAIGHT
-            instruction.contains("到达") || instruction.contains("目的") -> TurnDirection.ARRIVE
-            else -> TurnDirection.CONTINUE
-        }
+    private fun parseTurnType(instruction: String): TurnDirection = when {
+        instruction.contains("左转") -> TurnDirection.LEFT
+        instruction.contains("右转") -> TurnDirection.RIGHT
+        instruction.contains("直行") || instruction.contains("前进") -> TurnDirection.STRAIGHT
+        instruction.contains("到达") || instruction.contains("目的") -> TurnDirection.ARRIVE
+        else -> TurnDirection.CONTINUE
     }
 
     fun release() {

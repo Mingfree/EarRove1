@@ -122,13 +122,11 @@ class SettingsViewModel(
             homeAddressGeocodeVerifier: HomeAddressGeocodeVerifier
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return SettingsViewModel(
-                    settingsInteractor,
-                    privacyInteractor,
-                    homeAddressGeocodeVerifier
-                ) as T
-            }
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = SettingsViewModel(
+                settingsInteractor,
+                privacyInteractor,
+                homeAddressGeocodeVerifier
+            ) as T
         }
 
         fun defaultFactory(androidContext: android.content.Context): ViewModelProvider.Factory {

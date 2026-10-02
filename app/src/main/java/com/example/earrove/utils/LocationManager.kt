@@ -7,14 +7,9 @@ import com.baidu.location.BDLocation
 import com.baidu.location.LocationClient
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.SDKInitializer
-import com.baidu.mapapi.model.LatLng
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-
-// 不再需要 BaiduMapInitializer 对象，因为已经在 Application 中初始化了
 
 class LocationManager(context: Context) {
     private val locationClient: LocationClient

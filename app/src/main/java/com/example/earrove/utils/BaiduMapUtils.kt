@@ -2,7 +2,6 @@ package com.example.earrove.utils
 
 import android.location.Location
 import android.util.Log
-import kotlin.math.roundToInt
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.search.core.SearchResult
 import com.baidu.mapapi.search.geocode.GeoCodeResult
@@ -10,24 +9,25 @@ import com.baidu.mapapi.search.geocode.GeoCoder
 import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener
+import com.baidu.mapapi.search.poi.PoiCitySearchOption
 import com.baidu.mapapi.search.poi.PoiDetailResult
 import com.baidu.mapapi.search.poi.PoiDetailSearchResult
 import com.baidu.mapapi.search.poi.PoiIndoorResult
 import com.baidu.mapapi.search.poi.PoiNearbySearchOption
 import com.baidu.mapapi.search.poi.PoiResult
 import com.baidu.mapapi.search.poi.PoiSearch
-import com.baidu.mapapi.search.poi.PoiCitySearchOption
 import com.baidu.mapapi.search.poi.PoiSortType
 import com.baidu.mapapi.search.sug.OnGetSuggestionResultListener
 import com.baidu.mapapi.search.sug.SuggestionResult
 import com.baidu.mapapi.search.sug.SuggestionSearch
 import com.baidu.mapapi.search.sug.SuggestionSearchOption
+import kotlin.coroutines.resume
+import kotlin.math.roundToInt
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 
 object BaiduMapUtils {
     private const val TAG = "BaiduMapUtils"
@@ -58,39 +58,33 @@ object BaiduMapUtils {
         lastSearchError = error?.toString()
     }
 
-    private fun inferGeoCityPrefix(address: String): String? =
-        GEO_CITY_PREFIXES.firstOrNull { address.startsWith(it) }
+    private fun inferGeoCityPrefix(address: String): String? = GEO_CITY_PREFIXES.firstOrNull { address.startsWith(it) }
 
     /** 地址任意位置包含的已知城市（用于「B省B市」这类非前缀的省市表述） */
-    private fun inferCityContained(address: String): String? =
-        GEO_CITY_PREFIXES.firstOrNull { address.contains(it) }
+    private fun inferCityContained(address: String): String? = GEO_CITY_PREFIXES.firstOrNull { address.contains(it) }
 
     /** 综合推断地址所属城市：优先前缀，其次任意位置包含 */
-    private fun inferCity(address: String): String? =
-        inferGeoCityPrefix(address) ?: inferCityContained(address)
+    private fun inferCity(address: String): String? = inferGeoCityPrefix(address) ?: inferCityContained(address)
 
     /**
      * 地址是否显式指定了省/市。含「省」字，或包含已知城市名（如「北京市」）。
      * 用于语音目的地解析：用户指定了地区时不应再用「就近搜索」覆盖其指定地区。
      */
-    fun hasExplicitRegion(address: String): Boolean =
-        address.contains("省") || inferCityContained(address) != null
+    fun hasExplicitRegion(address: String): Boolean = address.contains("省") || inferCityContained(address) != null
 
     /**
      * 周边检索返回的 [com.baidu.mapapi.search.core.PoiInfo.distance] 在部分机型/SDK 上恒为 0，
      * 此时用当前检索中心点与 POI 坐标计算直线距离（米）作为展示与排序依据。
      */
-    private fun distanceFromSearchCenterMeters(
-        center: LatLng,
-        poiLatLng: LatLng,
-        sdkDistanceMeters: Int?
-    ): Int {
+    private fun distanceFromSearchCenterMeters(center: LatLng, poiLatLng: LatLng, sdkDistanceMeters: Int?): Int {
         val d = sdkDistanceMeters
         if (d != null && d > 0) return d
         val results = FloatArray(1)
         Location.distanceBetween(
-            center.latitude, center.longitude,
-            poiLatLng.latitude, poiLatLng.longitude,
+            center.latitude,
+            center.longitude,
+            poiLatLng.latitude,
+            poiLatLng.longitude,
             results
         )
         return results[0].roundToInt().coerceAtLeast(0)
@@ -202,45 +196,44 @@ object BaiduMapUtils {
         return lat in 17.2..55.0 && lng in 72.0..136.0
     }
 
-    private suspend fun firstLatLngFromSuggestion(keyword: String): LatLng? =
-        suspendCancellableCoroutine { cont ->
-            if (keyword.isBlank()) {
-                cont.resume(null)
-                return@suspendCancellableCoroutine
-            }
-            val sug = SuggestionSearch.newInstance()
-            fun finish(value: LatLng?) {
-                runCatching { sug.destroy() }
-                if (cont.isActive) cont.resume(value)
-            }
-            sug.setOnGetSuggestionResultListener(object : OnGetSuggestionResultListener {
-                override fun onGetSuggestionResult(result: SuggestionResult?) {
-                    val pt = if (result != null && result.error == SearchResult.ERRORNO.NO_ERROR) {
-                        result.allSuggestions
-                            ?.mapNotNull { it.pt }
-                            ?.firstOrNull()
-                    } else {
-                        Log.w(TAG, "Sug 联想无结果: keyword=$keyword, error=${result?.error}")
-                        recordError(result?.error)
-                        null
-                    }
-                    finish(pt)
-                }
-            })
-            val ok = runCatching {
-                val sugCity = inferCity(keyword) ?: "全国"
-                val option = SuggestionSearchOption()
-                    .keyword(keyword)
-                    .city(sugCity)
-                    .citylimit(false)
-                sug.requestSuggestion(option)
-            }.getOrElse { e ->
-                Log.e(TAG, "Sug 检索发起失败", e)
-                false
-            }
-            if (!ok) finish(null)
-            cont.invokeOnCancellation { runCatching { sug.destroy() } }
+    private suspend fun firstLatLngFromSuggestion(keyword: String): LatLng? = suspendCancellableCoroutine { cont ->
+        if (keyword.isBlank()) {
+            cont.resume(null)
+            return@suspendCancellableCoroutine
         }
+        val sug = SuggestionSearch.newInstance()
+        fun finish(value: LatLng?) {
+            runCatching { sug.destroy() }
+            if (cont.isActive) cont.resume(value)
+        }
+        sug.setOnGetSuggestionResultListener(object : OnGetSuggestionResultListener {
+            override fun onGetSuggestionResult(result: SuggestionResult?) {
+                val pt = if (result != null && result.error == SearchResult.ERRORNO.NO_ERROR) {
+                    result.allSuggestions
+                        ?.mapNotNull { it.pt }
+                        ?.firstOrNull()
+                } else {
+                    Log.w(TAG, "Sug 联想无结果: keyword=$keyword, error=${result?.error}")
+                    recordError(result?.error)
+                    null
+                }
+                finish(pt)
+            }
+        })
+        val ok = runCatching {
+            val sugCity = inferCity(keyword) ?: "全国"
+            val option = SuggestionSearchOption()
+                .keyword(keyword)
+                .city(sugCity)
+                .citylimit(false)
+            sug.requestSuggestion(option)
+        }.getOrElse { e ->
+            Log.e(TAG, "Sug 检索发起失败", e)
+            false
+        }
+        if (!ok) finish(null)
+        cont.invokeOnCancellation { runCatching { sug.destroy() } }
+    }
 
     private suspend fun firstLatLngFromPoiCity(keyword: String, city: String): LatLng? =
         suspendCancellableCoroutine { cont ->
@@ -255,9 +248,9 @@ object BaiduMapUtils {
             }
             poiSearch.setOnGetPoiSearchResultListener(object : OnGetPoiSearchResultListener {
                 override fun onGetPoiResult(result: PoiResult?) {
-                    val pt = if (result?.error == SearchResult.ERRORNO.NO_ERROR
-                        && result.allPoi != null
-                        && result.allPoi.isNotEmpty()
+                    val pt = if (result?.error == SearchResult.ERRORNO.NO_ERROR &&
+                        result.allPoi != null &&
+                        result.allPoi.isNotEmpty()
                     ) {
                         result.allPoi[0].location
                     } else {
@@ -312,22 +305,21 @@ object BaiduMapUtils {
      * @param center   当前位置（经纬度）
      * @param radius   搜索半径（米），默认 50km
      */
-    fun searchNearby(
-        keyword: String,
-        center: LatLng,
-        radius: Int = POI_SEARCH_RADIUS
-    ): Flow<LatLng?> = callbackFlow {
+    fun searchNearby(keyword: String, center: LatLng, radius: Int = POI_SEARCH_RADIUS): Flow<LatLng?> = callbackFlow {
         val poiSearch = PoiSearch.newInstance()
 
         val listener = object : OnGetPoiSearchResultListener {
             override fun onGetPoiResult(result: PoiResult?) {
-                if (result?.error == SearchResult.ERRORNO.NO_ERROR
-                    && result.allPoi != null
-                    && result.allPoi.isNotEmpty()
+                if (result?.error == SearchResult.ERRORNO.NO_ERROR &&
+                    result.allPoi != null &&
+                    result.allPoi.isNotEmpty()
                 ) {
                     // 结果已按距离排序，取第一个（最近）
                     val nearest = result.allPoi[0]
-                    Log.d(TAG, "POI 周边搜索成功: ${nearest.name} (${nearest.location.latitude}, ${nearest.location.longitude})")
+                    Log.d(
+                        TAG,
+                        "POI 周边搜索成功: ${nearest.name} (${nearest.location.latitude}, ${nearest.location.longitude})"
+                    )
                     trySend(nearest.location)
                 } else {
                     Log.w(TAG, "POI 周边搜索无结果，回退到地理编码: ${result?.error}")
@@ -458,8 +450,4 @@ object BaiduMapUtils {
     }
 }
 
-data class NearbyPoiCandidate(
-    val name: String,
-    val location: LatLng,
-    val distanceMeters: Int
-)
+data class NearbyPoiCandidate(val name: String, val location: LatLng, val distanceMeters: Int)

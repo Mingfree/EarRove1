@@ -4,9 +4,7 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.baidu.mapapi.CoordType
 import com.baidu.mapapi.SDKInitializer
-import com.baidu.mapapi.common.BaiduMapSDKException
 import com.example.earrove.di.AppContainer
 
 class MyApplication : Application() {
@@ -19,9 +17,7 @@ class MyApplication : Application() {
         private lateinit var instance: MyApplication
 
         @JvmStatic
-        fun getInstance(): MyApplication {
-            return instance
-        }
+        fun getInstance(): MyApplication = instance
 
         // SDK初始化状态
         private var sdkInitializationAttempted = false
@@ -144,61 +140,64 @@ class MyApplication : Application() {
      * 检查百度地图SDK是否已成功初始化
      * 现在结合多个状态检查
      */
-    fun isBaiduMapSDKInitialized(): Boolean {
-        return try {
-            // 检查四个状态的一致性
-            val privacyAgreed = container.privacyRepository.hasUserAgreedToBaiduMapPrivacy()
-            val markedInitialized = container.privacyRepository.isBaiduSDKMarkedAsInitialized()
-            val actualInitialized = container.privacyRepository.isBaiduSDKSafeInitialized()
-            val appStateInitialized = sdkInitializationSuccess
+    fun isBaiduMapSDKInitialized(): Boolean = try {
+        // 检查四个状态的一致性
+        val privacyAgreed = container.privacyRepository.hasUserAgreedToBaiduMapPrivacy()
+        val markedInitialized = container.privacyRepository.isBaiduSDKMarkedAsInitialized()
+        val actualInitialized = container.privacyRepository.isBaiduSDKSafeInitialized()
+        val appStateInitialized = sdkInitializationSuccess
 
-            Log.d("MyApplication", "SDK状态检查: " +
-                    "隐私同意=$privacyAgreed, " +
-                    "标记初始化=$markedInitialized, " +
-                    "实际初始化=$actualInitialized, " +
-                    "应用状态=$appStateInitialized")
+        Log.d(
+            "MyApplication",
+            "SDK状态检查: " +
+                "隐私同意=$privacyAgreed, " +
+                "标记初始化=$markedInitialized, " +
+                "实际初始化=$actualInitialized, " +
+                "应用状态=$appStateInitialized"
+        )
 
-            // 所有状态都应该一致
-            val isInitialized = privacyAgreed &&
-                    markedInitialized &&
-                    actualInitialized &&
-                    appStateInitialized
+        // 所有状态都应该一致
+        val isInitialized = privacyAgreed &&
+            markedInitialized &&
+            actualInitialized &&
+            appStateInitialized
 
-            if (!isInitialized && privacyAgreed) {
-                // 如果隐私已同意但状态不一致，尝试修复
-                Log.w("MyApplication", "SDK状态不一致，尝试修复...")
-                if (markedInitialized != actualInitialized) {
-                    container.privacyRepository.markBaiduSDKAsInitialized(actualInitialized)
-                }
-
-                if (!actualInitialized && !sdkInitializationAttempted) {
-                    // 如果实际未初始化且未尝试过，尝试初始化
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        initializeBaiduMapSDK()
-                    }, 1000)
-                }
+        if (!isInitialized && privacyAgreed) {
+            // 如果隐私已同意但状态不一致，尝试修复
+            Log.w("MyApplication", "SDK状态不一致，尝试修复...")
+            if (markedInitialized != actualInitialized) {
+                container.privacyRepository.markBaiduSDKAsInitialized(actualInitialized)
             }
 
-            isInitialized
-        } catch (e: Exception) {
-            Log.e("MyApplication", "检查SDK初始化状态异常: ${e.message}")
-            false
+            if (!actualInitialized && !sdkInitializationAttempted) {
+                // 如果实际未初始化且未尝试过，尝试初始化
+                Handler(Looper.getMainLooper()).postDelayed({
+                    initializeBaiduMapSDK()
+                }, 1000)
+            }
         }
+
+        isInitialized
+    } catch (e: Exception) {
+        Log.e("MyApplication", "检查SDK初始化状态异常: ${e.message}")
+        false
     }
 
     /**
      * 获取SDK初始化状态的详细报告
      */
-    fun getBaiduSDKStatusReport(): Map<String, Any> {
-        return mapOf(
-            "privacyAgreed" to container.privacyRepository.hasUserAgreedToBaiduMapPrivacy(),
-            "markedInitialized" to container.privacyRepository.isBaiduSDKMarkedAsInitialized(),
-            "actualInitialized" to container.privacyRepository.isBaiduSDKSafeInitialized(),
-            "appAttempted" to sdkInitializationAttempted,
-            "appSuccess" to sdkInitializationSuccess,
-            "sdkInitialized" to try { SDKInitializer.isInitialized() } catch (e: Exception) { false }
-        )
-    }
+    fun getBaiduSDKStatusReport(): Map<String, Any> = mapOf(
+        "privacyAgreed" to container.privacyRepository.hasUserAgreedToBaiduMapPrivacy(),
+        "markedInitialized" to container.privacyRepository.isBaiduSDKMarkedAsInitialized(),
+        "actualInitialized" to container.privacyRepository.isBaiduSDKSafeInitialized(),
+        "appAttempted" to sdkInitializationAttempted,
+        "appSuccess" to sdkInitializationSuccess,
+        "sdkInitialized" to try {
+            SDKInitializer.isInitialized()
+        } catch (e: Exception) {
+            false
+        }
+    )
 
     /**
      * 强制重新初始化SDK（用于调试或恢复）

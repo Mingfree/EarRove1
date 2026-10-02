@@ -29,10 +29,13 @@ object AppConfig {
 
     /** TTS 语速（0-9） */
     const val TTS_SPEED = "5"
+
     /** TTS 音量（0-15） */
     const val TTS_VOLUME = "9"
+
     /** TTS 音调（0-9） */
     const val TTS_PITCH = "5"
+
     /** 发音人（0=度小美 女声） */
     const val TTS_SPEAKER = "0"
 
@@ -65,8 +68,10 @@ object AppConfig {
 
     /** 大模型模型名 */
     const val LLM_MODEL = "qwen-flash"
+
     /** 大模型最大 token */
     const val LLM_MAX_TOKENS = 100
+
     /** 大模型温度（低温度 = 更确定的结果） */
     const val LLM_TEMPERATURE = 0.1
 
@@ -74,10 +79,13 @@ object AppConfig {
 
     /** 火山引擎 Ark API Key（通过 BuildConfig 注入） */
     val ARK_API_KEY: String = BuildConfig.ARK_API_KEY
+
     /** Ark API 基础地址 */
     const val ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
+
     /** Doubao Mini 极速模型 */
     const val ARK_MODEL = "doubao-seed-2-0-mini-260215"
+
     /** OCR 固定提示语 */
     const val ARK_OCR_PROMPT = "识别图中文字内容，包括指示牌、路标、说明书、书本、标签、菜单等，简洁概括，回复不超过100字"
 

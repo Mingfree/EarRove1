@@ -6,9 +6,7 @@ import com.example.earrove.domain.model.SettingsSnapshot
 /**
  * 设置相关读写的用例入口，UI 与工具类通过此类访问 [SettingsRepository]，便于 mock。
  */
-class SettingsInteractor(
-    private val settingsRepository: SettingsRepository
-) {
+class SettingsInteractor(private val settingsRepository: SettingsRepository) {
     fun loadSnapshot(): SettingsSnapshot = SettingsSnapshot(
         ttsSpeechRate = settingsRepository.getTtsSpeechRate(),
         hapticEnabled = settingsRepository.isHapticEnabled(),

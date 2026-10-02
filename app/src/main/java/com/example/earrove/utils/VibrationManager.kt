@@ -14,10 +14,7 @@ import com.example.earrove.data.settings.SettingsRepositoryImpl
 import com.example.earrove.domain.arbitration.ArbitrationHaptics
 import com.example.earrove.domain.arbitration.TurnDirection
 
-class VibrationManager(
-    context: Context,
-    private val settingsRepository: SettingsRepository
-) : ArbitrationHaptics {
+class VibrationManager(context: Context, private val settingsRepository: SettingsRepository) : ArbitrationHaptics {
     constructor(context: Context) : this(context, SettingsRepositoryImpl(context))
 
     private val appContext = context.applicationContext

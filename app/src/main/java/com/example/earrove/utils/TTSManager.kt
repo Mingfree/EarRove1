@@ -14,22 +14,19 @@ import android.view.accessibility.AccessibilityManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.example.earrove.MyApplication
+import com.example.earrove.data.settings.SettingsRepository
+import com.example.earrove.data.settings.SettingsRepositoryImpl
+import com.example.earrove.domain.arbitration.ArbitrationSpeech
+import java.util.Locale
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Locale
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
-import com.example.earrove.data.settings.SettingsRepository
-import com.example.earrove.data.settings.SettingsRepositoryImpl
-import com.example.earrove.MyApplication
-import com.example.earrove.domain.arbitration.ArbitrationSpeech
 
-class TTSManager(
-    context: Context,
-    private val settingsRepository: SettingsRepository
-) : ArbitrationSpeech {
+class TTSManager(context: Context, private val settingsRepository: SettingsRepository) : ArbitrationSpeech {
     constructor(context: Context) : this(context, SettingsRepositoryImpl(context))
 
     private val appContext: Context = context.applicationContext
@@ -157,9 +154,18 @@ class TTSManager(
                 }
             }
 
-            baiduSynthesizer?.setParam(com.baidu.tts.client.SpeechSynthesizer.PARAM_API_KEY, AppConfig.BAIDU_TTS_API_KEY)
-            baiduSynthesizer?.setParam(com.baidu.tts.client.SpeechSynthesizer.PARAM_SECRET_KEY, AppConfig.BAIDU_TTS_SECRET_KEY)
-            baiduSynthesizer?.setParam(com.baidu.tts.client.SpeechSynthesizer.PARAM_ONLINE_SPEAKER, AppConfig.TTS_SPEAKER)
+            baiduSynthesizer?.setParam(
+                com.baidu.tts.client.SpeechSynthesizer.PARAM_API_KEY,
+                AppConfig.BAIDU_TTS_API_KEY
+            )
+            baiduSynthesizer?.setParam(
+                com.baidu.tts.client.SpeechSynthesizer.PARAM_SECRET_KEY,
+                AppConfig.BAIDU_TTS_SECRET_KEY
+            )
+            baiduSynthesizer?.setParam(
+                com.baidu.tts.client.SpeechSynthesizer.PARAM_ONLINE_SPEAKER,
+                AppConfig.TTS_SPEAKER
+            )
             baiduSynthesizer?.setParam(com.baidu.tts.client.SpeechSynthesizer.PARAM_ONLINE_TIMEOUT, "3000")
 
             val err = baiduSynthesizer?.loadOnlineTts()

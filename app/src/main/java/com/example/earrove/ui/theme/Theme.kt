@@ -5,27 +5,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PremiumGold,           // Core interactive elements
-    onPrimary = PureBlack,           // Text on primary elements
-    background = PureBlack,          // App background
-    surface = DeepGray,              // Surface for cards, sheets etc.
-    onBackground = PureWhite,        // Default text color
-    onSurface = PureWhite,           // Text on surfaces
+    primary = PremiumGold, // Core interactive elements
+    onPrimary = PureBlack, // Text on primary elements
+    background = PureBlack, // App background
+    surface = DeepGray, // Surface for cards, sheets etc.
+    onBackground = PureWhite, // Default text color
+    onSurface = PureWhite, // Text on surfaces
     onSurfaceVariant = OnSurfaceMuted, // Captions, placeholders, less prominent text
-    error = WarningOrange,           // For warnings
-    onError = PureBlack              // Text on warning elements
+    error = WarningOrange, // For warnings
+    onError = PureBlack // Text on warning elements
 )
 
 @Composable
-fun EarRoveTheme(
-    content: @Composable () -> Unit
-) {
+fun EarRoveTheme(content: @Composable () -> Unit) {
     val colorScheme = DarkColorScheme
     val typography = EarRoveTypography
     val view = LocalView.current

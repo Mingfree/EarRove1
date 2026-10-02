@@ -102,16 +102,11 @@ class Arbitrator(
 }
 
 @Composable
-fun rememberArbitrator(
-    context: Context,
-    ttsManager: TTSManager,
-    vibrationManager: VibrationManager
-): Arbitrator {
-    return remember {
+fun rememberArbitrator(context: Context, ttsManager: TTSManager, vibrationManager: VibrationManager): Arbitrator =
+    remember {
         Arbitrator(
             textProvider = AndroidArbitrationTextProvider(context),
             speech = ttsManager,
             haptics = vibrationManager
         )
     }
-}

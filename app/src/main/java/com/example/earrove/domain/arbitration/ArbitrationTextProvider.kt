@@ -10,4 +10,3 @@ interface ArbitrationTextProvider {
     fun destinationText(name: String): String
     fun routeStartText(destination: String, distance: Int, durationMinutes: Int): String
 }
-

@@ -21,10 +21,7 @@ interface PrivacyRepository {
     fun clearAllPrivacyAgreements()
 
     fun isBaiduSDKSafeInitialized(): Boolean
-    fun retryBaiduSDKInitialization(
-        onSuccess: (() -> Unit)? = null,
-        onFailure: ((String) -> Unit)? = null
-    )
+    fun retryBaiduSDKInitialization(onSuccess: (() -> Unit)? = null, onFailure: ((String) -> Unit)? = null)
 
     fun getPrivacyPolicyText(): String
     fun getBaiduMapPrivacySummary(): String

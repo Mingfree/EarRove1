@@ -43,16 +43,15 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.earrove.R
-import kotlinx.coroutines.launch
 import com.example.earrove.ui.common.EarRoveTopAppBar
 import com.example.earrove.ui.theme.AppSpacing
 import com.example.earrove.ui.theme.EarRoveTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(navController: NavController) {
@@ -113,8 +112,11 @@ fun SettingsScreen(navController: NavController) {
 
     val a11ySpeechRateDesc = stringResource(id = R.string.a11y_speech_rate_slider_desc, uiState.ttsSpeechRate)
     val a11yHapticToggleDesc =
-        if (uiState.hapticEnabled) stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
-        else stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
+        if (uiState.hapticEnabled) {
+            stringResource(id = R.string.a11y_haptic_toggle_desc_enabled)
+        } else {
+            stringResource(id = R.string.a11y_haptic_toggle_desc_disabled)
+        }
     val a11ySimulatedNavAlertsDesc =
         if (uiState.simulatedNavAlertsEnabled) {
             stringResource(id = R.string.a11y_simulated_nav_alerts_toggle_desc_enabled)

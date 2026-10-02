@@ -11,4 +11,6 @@ indent_style = space
 indent_size = 4
 max_line_length = 120
 ktlint_code_style = android_studio
+# Compose 约定：@Composable 函数使用 PascalCase，不按普通函数命名规则报错
+ktlint_function_naming_ignore_when_annotated_with = Composable
 

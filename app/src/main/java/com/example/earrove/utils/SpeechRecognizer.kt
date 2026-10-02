@@ -12,6 +12,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,9 +28,6 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString.Companion.toByteString
 import org.json.JSONObject
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * 语音识别管理器（阿里百炼 DashScope Paraformer 实时 ASR 封装）
@@ -127,32 +127,35 @@ class SpeechRecognizerManager(context: Context) {
             .header("Authorization", "bearer ${AppConfig.DASHSCOPE_API_KEY}")
             .build()
 
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) {
-                Log.i(TAG, "WebSocket connected")
-                sendRunTask(ws)
-            }
+        webSocket = client.newWebSocket(
+            request,
+            object : WebSocketListener() {
+                override fun onOpen(ws: WebSocket, response: Response) {
+                    Log.i(TAG, "WebSocket connected")
+                    sendRunTask(ws)
+                }
 
-            override fun onMessage(ws: WebSocket, text: String) {
-                handleServerMessage(text) { result ->
-                    trySend(result)
+                override fun onMessage(ws: WebSocket, text: String) {
+                    handleServerMessage(text) { result ->
+                        trySend(result)
+                        cleanup()
+                        close()
+                    }
+                }
+
+                override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                    Log.e(TAG, "WebSocket failure: ${t.message}", t)
                     cleanup()
+                    trySend("")
                     close()
                 }
-            }
 
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
-                Log.e(TAG, "WebSocket failure: ${t.message}", t)
-                cleanup()
-                trySend("")
-                close()
+                override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                    Log.i(TAG, "WebSocket closed: $code $reason")
+                    cleanup()
+                }
             }
-
-            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
-                Log.i(TAG, "WebSocket closed: $code $reason")
-                cleanup()
-            }
-        })
+        )
 
         awaitClose {
             stopListeningInternal()
@@ -292,7 +295,10 @@ class SpeechRecognizerManager(context: Context) {
 
         audioRecord = AudioRecord(
             MediaRecorder.AudioSource.MIC,
-            SAMPLE_RATE, CHANNEL, ENCODING, bufferSize
+            SAMPLE_RATE,
+            CHANNEL,
+            ENCODING,
+            bufferSize
         )
 
         if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {

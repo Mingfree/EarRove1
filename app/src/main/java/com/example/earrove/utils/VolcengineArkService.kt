@@ -1,6 +1,7 @@
 package com.example.earrove.utils
 
 import android.util.Log
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -9,7 +10,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 /**
  * 火山引擎 Ark API 服务
@@ -67,7 +67,6 @@ class VolcengineArkService {
             val resultText = parseChatCompletionsResult(responseBody)
             Log.d(TAG, "识别结果: $resultText")
             Result.success(resultText)
-
         } catch (e: Exception) {
             Log.e(TAG, "图像识别异常: ${e.message}", e)
             Result.failure(e)
@@ -80,9 +79,12 @@ class VolcengineArkService {
     private fun buildChatCompletionsBody(imageDataUrl: String): String {
         val imageContent = JSONObject().apply {
             put("type", "image_url")
-            put("image_url", JSONObject().apply {
-                put("url", imageDataUrl)
-            })
+            put(
+                "image_url",
+                JSONObject().apply {
+                    put("url", imageDataUrl)
+                }
+            )
         }
 
         val textContent = JSONObject().apply {
@@ -133,7 +135,6 @@ class VolcengineArkService {
 
             Log.w(TAG, "未能从响应中提取结果: $responseBody")
             return "无法解析识别结果"
-
         } catch (e: Exception) {
             Log.e(TAG, "解析响应异常: ${e.message}", e)
             return "解析识别结果失败"

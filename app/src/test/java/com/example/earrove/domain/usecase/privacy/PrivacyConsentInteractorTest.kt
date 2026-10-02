@@ -41,10 +41,7 @@ class PrivacyConsentInteractorTest {
         }
 
         override fun isBaiduSDKSafeInitialized() = false
-        override fun retryBaiduSDKInitialization(
-            onSuccess: (() -> Unit)?,
-            onFailure: ((String) -> Unit)?
-        ) {
+        override fun retryBaiduSDKInitialization(onSuccess: (() -> Unit)?, onFailure: ((String) -> Unit)?) {
         }
 
         override fun getPrivacyPolicyText() = "policy"
@@ -66,4 +63,3 @@ class PrivacyConsentInteractorTest {
         assertEquals(false, repo.hasUserAgreedToBaiduMapPrivacy())
     }
 }
-

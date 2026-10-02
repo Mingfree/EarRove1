@@ -83,4 +83,3 @@ class ArbitratorTest {
         testScheduler.advanceUntilIdle()
     }
 }
-

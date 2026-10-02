@@ -1,11 +1,11 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
-
-import java.util.Properties
-import java.io.FileInputStream
 
 android {
     namespace = "com.example.earrove"
@@ -44,7 +44,8 @@ android {
         val baiduMapKey = (localProps.getProperty("BAIDU_MAP_API_KEY") ?: "YOUR-BAIDU-MAP-KEY").trim()
         val baiduAppId = (localProps.getProperty("BAIDU_SPEECH_APP_ID") ?: "YOUR-BAIDU-SPEECH-APP-ID").trim()
         val baiduSpeechApiKey = (localProps.getProperty("BAIDU_SPEECH_API_KEY") ?: "YOUR-BAIDU-SPEECH-API-KEY").trim()
-        val baiduSpeechSecretKey = (localProps.getProperty("BAIDU_SPEECH_SECRET_KEY") ?: "YOUR-BAIDU-SPEECH-SECRET-KEY").trim()
+        val baiduSpeechSecretKey =
+            (localProps.getProperty("BAIDU_SPEECH_SECRET_KEY") ?: "YOUR-BAIDU-SPEECH-SECRET-KEY").trim()
         val baiduTtsApiKey = (localProps.getProperty("BAIDU_TTS_API_KEY") ?: "YOUR-BAIDU-TTS-API-KEY").trim()
         val baiduTtsSecretKey = (localProps.getProperty("BAIDU_TTS_SECRET_KEY") ?: "YOUR-BAIDU-TTS-SECRET-KEY").trim()
         val arkApiKey = (localProps.getProperty("ARK_API_KEY") ?: "YOUR-ARK-API-KEY").trim()

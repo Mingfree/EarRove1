@@ -59,10 +59,7 @@ class SettingsViewModelTest {
             override fun areAllPrivacyAgreementsAccepted() = true
             override fun clearAllPrivacyAgreements() {}
             override fun isBaiduSDKSafeInitialized() = true
-            override fun retryBaiduSDKInitialization(
-                onSuccess: (() -> Unit)?,
-                onFailure: ((String) -> Unit)?
-            ) {
+            override fun retryBaiduSDKInitialization(onSuccess: (() -> Unit)?, onFailure: ((String) -> Unit)?) {
             }
 
             override fun getPrivacyPolicyText() = ""
@@ -71,8 +68,7 @@ class SettingsViewModelTest {
         return PrivacyConsentInteractor(repo)
     }
 
-    private fun verifierFixed(outcome: HomeAddressGeocodeOutcome) =
-        HomeAddressGeocodeVerifier { outcome }
+    private fun verifierFixed(outcome: HomeAddressGeocodeOutcome) = HomeAddressGeocodeVerifier { outcome }
 
     @Test
     fun onTtsSpeechRateChange_updatesState() {

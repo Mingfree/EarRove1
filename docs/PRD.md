@@ -1,7 +1,17 @@
 # <font style="color:rgb(31, 31, 31);">产品需求文档 (PRD): EarRove 聆途 - 视障辅助平台</font>
+
+> ⚠️ **历史草稿说明（2026-10 标注）**：本文档为早期产品设想，与当前仓库实现存在以下关键差异。当前实现的权威说明以《设计与开发文档.md》与《使用说明-详细版.md》为准。
+
+| 项 | 本文档设想 | 当前实现 |
+| --- | --- | --- |
+| 文字识别（F-VIS-01） | 本地 Google ML Kit（模型内置、不上传） | 火山引擎 Ark 云端识别（图片经网络上传） |
+| 服务端 | Python 后端 + 用户数据库 | 无独立服务端（见《设计与开发文档》§3.2） |
+| 红绿灯（F-NAV-03） | 百度 Lamp API 真实倒计时 | 随机模拟（设置页「提示模式」开关，默认关闭） |
+| 避障（F-NAV-04） | 摄像头实时视觉检测 | 随机模拟（同上） |
+
 | **<font style="color:rgb(31, 31, 31);">文档版本</font>** | **<font style="color:rgb(31, 31, 31);">日期</font>** | **<font style="color:rgb(31, 31, 31);">状态</font>** | **<font style="color:rgb(31, 31, 31);">备注</font>** |
 | --- | --- | --- | --- |
-| <font style="color:rgb(31, 31, 31);">v1.0</font> | <font style="color:rgb(31, 31, 31);">2026-01-17</font> | **<font style="color:rgb(31, 31, 31);">草稿版</font>** | <font style="color:rgb(31, 31, 31);">确立本地化AI策略，移除盲道视觉检测，固化震动交互规范</font> |
+| <font style="color:rgb(31, 31, 31);">v1.0</font> | <font style="color:rgb(31, 31, 31);">2026-01-17</font> | **<font style="color:rgb(31, 31, 31);">历史草稿</font>** | <font style="color:rgb(31, 31, 31);">早期设想，与当前实现有差异（见文首差异对照）</font> |
 
 
 ## <font style="color:rgb(31, 31, 31);">1. 项目概述</font>
